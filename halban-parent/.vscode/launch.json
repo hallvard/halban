@@ -1,0 +1,49 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "SokobanApp",
+            "request": "launch",
+            "mainClass": "sokoban.app/no.hal.sokoban.app.SokobanApp",
+            "projectName": "sokoban-app"
+        },
+        {
+            "type": "java",
+            "name": "RunLengthEncoding",
+            "request": "launch",
+            "mainClass": "sokoban.game/no.hal.sokoban.parser.RunLengthEncoding",
+            "projectName": "sokoban-game"
+        },
+        {
+            "type": "java",
+            "name": "SokobanParser",
+            "request": "launch",
+            "mainClass": "sokoban.game/no.hal.sokoban.parser.SokobanParser",
+            "projectName": "sokoban-game"
+        },
+        {
+            "type": "java",
+            "name": "BorgarNetLevelCollectionsProvider",
+            "request": "launch",
+            "mainClass": "sokoban.levels/no.hal.sokoban.levels.borgarnet.BorgarNetLevelCollectionsProvider",
+            "projectName": "sokoban-levels"
+        },
+        {
+            "type": "java",
+            "name": "SourcecodeSeLevelCollectionsProvider",
+            "request": "launch",
+            "mainClass": "sokoban.levels/no.hal.sokoban.levels.sourcecodese.SourcecodeSeLevelCollectionsProvider",
+            "projectName": "sokoban-levels"
+        }
+    ]
+}

@@ -1,0 +1,30 @@
+{
+  "resources":{
+  "includes":[
+    {
+      "pattern":"\\QMETA-INF/services/no.hal.plugin.Plugin\\E"
+    }, 
+    {
+      "pattern":"\\Qno/hal/sokoban/levels/borgarnet/Howard's 4 set.txt\\E"
+    }, 
+    {
+      "pattern":"\\Qno/hal/sokoban/levels/borgarnet/Nabokosmos.txt\\E"
+    }
+  ]},
+  "bundles":[
+    {
+      "name":"com.sun.javafx.tk.quantum.QuantumMessagesBundle",
+      "locales":[
+        "", 
+        "und"
+      ]
+    }, 
+    {
+      "name":"com/sun/javafx/scene/control/skin/resources/controls",
+      "locales":[
+        "", 
+        "und"
+      ]
+    }
+  ]
+}

@@ -263,4 +263,58 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>android</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.gluonhq</groupId>
+                        <artifactId>gluonfx-maven-plugin</artifactId>
+                        <version>1.0.19</version>
+                        <configuration>
+                            <mainClass>sokoban.app/no.hal.sokoban.app.SokobanApp</mainClass>
+                            <graalvmHome>/home/gitpod/.sdkman/candidates/java/22.1.0.1.r17-gln</graalvmHome>
+                            <resourcesList>
+                            </resourcesList>
+                            <releaseConfiguration>
+                                <!-- all targets
+                                <packageType></packageType>
+                                <description></description>
+                                <vendor></vendor>
+                                -->
+                                <!-- macOS
+                                <macAppStore></macAppStore>
+                                <macSigningUserName></macSigningUserName>
+                                <macAppCategory></macAppCategory>
+                                -->
+                                <!-- macOS/iO
+                                <bundleName></bundleName>
+                                <bundleVersion>1.0</bundleVersion>
+                                <bundleShortVersion>1.0</bundleShortVersion>
+                                <providedSigningIdentity></providedSigningIdentity>
+                                <providedProvisioningProfile></providedProvisioningProfile>
+                                -->
+                                <skipSigning>true</skipSigning>
+                                <!-- iOS Simulator
+                                <simulatorDevice></simulatorDevice>
+                                -->
+                                <!-- Android -->
+                                <appLabel>Halban</appLabel>
+                                <versionCode>1</versionCode>
+                                <versionName>1.0</versionName>
+                                <!--
+                                <providedKeyStorePath>${android-keystore-path}</providedKeyStorePath>
+                                <providedKeyStorePassword>${android-keystore-password}</providedKeyStorePassword>
+                                <providedKeyAlias>${android-key-alias}</providedKeyAlias>
+                                <providedKeyAliasPassword>${android-key-password}</providedKeyAliasPassword>
+                                -->
+                            </releaseConfiguration> 
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

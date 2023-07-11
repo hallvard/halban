@@ -224,7 +224,7 @@
                 <version>1.0.19</version>
                 <configuration>
                     <mainClass>sokoban.app/no.hal.sokoban.app.SokobanApp</mainClass>
-                    <graalvmHome>/Users/hal/.sdkman/candidates/java/22.3.r19-grl</graalvmHome>
+                    <graalvmHome>${env.HOME}/.sdkman/candidates/java/22.1.0.1.r17-gln</graalvmHome>
                     <resourcesList>
                     </resourcesList>
                     <releaseConfiguration>
@@ -274,6 +274,7 @@
                         <artifactId>gluonfx-maven-plugin</artifactId>
                         <version>1.0.19</version>
                         <configuration>
+                            <target>android</target>
                             <mainClass>sokoban.app/no.hal.sokoban.app.SokobanApp</mainClass>
                             <graalvmHome>/home/gitpod/.sdkman/candidates/java/22.1.0.1.r17-gln</graalvmHome>
                             <resourcesList>

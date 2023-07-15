@@ -20,9 +20,22 @@ public interface SokobanGameState extends Moves {
 	SokobanGrid.Location getPlayerLocation();
 
 	public interface Listener {
+
 		void gameStarted(SokobanGameState game);
 		void moveDone(SokobanGameState game, Move move);
 		void moveUndone(SokobanGameState game, Move move);
+
+		public static class Impl implements Listener {
+			public void gameStarted(SokobanGameState game) {}
+			public void moveDone(SokobanGameState game, Move move) {
+				moveDone(game, move, false);
+			}
+			public void moveUndone(SokobanGameState game, Move move) {
+				moveDone(game, move, true);
+			}
+			protected void moveDone(SokobanGameState game, Move move, boolean isUndo) {
+			}
+		}
 	}
 
 	void addGameListener(Listener listener);

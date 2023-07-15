@@ -20,23 +20,9 @@ public class MovesSlowdownController {
 
     private boolean active = false;
 
-    private SokobanGameState.Listener sokobanGameListener = new SokobanGameState.Listener() {
-
+    private SokobanGameState.Listener sokobanGameListener = new SokobanGameState.Listener.Impl() {
         @Override
-        public void gameStarted(SokobanGameState game) {
-        }
-
-        @Override
-        public void moveDone(SokobanGameState game, Move move) {
-            slowDown();
-        }
-
-        @Override
-        public void moveUndone(SokobanGameState game, Move move) {
-            slowDown();
-        }
-
-        private void slowDown() {
+        protected void moveDone(SokobanGameState game, Move move, boolean isUndo) {
             if (active) {
                 try {
                     Thread.sleep(slowdown);

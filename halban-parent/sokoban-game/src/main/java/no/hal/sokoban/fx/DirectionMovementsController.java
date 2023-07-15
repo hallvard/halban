@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
@@ -51,13 +53,21 @@ public class DirectionMovementsController extends SokobanGameHelperController {
 	}
 
 	private Button createMovementButton(Node graphic, Direction direction, boolean moveAlong, int col, int row) {
+		return createGridButton(graphic, col, row, actionEvent -> movePlayer(direction, moveAlong));
+	}
+
+	private Button createGridButton(Node graphic, int col, int row, EventHandler<ActionEvent> eventHandler) {
 		Button button = new Button(null, graphic);
-		button.setOnAction(actionEvent -> movePlayer(direction, moveAlong));
-		GridPane.setColumnIndex(button, col);
-		GridPane.setRowIndex(button, row);
-		GridPane.setHalignment(button, HPos.CENTER);
-		GridPane.setValignment(button, VPos.CENTER);
+		button.setOnAction(eventHandler);
+		setGridConstraints(button, col, row);
 		return button;
+	}
+
+	private void setGridConstraints(Node node, int col, int row) {
+		GridPane.setColumnIndex(node, col);
+		GridPane.setRowIndex(node, row);
+		GridPane.setHalignment(node, HPos.CENTER);
+		GridPane.setValignment(node, VPos.CENTER);
 	}
 
 	@Override

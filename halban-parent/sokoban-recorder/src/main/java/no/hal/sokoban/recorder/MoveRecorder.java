@@ -2,27 +2,21 @@ package no.hal.sokoban.recorder;
 
 import java.util.ArrayList;
 import java.util.List;
+import no.hal.gridgame.Grid.Location;
 
 import no.hal.sokoban.LocationMovesCounters;
 import no.hal.sokoban.Move;
 import no.hal.sokoban.Moves;
-import no.hal.sokoban.SokobanGame;
-import no.hal.sokoban.SokobanGameState;
 import no.hal.sokoban.SokobanGrid;
 
 public class MoveRecorder implements MoveRecordingLocationData {
 
-    private SokobanGame.Provider sokobanGameProvider;
     private SokobanGrid.Location startLocation;
     
     private List<Move> moves;
     private LocationMovesCounters counters;
 
     public MoveRecorder() {
-    }
-    public MoveRecorder(SokobanGame.Provider sokobanGameProvider) {
-        this.sokobanGameProvider = sokobanGameProvider;
-        this.sokobanGameProvider.addGameListener(sokobanGameListener);
     }
 
     @Override
@@ -35,42 +29,33 @@ public class MoveRecorder implements MoveRecordingLocationData {
         return counters;
     }
 
-    private SokobanGameState.Listener sokobanGameListener = new SokobanGameState.Listener() {
-
-        @Override
-        public void gameStarted(SokobanGameState game) {
-            if (MoveRecorder.this.sokobanGameProvider.getSokobanGame() != null) {
-                MoveRecorder.this.sokobanGameProvider.getSokobanGame().removeGameListener(sokobanGameListener);
-            }
-            moves = null;
+    public void recordMoveDone(Location location, Move move) {
+        if (moves != null) {
+            moves.addAll(move.getMoves());
         }
+        if (counters != null) {
+            counters.plus(location, move);
+        }
+    }
     
-        @Override
-        public void moveDone(SokobanGameState game, Move move) {
-            if (moves != null) {
-                moves.addAll(move.getMoves());
-            }
-            if (counters != null) {
-                counters.plus(game.getPlayerLocation(), move);
-            }
+    public void recordMoveUndone(Location location, Move move) {
+        if (moves != null) {
+            moves.removeAll(move.getMoves());
         }
-    
-        @Override
-        public void moveUndone(SokobanGameState game, Move move) {
-            if (moves != null) {
-                moves.removeAll(move.getMoves());
-            }
-            if (counters != null) {
-                counters.minus(game.getPlayerLocation(), move);
-            }
+        if (counters != null) {
+            counters.minus(location, move);
         }
-    };
+    }
 
-    public void startRecording() {
-        this.startLocation = sokobanGameProvider.getSokobanGame().getPlayerLocation();
+    public void startRecording(Location location) {
+        this.startLocation = location;
         this.moves = new ArrayList<>();
         this.counters = new LocationMovesCounters();
-   }
+    }
+
+    public boolean isRecording() {
+        return this.startLocation != null;
+    }
 
     public MoveRecording stopRecording() {
         var recording = new MoveRecording(startLocation, Moves.of(this.moves), counters);

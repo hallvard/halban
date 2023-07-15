@@ -276,7 +276,7 @@
                         <configuration>
                             <target>android</target>
                             <mainClass>sokoban.app/no.hal.sokoban.app.SokobanApp</mainClass>
-                            <graalvmHome>/home/gitpod/.sdkman/candidates/java/22.1.0.1.r17-gln</graalvmHome>
+                            <graalvmHome>${env.HOME}/.sdkman/candidates/java/22.1.0.1.r17-gln</graalvmHome>
                             <resourcesList>
                             </resourcesList>
                             <releaseConfiguration>

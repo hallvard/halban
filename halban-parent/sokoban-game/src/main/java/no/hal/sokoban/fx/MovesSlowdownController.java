@@ -1,6 +1,8 @@
 package no.hal.sokoban.fx;
 
+import java.util.function.Supplier;
 import no.hal.sokoban.Move;
+import no.hal.sokoban.Moves;
 import no.hal.sokoban.SokobanGameState;
 import no.hal.sokoban.SokobanGame;
 
@@ -32,17 +34,20 @@ public class MovesSlowdownController {
         }
     };
 
-    public void withSlowMoves(Runnable movements) {
+    public void withSlowMoves(Supplier<Moves> movements) {
         withSlowMoves(sokobanGameProvider.getSokobanGame(), slowdown, movements);
     }
 
-    private void withSlowMoves(SokobanGame game, int slowdown, Runnable movements) {
+    private void withSlowMoves(SokobanGame game, int slowdown, Supplier<Moves> movements) {
 		if (! active) {
             game.addGameListener(sokobanGameListener);
 			active = true;
 			new Thread(() -> {
 				try {
-					movements.run();
+                    Moves moves = movements.get();
+                    if (moves != null) {
+                        game.movePlayer(moves);
+                    }
 				} finally {
                     game.removeGameListener(sokobanGameListener);
 					active = false;

@@ -29,7 +29,10 @@ public record MovesCounter(int moves, int pushes) {
     }
     
     public MovesCounter of(Move move) {
-        int dm = move.isPush() ? 0 : 1;
+        int dm = switch (move.moveKind()) {
+            case MOVE -> 1;
+            case PUSH -> 0;
+        };
         return new MovesCounter(dm, 1 - dm);
     }
     public MovesCounter plus(Move move) {

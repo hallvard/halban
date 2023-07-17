@@ -14,7 +14,10 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import no.hal.gridgame.Direction;
+import no.hal.sokoban.Move;
+import no.hal.sokoban.Moves;
 import no.hal.sokoban.SokobanGame;
+import no.hal.sokoban.impl.MovesComputer;
 
 public class DirectionMovementsController extends SokobanGameHelperController {
 
@@ -84,9 +87,10 @@ public class DirectionMovementsController extends SokobanGameHelperController {
 
 	protected boolean movePlayer(Direction direction, boolean moveAlong) {
 		if (getSokobanGameState() != null) {
-			var isPush = getSokobanGameActions().movePlayer(direction);
-			if (isPush != null && !isPush && moveAlong) {
-				getSokobanGameActions().movePlayerAlong(direction);
+			var moveKind = getSokobanGameActions().movePlayer(direction);
+			if (moveKind == Move.Kind.MOVE && moveAlong) {
+				Moves moves = MovesComputer.computeMovesAlong(getSokobanGameState(), direction);
+				getSokobanGameActions().movePlayer(moves);
 			}
 			return true;
 		}

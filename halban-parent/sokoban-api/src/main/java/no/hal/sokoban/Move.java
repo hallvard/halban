@@ -5,27 +5,27 @@ import java.util.List;
 
 import no.hal.gridgame.Direction;
 
-public record Move(Direction direction, boolean isPush) implements Moves {
+public record Move(Direction direction, Kind moveKind) implements Moves {
+
+	public enum Kind {
+		MOVE, PUSH
+	}
 
 	public Move(Direction direction) {
-		this(direction, false);
+		this(direction, Kind.MOVE);
 	}
 
 	public Move(char c) {
-		this(Direction.valueOf(c), isPush(c));
+		this(Direction.valueOf(c), moveKind(c));
 	}
 
-	public static boolean isPush(char c) {
-		return Character.isUpperCase(c);
+	public static Kind moveKind(char c) {
+		return Character.isUpperCase(c) ? Kind.PUSH : Kind.MOVE;
 	}
 
 	public char toChar() {
 		char c = direction.toChar();
-		return isPush ? toPush(c) : c;
-	}
-
-	public static char toPush(char c) {
-		return Character.toUpperCase(c);
+		return moveKind(c) == Kind.PUSH ? Character.toUpperCase(c) : c;
 	}
 	
 	@Override

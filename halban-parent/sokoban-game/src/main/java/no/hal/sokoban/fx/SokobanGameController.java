@@ -32,6 +32,7 @@ import no.hal.sokoban.SokobanGrid.CellKind;
 import no.hal.sokoban.SokobanGrid.ContentKind;
 import no.hal.sokoban.SokobanGrid.FloorKind;
 import no.hal.sokoban.impl.AbstractSokobanGameProvider;
+import no.hal.sokoban.impl.MovesComputer;
 import no.hal.sokoban.impl.SokobanGameImpl;
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.plugin.fx.FxExtensionPoint;
@@ -240,11 +241,12 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 			if (dx * dy == 0 && dx + dy != 0) {
 				var direction = Direction.valueOf(dx, dy);
 				if (pressedContent == ContentKind.BOX) {
+					Moves moves = MovesComputer.computeBoxMoves(sokobanGame, lastLocation.x(), lastLocation.y(), direction);
 					movesSlowdownController.withSlowMoves(() -> {
-						Moves moves = sokobanGame.moveBox(lastLocation.x(), lastLocation.y(), direction);
 						if (moves != null) {
 							this.lastLocation = location;
 						}
+						return moves;
 					});
 				} else {
 					var isPush = sokobanGame.movePlayer(direction);
@@ -258,7 +260,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 
 	protected void mouseReleased(SokobanGrid.Location location) {
 		if (location != null && location.equals(pressedLocation) && pressedContent == ContentKind.EMPTY) {
-			movesSlowdownController.withSlowMoves(() -> sokobanGame.movePlayerTo(location.x(), location.y()));
+			movesSlowdownController.withSlowMoves(() -> MovesComputer.computeMovesTo(sokobanGame, location.x(), location.y()));
 		}
 		pressedContent = null;
 		lastLocation = null;

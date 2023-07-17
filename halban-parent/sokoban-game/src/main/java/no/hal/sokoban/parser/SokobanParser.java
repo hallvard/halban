@@ -109,6 +109,9 @@ public class SokobanParser {
     public static SokobanGrid getSokobanGrid(String[] gridLines) {
         return getSokobanGrid(Arrays.asList(gridLines));
     }
+    public static SokobanGrid getSokobanGrid(String grid) {
+        return getSokobanGrid(Arrays.asList(grid.split("\n")));
+    }
 
     private void putIfMissingAndNonNull(Map<String, String> target, String property, String value) {
         if (value != null && (! target.containsKey(property))) {

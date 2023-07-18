@@ -16,6 +16,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: maven
 
       - name: mvn test
         run: cd halban-parent && mvn --batch-mode --update-snapshots test

@@ -20,17 +20,27 @@ jobs:
       - name: mvn package
         run: cd halban-parent && mvn --batch-mode --update-snapshots install
 
+      - name: Setup Gluon's GraalVM
+        uses: gluonhq/setup-graalvm@master
+
+      - name: Install linux libraries
+        run: |
+          sudo apt-get update
+          sudo apt install libasound2-dev libavcodec-dev libavformat-dev libavutil-dev libgl-dev libgtk-3-dev libpango1.0-dev libxtst-dev
+
       - name: mvn gluonfx:build
-        run: cd halban-parent && mvn --batch-mode --update-snapshots gluonfx:build -f sokoban-app -P android
-
-      - name: mvn gluonfx:package
-        run: cd halban-parent && mvn --batch-mode --update-snapshots gluonfx:package -f sokoban-app -P android
-
-      - name: Make staging directory
-        run: mkdir staging
+        run: cd halban-parent && mvn --batch-mode --update-snapshots gluonfx:build gluonfx:package -f sokoban-app -P android
 
       - name: Copy packages to staging
-        run: ls target/gluonfx/aarch64-android/gvm
+        run: |
+          mkdir staging
+          cp -r target/gluonfx/aarch64-android/gvm/halban.* staging
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: Package
+          path: staging
 
 #      - name: Upload
 #        uses: actions/upload-artifact@v2

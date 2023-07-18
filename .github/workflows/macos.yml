@@ -1,4 +1,4 @@
-name: Android
+name: Macos
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -20,17 +20,14 @@ jobs:
       - name: mvn package
         run: cd halban-parent && mvn --batch-mode --update-snapshots package
 
-      - name: mvn gluonfx:build
-        run: cd halban-parent && mvn --batch-mode --update-snapshots gluonfx:build -f sokoban-app -P android
-
-      - name: mvn gluonfx:package
-        run: cd halban-parent && mvn --batch-mode --update-snapshots gluonfx:package -f sokoban-app -P android
+      - name: mvn package
+        run: cd halban-parent && mvn --batch-mode --update-snapshots jpackage:jpackage -f sokoban-app
 
       - name: Make staging directory
         run: mkdir staging
 
       - name: Copy packages to staging
-        run: ls target/gluonfx/aarch64-android/gvm
+        run: ls target/*/*
 
 #      - name: Upload
 #        uses: actions/upload-artifact@v2

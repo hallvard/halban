@@ -129,6 +129,9 @@
                                 <module>sokoban.app</module>
                                 <module>sokoban.levels</module>
                                 <module>sokoban.recorder</module>
+                                <module>javafx.base</module>
+                                <module>javafx.graphics</module>
+                                <module>javafx.controls</module>
                             </modules>
                             <launcher>
                                 <name>halban</name>

@@ -18,7 +18,7 @@ jobs:
           distribution: 'temurin'
 
       - name: mvn package
-        run: cd halban-parent && mvn --batch-mode --update-snapshots package
+        run: cd halban-parent && mvn --batch-mode --update-snapshots install
 
       - name: mvn package
         run: cd halban-parent && mvn --batch-mode --update-snapshots jpackage:jpackage -f sokoban-app

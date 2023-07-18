@@ -27,8 +27,11 @@ jobs:
       - name: Make staging directory
         run: mkdir staging
 
+      - name: Where am i
+        run: pwd
+
       - name: Copy packages to staging
-        run: ls target/*/*
+        run: ls halban-parent/sokoban-app/target/*/*
 
 #      - name: Upload
 #        uses: actions/upload-artifact@v3

@@ -22,7 +22,7 @@ jobs:
 
       - name: Setup Gluon's GraalVM
         uses: gluonhq/setup-graalvm@master
-        env:
+        with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install linux libraries
@@ -31,7 +31,9 @@ jobs:
           sudo apt install libasound2-dev libavcodec-dev libavformat-dev libavutil-dev libgl-dev libgtk-3-dev libpango1.0-dev libxtst-dev
 
       - name: mvn gluonfx:build
-        run: cd halban-parent && mvn --batch-mode --update-snapshots gluonfx:build gluonfx:package -f sokoban-app -P android
+        run: |
+          export ANDROID_SDK=$ANDROID_HOME
+          cd halban-parent && mvn --batch-mode --update-snapshots gluonfx:build gluonfx:package -f sokoban-app -P android
 
       - name: Copy packages to staging
         run: |

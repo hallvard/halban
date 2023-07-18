@@ -131,4 +131,34 @@ public class SokobanGameImplTest {
         var moves = MovesComputer.computeBoxMoves(sokobanGame, 2, 2, Direction.DOWN);
         checkMoves(List.of(new Move(Direction.UP, Move.Kind.MOVE), new Move(Direction.RIGHT, Move.Kind.MOVE), new Move(Direction.DOWN, Move.Kind.PUSH)), moves);
     }
+
+    @Test
+    public void testMovePlayer_Moves() {
+        var moves = MovesComputer.computeBoxMoves(sokobanGame, 2, 2, Direction.DOWN);
+        sokobanGame.movePlayer(moves);
+        checkBoxMoves();
+    }
+
+    private void checkBoxMoves() {
+        checkCellKind(CellKind.EMPTY_PLAYER, 2, 2);
+        checkPlayerLocation(2, 2);
+        checkCellKind(CellKind.EMPTY_BOX, 2, 3);
+    }
+
+    @Test
+    public void testUndo() {
+        var moves = MovesComputer.computeBoxMoves(sokobanGame, 2, 2, Direction.DOWN);
+        sokobanGame.movePlayer(moves);
+        sokobanGame.undo();
+        testSetUp();
+    }
+
+    @Test
+    public void testRedo() {
+        var moves = MovesComputer.computeBoxMoves(sokobanGame, 2, 2, Direction.DOWN);
+        sokobanGame.movePlayer(moves);
+        sokobanGame.undo();
+        sokobanGame.redo();
+        checkBoxMoves();
+    }
 }

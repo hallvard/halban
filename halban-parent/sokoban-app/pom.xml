@@ -94,7 +94,7 @@
                             <goal>add-module-info</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/modules</outputDirectory>
+                            <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
                             <overwriteExistingFiles>true</overwriteExistingFiles>
                             <modules>
                                 <module>
@@ -122,7 +122,6 @@
                         <configuration>
                             <modulePath>
                                 <path>${project.build.directory}/classes</path>
-                                <path>${project.build.directory}/modules</path>
                                 <path>${project.build.directory}/dependencies</path>
                             </modulePath>
                             <modules>

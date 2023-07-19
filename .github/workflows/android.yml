@@ -36,8 +36,7 @@ jobs:
           cd halban-parent && mvn --batch-mode --update-snapshots gluonfx:build gluonfx:package -f sokoban-app -P android
 
       - name: Show files
-        run: |
-          ls -l halban-parent/sokoban-app/target/gluonfx/aarch64-android/gvm
+        run: ls -l halban-parent/sokoban-app/target/gluonfx/aarch64-android/gvm
 
       - name: Copy packages to staging
         run: |
@@ -47,11 +46,5 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: Package
+          name: Android package
           path: staging
-
-#      - name: Upload
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: Package
-#          path: staging

@@ -21,20 +21,19 @@ jobs:
       - name: mvn package
         run: cd halban-parent && mvn --batch-mode --update-snapshots install
 
-      - name: mvn package
-        run: cd halban-parent && mvn --batch-mode --update-snapshots jpackage:jpackage -f sokoban-app
+      - name: mvn jpackage
+        run: cd halban-parent && mvn --batch-mode --update-snapshots jpackage:jpackage -f sokoban-app -P macos
 
-      - name: Make staging directory
-        run: mkdir staging
-
-      - name: Where am i
-        run: pwd
+      - name: Show files
+        run: ls -l halban-parent/sokoban-app/target/gluonfx/aarch64-android/gvm
 
       - name: Copy packages to staging
-        run: ls halban-parent/sokoban-app/target/*/*
+        run: |
+          mkdir staging
+          cp halban-parent/sokoban-app/target/jpackage/halban-*.dmg staging
 
-#      - name: Upload
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: Package
-#          path: staging
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: Macos package
+          path: staging

@@ -307,7 +307,7 @@
                                 <simulatorDevice></simulatorDevice>
                                 -->
                                 <!-- Android -->
-                                <appLabel>Halban</appLabel>
+                                <appLabel>halban</appLabel>
                                 <versionCode>1</versionCode>
                                 <versionName>1.0</versionName>
                                 <!--

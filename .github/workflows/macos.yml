@@ -25,7 +25,7 @@ jobs:
         run: cd halban-parent && mvn --batch-mode --update-snapshots jpackage:jpackage -f sokoban-app -P macos
 
       - name: Show files
-        run: ls -l halban-parent/sokoban-app/target/gluonfx/aarch64-android/gvm
+        run: ls -l halban-parent/sokoban-app/target/jpackage
 
       - name: Copy packages to staging
         run: |

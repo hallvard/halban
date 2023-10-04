@@ -1,6 +1,7 @@
 package no.hal.grid.fx;
 
 import javafx.geometry.Dimension2D;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.layout.Region;
 import javafx.util.Callback;
@@ -49,14 +50,6 @@ public class GridView<T> extends Region {
 			getChildren().add(cells[pos].getNode());
 		}
 	}
-
-	public void setRowCount(int rows) {
-		setDimensions(columnCount, rows);
-	}
-
-	public void setColumnCount(int columns) {
-		setDimensions(columns, rowCount);
-	}
 		
 	public int getRowCount() {
 		return rowCount;
@@ -70,6 +63,17 @@ public class GridView<T> extends Region {
 		return x >= 0 && x < getColumnCount() && y >= 0 && y < getRowCount();
 	}
 
+	public Cell<T> getCell(int column, int row) {
+		return cells[row * columnCount + column];
+	}
+
+	public void updateCell(T item, int column, int row) {
+		Cell<T> cell = getCell(column, row);
+		cell.setGridItem(item, column, row);
+	}
+
+	// layout
+	
 	private final static Dimension2D DEFAULT_CELL_SIZE = new Dimension2D(20, 20);
     
     private Dimension2D minCellSize = DEFAULT_CELL_SIZE;
@@ -126,12 +130,33 @@ public class GridView<T> extends Region {
 		return computeHeight(maxCellSize.getHeight(), getMaxHeight(), width);
 	}
 
+	private Pos alignment = Pos.CENTER;
+
+	public Pos getAlignment() {
+		return alignment;
+	}
+
+	public void setAlignment(Pos alignment) {
+		this.alignment = alignment;
+	}
+
 	@Override
 	protected void layoutChildren() {
-        final double left = getInsets().getLeft(), top = getInsets().getTop();
-        final double computedCellWidth = (getWidth() - left - getInsets().getRight()) / columnCount;
-		final double computedCellHeight = (getHeight() - top - getInsets().getBottom()) / rowCount;
-		final double cellSize = Math.min(computedCellWidth, computedCellHeight);
+        final double contentWidth = getWidth() - getInsets().getLeft() - getInsets().getRight();
+        final double contentHeight = getHeight() - getInsets().getTop() - getInsets().getBottom();
+		final double cellSize = Math.min(contentWidth / columnCount, contentHeight / rowCount);
+		final double paddingWidth = contentWidth - cellSize * columnCount;
+		final double paddingHeight = contentHeight - cellSize * rowCount;
+		final double left = getInsets().getLeft() + switch (alignment.getHpos()) {
+			case LEFT -> 0;
+			case CENTER -> paddingWidth / 2;
+			case RIGHT -> paddingWidth;
+		};
+		final double top = getInsets().getTop() + switch (alignment.getVpos()) {
+			case TOP -> 0;
+			case CENTER -> paddingHeight / 2;
+			case BOTTOM, BASELINE -> paddingHeight;
+		};
 
 		if (cells != null) {
 			int row = 0, column = 0;
@@ -145,14 +170,5 @@ public class GridView<T> extends Region {
 				}
 			}
 		}
-	}
-
-	public Cell<T> getCell(int column, int row) {
-		return cells[row * columnCount + column];
-	}
-
-	public void updateCell(T item, int column, int row) {
-		Cell<T> cell = getCell(column, row);
-		cell.setGridItem(item, column, row);
 	}
 }

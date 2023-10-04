@@ -29,7 +29,7 @@ public class ImageGridCellFactory<T> extends GridCellFactory<T, ImageView> {
 		}
 
 		@Override
-		protected void setNodeSize(ImageView imageView, double w, double dw, double sw, double h, double dh, double sh) {
+		protected void setNodeSize(ImageView imageView, double w, double h) {
 			imageView.setFitWidth(w);
 			imageView.setFitHeight(h);
 		}

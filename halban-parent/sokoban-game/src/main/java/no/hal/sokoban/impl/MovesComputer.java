@@ -37,13 +37,12 @@ public class MovesComputer {
 			Location location = boundary.poll();
 			for (Direction direction : Direction.values()) {
 				int nx = location.x() + direction.dx, ny = location.y() + direction.dy;
-				CellKind cellKind = sokobanGrid.getCell(nx, ny);
-				Location nextLocation = new Location(nx, ny);
-				// if this is a new and unoccupied cell
-				if (directions.get(nextLocation) == null && !cellKind.isOccupied()) {
+				Location nextLocation = sokobanGrid.locationFor(nx, ny);
+				// if this is a legal, new and unoccupied cell
+				if (nextLocation != null && directions.get(nextLocation) == null && ! sokobanGrid.getCell(nx, ny).isOccupied()) {
 					// note the direction we came from
 					directions.put(nextLocation, direction);
-					// if this is goal, walk backwards (the opposite direction) and collect moves
+					// if this is the goal, walk backwards (the opposite direction) and collect moves
 					if (nx == x && ny == y) {
 						moves = new ArrayList<>();
 						while (nx != playerLocation.x() || ny != playerLocation.y()) {
@@ -65,18 +64,18 @@ public class MovesComputer {
 
     public static Move.Kind canMove(SokobanGameState sokobanGameState, int x, int y, Direction direction, Move.Kind allowedMoveKind) {
         var sokobanGrid = sokobanGameState.getSokobanGrid();
-    
 		int dx = direction.dx, dy = direction.dy;
+		CellKind forward1 = sokobanGrid.isLegalLocation(x + dx, y + dy) ? sokobanGrid.getCell(x + dx, y + dy) : null;
+		CellKind forward2 = sokobanGrid.isLegalLocation(x + dx + dx, y + dy + dy) ? sokobanGrid.getCell(x + dx + dx, y + dy + dy) : null;
+		// assume move
 		Move.Kind moveKind = Move.Kind.MOVE;
-		CellKind forward1 = sokobanGrid.getCell(x + dx, y + dy);
-		CellKind forward2 = sokobanGrid.getCell(x + dx + dx, y + dy + dy);
 		if (forward1 != null && ! forward1.isOccupied()) {
-			// move
+			// yes, move
 		} else if (forward1 != null && forward1.content() == ContentKind.BOX && forward2 != null && ! forward2.isOccupied()) {
-			// push
+			// no, is push
 			moveKind = Move.Kind.PUSH;
 		} else {
-			// no move or push
+			// neither move nor push
 			return null;
 		}
 		return (allowedMoveKind != null && moveKind != allowedMoveKind ? null : moveKind);

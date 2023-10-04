@@ -15,6 +15,10 @@ public interface SokobanLevel {
     MetaData getMetaData();
     SokobanGrid getSokobanGrid(); 
 
+    public interface Provider {
+        SokobanLevel getSokobanLevel();
+    }
+
     public interface Collection {
         MetaData getMetaData();
         List<SokobanLevel> getSokobanLevels();

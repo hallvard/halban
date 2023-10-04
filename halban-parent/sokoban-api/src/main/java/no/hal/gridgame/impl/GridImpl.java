@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import no.hal.gridgame.Grid;
-import no.hal.gridgame.GridListener;
 
 public class GridImpl<T> implements Grid<T> {
 
@@ -67,44 +66,43 @@ public class GridImpl<T> implements Grid<T> {
     }
 
     private int pos(int x, int y) {
+        if (! isLegalLocation(x, y)) {
+            throw new IllegalArgumentException(x + ", " + y + " is an illegal location");
+        }
         return y * width + x;
     }
 
     @Override
     public T getCell(int x, int y) {
-        int pos = pos(x, y);
-        if (pos < 0 || pos >= grid.length) {
-            return null;
-        }
-        return (T) grid[pos];
+        return (T) grid[pos(x, y)];
     }
 
     protected void setCell(int x, int y, T t) {
         grid[(pos(x, y))] = t;
     }
-    
+
     //
     
-    private Collection<GridListener> gridListeners = new ArrayList<GridListener>();
+    private Collection<Listener<T>> gridListeners = new ArrayList<>();
     
     @Override
-    public void addGridListener(GridListener gridListener) {
+    public void addGridListener(Listener<T> gridListener) {
         gridListeners.add(gridListener);
     }
 
     @Override
-    public void removeGridListener(GridListener gridListener) {
+    public void removeGridListener(Listener<T> gridListener) {
         gridListeners.remove(gridListener);
     }
         
     protected void fireGridDimensionsChanged(int w, int h) {
-        for (GridListener gridListener : gridListeners) {
+        for (Listener<T> gridListener : gridListeners) {
             gridListener.gridDimensionsChanged(this, w, h);
         }
     }
     
     protected void fireGridContentsChanged(int x, int y, int w, int h) {
-        for (GridListener gridListener : gridListeners) {
+        for (Listener<T> gridListener : gridListeners) {
             gridListener.gridContentsChanged(this, x, y, w, h);
         }
     }

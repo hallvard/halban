@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 import javafx.scene.shape.Circle;
 import no.hal.grid.fx.GridView.Cell;
 import no.hal.grid.fx.ShapeGridCellFactory;
+import no.hal.sokoban.fx.util.XYTransformer;
 import no.hal.sokoban.recorder.MoveRecordingLocationData;
 
 public abstract class RecordingsGridCellFactory<T> extends ShapeGridCellFactory<T, Circle> {
@@ -15,6 +16,12 @@ public abstract class RecordingsGridCellFactory<T> extends ShapeGridCellFactory<
 
 	public void addLocationData(MoveRecordingLocationData locationData) {
 		this.locationData.add(locationData);
+	}
+
+	private XYTransformer xyTransformer;
+
+	public void setXYTransformer(XYTransformer xyTransformer) {
+		this.xyTransformer = xyTransformer;
 	}
 
 	protected abstract void updateCircle(Circle circle, T item, int x, int y, Stream<MoveRecordingLocationData> locationData);
@@ -31,7 +38,12 @@ public abstract class RecordingsGridCellFactory<T> extends ShapeGridCellFactory<
 
 			@Override
 			protected void setGridItem(Circle circle, T item, int x, int y) {
-				updateCircle(circle, item, x, y, locationData.stream());
+				int tx = x, ty = y;
+				if (xyTransformer != null) {
+					tx = xyTransformer.untransformedX(x, y);
+					ty = xyTransformer.untransformedY(x, y);
+				}
+				updateCircle(circle, item, tx, ty, locationData.stream());
 			}
 
 			@Override

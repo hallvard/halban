@@ -7,7 +7,7 @@ import no.hal.grid.fx.GridView.Cell;
 import no.hal.grid.fx.ShapeGridCellFactory;
 import no.hal.sokoban.LocationMovesCounters;
 
-public class MovesCounterShapeGridCellFactory<T> extends ShapeGridCellFactory<T, Circle> {
+class MovesCounterShapeGridCellFactory<T> extends ShapeGridCellFactory<T, Circle> {
 
 	private final LocationMovesCounters counters;
 

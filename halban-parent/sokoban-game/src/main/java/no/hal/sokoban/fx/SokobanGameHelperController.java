@@ -9,7 +9,7 @@ import no.hal.sokoban.SokobanGame;
 import no.hal.sokoban.SokobanGameActions;
 import no.hal.sokoban.SokobanGameState;
 
-public abstract class SokobanGameHelperController {
+abstract class SokobanGameHelperController {
 	
 	private final SokobanGame.Provider sokobanGameProvider;
 

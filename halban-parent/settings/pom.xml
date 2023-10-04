@@ -1,0 +1,24 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>halban-settings</artifactId>
+
+    <parent>
+        <groupId>no.hal.halban</groupId>
+        <artifactId>halban-parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>api</module>
+        <module>jackson</module>
+        <module>json</module>
+        <module>props</module>
+        <module>yaml</module>
+        <module>toml</module>
+        <module>hocon</module>
+    </modules>
+</project>

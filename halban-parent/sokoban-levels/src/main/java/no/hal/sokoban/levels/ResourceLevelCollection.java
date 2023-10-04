@@ -6,6 +6,7 @@ import java.util.Map;
 
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.level.SokobanLevel.MetaData;
+import no.hal.sokoban.parser.SokobanParser;
 
 public abstract class ResourceLevelCollection extends LoadableLevelCollection {
 
@@ -45,5 +46,29 @@ public abstract class ResourceLevelCollection extends LoadableLevelCollection {
         return extractSokobanLevelsCollection(this.getClass().getResource(resourcePath));
     }
 
-    protected abstract SokobanLevel.Collection extractSokobanLevelsCollection(URL resourceUrl) throws IOException;
+    private SokobanParser sokobanParser;
+
+    protected SokobanParser createSokobanParser() {
+        return new SokobanParser();
+    }
+
+    protected SokobanParser getSokobanParser() {
+        if (sokobanParser == null) {
+            sokobanParser = createSokobanParser();
+        }
+        return sokobanParser;
+    }
+
+    protected SokobanLevel.Collection extractSokobanLevelsCollection(URL resourceUrl) throws IOException {
+        try (var input = resourceUrl.openStream()) {
+            Map<String, String> collectionProperties = Map.of(
+//                "id", getMetaData().get("id"),
+//                "uri", getMetaData().get("uri")
+            );
+            return getSokobanParser().parse(input, collectionProperties);
+        } catch (RuntimeException re) {
+            System.err.println("Exception when parsing levels from " + resourceUrl + ": " + re);
+            return null;
+        }
+    }
 }

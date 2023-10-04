@@ -28,7 +28,7 @@
         </dependency>
         <dependency>
             <groupId>no.hal.halban</groupId>
-            <artifactId>sokoban-api</artifactId>
+            <artifactId>sokoban-game</artifactId>
             <version>1.0-SNAPSHOT</version>        
         </dependency>
         <dependency>

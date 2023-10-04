@@ -6,7 +6,7 @@ import no.hal.sokoban.Moves;
 import no.hal.sokoban.SokobanGameState;
 import no.hal.sokoban.SokobanGame;
 
-public class MovesSlowdownController {
+class MovesSlowdownController {
 
     private final SokobanGame.Provider sokobanGameProvider;
     private int slowdown;

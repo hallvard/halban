@@ -1,25 +1,17 @@
 package no.hal.plugin.fx;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 import javafx.scene.image.Image;
-import no.hal.plugin.Context;
+import no.hal.plugin.InstanceRegistry;
 
-public class CompositeLabelAdapter implements LabelAdapter {
-
-    private List<LabelAdapter> labelAdapters;
+public class CompositeLabelAdapter extends CompositeAdapter<LabelAdapter> implements LabelAdapter {
 
     private CompositeLabelAdapter(Collection<LabelAdapter> labelAdapters) {
-        setLabelAdapters(labelAdapters);
+        super(labelAdapters);
     }
     private CompositeLabelAdapter(LabelAdapter... labelAdapters) {
-        this(Arrays.asList(labelAdapters));
-    }
-    public void setLabelAdapters(Collection<LabelAdapter> labelAdapters) {
-        this.labelAdapters = new ArrayList<>(labelAdapters);
+        super(labelAdapters);
     }
     
     public static CompositeLabelAdapter of(Collection<LabelAdapter> labelAdapters) {
@@ -28,28 +20,18 @@ public class CompositeLabelAdapter implements LabelAdapter {
     public static CompositeLabelAdapter of(LabelAdapter... labelAdapters) {
         return new CompositeLabelAdapter(labelAdapters);
     }
-    public static CompositeLabelAdapter fromContext(Context context) {
-        var composite = new CompositeLabelAdapter();
-        context.updateAllComponents(LabelAdapter.class, composite::setLabelAdapters);
-        return composite;
+    public static CompositeLabelAdapter fromInstanceRegistry(InstanceRegistry instanceRegistry) {
+        return fromInstanceRegistry(instanceRegistry, LabelAdapter.class, new CompositeLabelAdapter());
     }
 
     @Override
     public String getText(Object o) {
-        for (var labelAdapter : labelAdapters) {
-            if (labelAdapter.isFor(o)) {
-                var text = labelAdapter.getText(o);
-                if (text != null) {
-                    return text;
-                }
-            }
-        }
-        return null;
+        return getFirst(o, adapter -> adapter.getText(o));
     }
 
     @Override
     public Image getImage(Object o) {
-        for (var labelAdapter : labelAdapters) {
+        for (var labelAdapter : adapters) {
             if (labelAdapter.isFor(o)) {
                 var image = labelAdapter.getImage(o);
                 if (image != null) {

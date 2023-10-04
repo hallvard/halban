@@ -1,26 +1,29 @@
 package no.hal.sokoban.fx;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
+
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import javafx.application.Platform;
 import javafx.geometry.Dimension2D;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Cell;
+import javafx.scene.control.Button;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import no.hal.gridgame.Direction;
 import no.hal.grid.fx.CompositeGridCellFactory;
 import no.hal.grid.fx.GridCellFactory;
-import no.hal.plugin.Context;
+import no.hal.plugin.InstanceRegistry;
+import no.hal.plugin.Scope;
 import no.hal.sokoban.LocationMovesCounters;
 import no.hal.sokoban.Move;
 import no.hal.sokoban.Moves;
@@ -30,22 +33,36 @@ import no.hal.sokoban.SokobanGameState;
 import no.hal.sokoban.SokobanGrid;
 import no.hal.sokoban.SokobanGrid.CellKind;
 import no.hal.sokoban.SokobanGrid.ContentKind;
-import no.hal.sokoban.SokobanGrid.FloorKind;
+import no.hal.sokoban.fx.util.XYTransform;
+import no.hal.sokoban.fx.util.XYTransformStrategy;
 import no.hal.sokoban.impl.AbstractSokobanGameProvider;
 import no.hal.sokoban.impl.MovesComputer;
 import no.hal.sokoban.impl.SokobanGameImpl;
 import no.hal.sokoban.level.SokobanLevel;
-import no.hal.plugin.fx.FxExtensionPoint;
-import no.hal.plugin.fx.SimpleFxExtensionPoint;
-import no.hal.plugin.impl.ContributionContext;
+import no.hal.plugin.fx.ContentProvider;
+import no.hal.plugin.fx.xp.FxExtensionPoint;
+import no.hal.plugin.fx.xp.LabeledChildExtender;
+import no.hal.plugin.fx.xp.SimpleFxExtensionPoint;
+import no.hal.plugin.impl.InstanceRegistryImpl;
+import no.hal.settings.Settings;
 
 public class SokobanGameController extends AbstractSokobanGameProvider {
 
-	private final SokobanLevel sokobanLevel;	
-	
-	public SokobanGameController(FxExtensionPoint<Node> FxExtensionPoint, SokobanLevel sokobanLevel) {
+	private final SokobanLevel sokobanLevel;
+	private Runnable closer;
+
+	public SokobanGameController(FxExtensionPoint<LabeledChildExtender, Node> extensionPoint, SokobanLevel sokobanLevel) {
 		this.sokobanLevel = sokobanLevel;
-		FxExtensionPoint.extend(createLayout(FxExtensionPoint.getContext()));
+		closer = extensionPoint.extend(new LabeledChildExtender() {
+			@Override
+			public String getText() {
+				return sokobanLevel.getMetaData().get("Title");
+			}
+			@Override
+			public javafx.scene.Node getContent() {
+				return createLayout(extensionPoint.getInstanceRegistry());
+			}
+		});
 	}
 
 	private SokobanGame sokobanGame;
@@ -100,7 +117,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		}
 	};
 
-	private SokobanGridView sokobanGridView;
+	private SokobanGridViewer sokobanGridViewer;
 
 	private UndoRedoController undoableController;
 	private DirectionMovementsController movementController;
@@ -108,28 +125,31 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 	private Text messageText;
 
 	private Dimension2D cellSize = new Dimension2D(16, 16);
+
 	private GridCellFactory<CellKind, ?> defaultCellFactory;
 
-	private void setSokobanGridCellFactories(Collection<GridCellFactory> gridCellFactories) {
-		CompositeGridCellFactory<CellKind> compositeGridCellFactory = new CompositeGridCellFactory<>(defaultCellFactory, gridCellFactories);
-		compositeGridCellFactory.setNodeSize(cellSize);
-		sokobanGridView.setCellFactory(compositeGridCellFactory);
-	}
-
-	public Node createLayout(Context context) {
-		this.sokobanGridView = new SokobanGridView();
-		this.defaultCellFactory = sokobanGridView.getCellFactory();
+	public Node createLayout(InstanceRegistry instanceRegistry) {
+		this.sokobanGridViewer = new SokobanGridViewer(instanceRegistry.getComponent(Settings.class));
+		this.sokobanGridViewer.setXYTransformStrategy(XYTransformStrategy.PREFER_WIDTH);
+		this.defaultCellFactory = sokobanGridViewer.getCellFactory();
 
 		this.movementController = new DirectionMovementsController(this);
-		var movementPane = movementController.createLayout(sokobanGridView.getGridView());
+		this.movementController.xyTransformerProperty().bind(this.sokobanGridViewer.xyTransformerProperty());
+		var movementPane = movementController.createLayout(sokobanGridViewer.getGridView());
 
 		this.undoableController = new UndoRedoController(this);
-		var undoPane = undoableController.createLayout(sokobanGridView.getGridView());
+		var undoPane = undoableController.createLayout(sokobanGridViewer.getGridView());
 
 		setSokobanGridCellFactories(null);
 
-		var gridView = sokobanGridView.getGridView();
-		gridView.setCellSize(cellSize);
+		var gridView = sokobanGridViewer.getGridView();
+		var sokobanPane = gridView; // new StackPane(gridView);
+		sokobanPane.setAlignment(Pos.CENTER);
+		// sokobanPane.setBackground(Background.fill(Color.LIGHTSKYBLUE));
+
+		gridView.setMinCellSize(new Dimension2D(cellSize.getWidth() / 3, cellSize.getHeight() / 3));
+		gridView.setPrefCellSize(new Dimension2D(cellSize.getWidth(), cellSize.getHeight()));
+		gridView.setMaxCellSize(new Dimension2D(cellSize.getWidth() * 2, cellSize.getHeight() * 2));
 
 		gridView.setOnKeyTyped(this::keyPressed);
 		gridView.setOnKeyPressed(this::keyPressed);
@@ -139,8 +159,10 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		updateGridView();
 
 		this.messageText = new Text();
+		Button closeButton = new Button(null, new FontIcon("mdi2c-close:18"));
+		closeButton.setOnAction(actionEvent -> closer.run());
 
-		sokobanGridView.setPadding(new Insets(10));
+		sokobanPane.setPadding(new Insets(10));
 		movementPane.setPadding(new Insets(10));
 		undoPane.setPadding(new Insets(10));
 		
@@ -148,8 +170,14 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		extensionsPane.setPadding(new Insets(10));
 
 		VBox mainPane = new VBox(
+			closeButton,
+			new HBox(
+				createXYTransformButton("mdi2r-rotate-right:18", 90.0, t -> t.rotate(! t.rotate())),
+				createXYTransformButton("mdi2f-flip-horizontal:18", 0.0, t -> t.flipX(! t.flipX())),
+				createXYTransformButton("mdi2f-flip-vertical:18", 0.0, t -> t.flipY(! t.flipY()))
+			),
+			sokobanPane,
 			messageText,
-			sokobanGridView,
 			movementPane,
 			undoPane,
 			extensionsPane
@@ -157,22 +185,48 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		mainPane.setPadding(new Insets(10));
 		mainPane.setAlignment(Pos.CENTER);
 		mainPane.setFillWidth(false);
+		VBox.setVgrow(sokobanPane, Priority.ALWAYS);
 
-		Context scope = new ContributionContext(context);
+		InstanceRegistry scope = new InstanceRegistryImpl(instanceRegistry);
+		scope.registerComponent(sokobanGridViewer);
 		scope.updateAllComponents(GridCellFactory.class, this::setSokobanGridCellFactories);
-		FxExtensionPoint<Node> extensionPoint = SimpleFxExtensionPoint.forNode(scope, node -> extensionsPane.getChildren().add(node));
-		context.registerService(FxExtensionPoint.class, this, extensionPoint);
+	
+		FxExtensionPoint<ContentProvider.Child, Node> extensionPoint = SimpleFxExtensionPoint.forChild(scope, childProvider -> {
+			Node child = childProvider.getContent();
+			extensionsPane.getChildren().add(child);
+			return () -> extensionsPane.getChildren().remove(child);
+		});
+		instanceRegistry.registerInstance(extensionPoint, FxExtensionPoint.class, this);
 
 		return mainPane;
 	}
 
+	private void setSokobanGridCellFactories(Collection<GridCellFactory> gridCellFactories) {
+		CompositeGridCellFactory<CellKind> compositeGridCellFactory = new CompositeGridCellFactory<>(defaultCellFactory, gridCellFactories);
+		compositeGridCellFactory.setNodeSize(cellSize);
+		sokobanGridViewer.setCellFactory(compositeGridCellFactory);
+	}
+
+	private Button createXYTransformButton(String iconCode, double rotate, UnaryOperator<XYTransform> transformOp) {
+		var fontIcon = new FontIcon(iconCode);
+		if (rotate != 0.0) {
+			fontIcon.setRotate(rotate);
+		}
+		Button button = new Button(null, fontIcon);
+		button.setOnAction(actionEvent -> {
+			sokobanGridViewer.setXYTransform(transformOp.apply(sokobanGridViewer.getXYTransform()));
+		});
+		return button;
+	}
+
 	private void updateGridView() {
-		sokobanGridView.setSokobanGrid(sokobanGame != null ? sokobanGame.getSokobanGrid() : sokobanLevel.getSokobanGrid());
+		var sokobanGrid = sokobanGame != null ? sokobanGame.getSokobanGrid() : sokobanLevel.getSokobanGrid();
+		sokobanGridViewer.setSokobanGrid(sokobanGrid);
 		ensureKeyboardFocus();
 	}
 
 	protected void ensureKeyboardFocus() {
-		sokobanGridView.getGridView().requestFocus();
+		sokobanGridViewer.getGridView().requestFocus();
 	}
 
 	private String formatPlural(String verbFormat, int count,  boolean s) {
@@ -181,8 +235,9 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 
 	private void updateStatus() {
 		MovesCounter counter = counters.getCounter();
-		int targetsLeft = getTargetsLeft();
-		String status = (targetsLeft == 0 ? "You made it" : targetsLeft + " targets left") +
+		SokobanGrid sokobanGrid = sokobanGame.getSokobanGrid();
+		int[] targetCounters = sokobanGrid.countTargets();
+		String status = (targetCounters[1] == 0 ? "You made it" : targetCounters[1] + " of " + (targetCounters[0] + targetCounters[1]) + " targets left") +
 			", in " +
 			formatPlural("%s move%s", counter.moves(), false) +
 			" and " +
@@ -192,13 +247,6 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 
 	private void updateStatus(String text) {
 		messageText.setText(text);
-	}
-
-	private int getTargetsLeft() {
-		SokobanGrid sokobanGrid = sokobanGame.getSokobanGrid();
-		int emptyBoxes = sokobanGrid.countCells(FloorKind.TARGET, ContentKind.EMPTY);
-		int playerBoxes = sokobanGame.getSokobanGrid().countCells(FloorKind.TARGET, ContentKind.PLAYER);
-		return emptyBoxes + playerBoxes;
 	}
 	
 	protected void keyPressed(KeyEvent keyEvent) {
@@ -215,7 +263,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 	}
 
 	private void callWithGridLocation(MouseEvent mouseEvent, Consumer<SokobanGrid.Location> locationConsumer) {
-		var gridLocation = sokobanGridView.getGridLocation(mouseEvent.getPickResult().getIntersectedNode());
+		var gridLocation = sokobanGridViewer.getGridLocation(mouseEvent.getPickResult().getIntersectedNode());
 		locationConsumer.accept(gridLocation);
 		mouseEvent.consume();
 	}

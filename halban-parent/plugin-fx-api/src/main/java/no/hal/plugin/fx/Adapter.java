@@ -1,10 +1,10 @@
 package no.hal.plugin.fx;
 
-import no.hal.plugin.Context;
+import no.hal.plugin.InstanceRegistry;
 
 public interface Adapter<T> extends Acceptor<T> {
 
-    public static <T extends Adapter<?>> void contribute(Context context, Class<T> adapterClass, T adapter) {
-        context.registerService(adapterClass, adapter.forClass().getName(), adapter);
+    public static <T extends Adapter<?>> void contribute(InstanceRegistry instanceRegistry, Class<T> adapterClass, T adapter) {
+        instanceRegistry.registerInstance(adapter, adapterClass, adapter.forClass().getName());
     }
 }

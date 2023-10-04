@@ -3,7 +3,6 @@ package no.hal.sokoban.levels.borgarnet;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +17,6 @@ import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.level.SokobanLevel.MetaData;
 import no.hal.sokoban.levels.DownloadableLevelCollection;
 import no.hal.sokoban.levels.DownloadableLevelCollectionsProvider;
-import no.hal.sokoban.levels.ResourceLevelCollection;
 import no.hal.sokoban.parser.SokobanParser;
 
 public class BorgarNetLevelCollectionsProvider extends DownloadableLevelCollectionsProvider {
@@ -51,14 +49,17 @@ public class BorgarNetLevelCollectionsProvider extends DownloadableLevelCollecti
 
     public final static SokobanParser sokobanParser = new SokobanParser() {
         
-        protected boolean isSectionBreak(String line) {
-            return line.equals("---");
-        }
-    
+        @Override
         protected boolean isIgnorable(String line) {
             return line.isBlank();
         }
     
+        @Override
+        protected boolean isSectionBreak(String line) {
+            return line.equals("---");
+        }
+    
+        @Override
         protected Map.Entry<String, String> isMetaData(String line, Map<String, String> currentProperties) {
             Matcher propertyMatcher = PROPERTY_PATTERN.matcher(line);
             if (propertyMatcher.matches()) {
@@ -80,23 +81,6 @@ public class BorgarNetLevelCollectionsProvider extends DownloadableLevelCollecti
             return null;
         }
     };
-
-    public static class BorgarNetResourceLevelCollection extends ResourceLevelCollection {
-
-        public BorgarNetResourceLevelCollection(String resourcePath) {
-            super(resourcePath);
-        }
-
-        @Override
-        protected SokobanLevel.Collection extractSokobanLevelsCollection(URL resourceUrl) throws IOException {
-            try (var input = resourceUrl.openStream()) {
-                return BorgarNetLevelCollectionsProvider.sokobanParser.parse(input);
-            } catch (RuntimeException re) {
-                System.err.println("Exception when parsing levels from " + resourceUrl + ": " + re);
-                return null;
-            }
-        }
-    }
 
     private static class DownloadableBorgarNetLevelCollection extends DownloadableLevelCollection {
 

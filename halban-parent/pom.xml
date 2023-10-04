@@ -9,7 +9,15 @@
 
     <modules>
         <module>plugin-api</module>
+
+        <module>plugin-di-api</module>
+        <module>plugin-di-gen</module>
+        <module>plugin-di-sample</module>
+
+        <module>settings</module>
+
         <module>plugin-fx-api</module>
+
         <module>grid-fx</module>
         <module>sokoban-api</module>
         <module>sokoban-game</module>
@@ -24,6 +32,12 @@
     
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>jakarta.inject</groupId>
+                <artifactId>jakarta.inject-api</artifactId>
+                <version>2.0.1</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-graphics</artifactId>

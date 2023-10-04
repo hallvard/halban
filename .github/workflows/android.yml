@@ -46,5 +46,5 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: Android package
+          name: apk
           path: staging

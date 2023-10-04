@@ -10,12 +10,10 @@ public interface SokobanGrid extends Grid<SokobanGrid.CellKind> {
 	Location getPlayerLocation();
 
 	/**
-	 * Count the number of cells matching a particular combination of static and dynamic cell value.
-	 * @param floor The static part to match, or null if it should be ignored when matching.
-	 * @param content The dynamic part to match, or null if it should be ignored when matching.
-	 * @return The number of cells of a particular kind, i.e. matching cellStatic and cellDynamic
+	 * Count the number of targets, with or without boxes on them.
+	 * @return An array of length two, with the count of the targets with or without a box on, respectively
 	 */
-	int countCells(FloorKind floor, ContentKind content);
+	int[] countTargets();
 
 	/**
 	 * 

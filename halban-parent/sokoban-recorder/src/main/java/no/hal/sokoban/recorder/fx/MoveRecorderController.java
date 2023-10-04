@@ -5,18 +5,22 @@ import java.util.Map;
 
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 
 import no.hal.grid.fx.GridCellFactory;
-import no.hal.plugin.fx.FxExtensionPoint;
-
+import no.hal.plugin.fx.ContentProvider;
+import no.hal.plugin.fx.xp.FxExtensionPoint;
 import no.hal.sokoban.Move;
 import no.hal.sokoban.SokobanGame;
 import no.hal.sokoban.SokobanGameState;
 import no.hal.sokoban.SokobanGrid;
+import no.hal.sokoban.fx.SokobanGridViewer;
+import no.hal.sokoban.fx.util.XYTransformer;
 import no.hal.sokoban.recorder.MoveRecorder;
 import no.hal.sokoban.recorder.MoveRecording;
 
@@ -29,8 +33,14 @@ public class MoveRecorderController {
     private StartLocationsGridCellFactory<?> startLocationGridCellFactory = new StartLocationsGridCellFactory<>();
     private StepLocationsGridCellFactory<?> stepLocationsGridCellFactory = new StepLocationsGridCellFactory<>();
 
-    public MoveRecorderController(FxExtensionPoint<Node> extensionPoint, SokobanGame.Provider sokobanGameProvider) {
-        extensionPoint.extend(createLayout());
+   	private SimpleObjectProperty<XYTransformer> xyTransformerProperty = new SimpleObjectProperty<>(null);
+
+	public Property<XYTransformer> xyTransformerProperty() {
+		return xyTransformerProperty;
+	}
+
+    public MoveRecorderController(FxExtensionPoint<ContentProvider.Child, Node> extensionPoint, SokobanGame.Provider sokobanGameProvider) {
+        extensionPoint.extend(() -> createLayout());
         this.sokobanGameProvider = sokobanGameProvider;
 
         startLocationGridCellFactory.addLocationData(moveRecorder);
@@ -39,10 +49,18 @@ public class MoveRecorderController {
         startLocationGridCellFactory.setFill(new Color(0.0, 1.0, 0.0, 0.4));
         stepLocationsGridCellFactory.setFill(new Color(1.0, 0.0, 0.0, 0.2));
 
-        extensionPoint.getContext().registerQualifiedService(GridCellFactory.class, this.startLocationGridCellFactory);
-        extensionPoint.getContext().registerQualifiedService(GridCellFactory.class, this.stepLocationsGridCellFactory);
+        var instanceRegistry = extensionPoint.getInstanceRegistry();
+        instanceRegistry.registerQualifiedInstance(this.startLocationGridCellFactory, GridCellFactory.class);
+        instanceRegistry.registerQualifiedInstance(this.stepLocationsGridCellFactory, GridCellFactory.class);
 
         this.sokobanGameProvider.addGameListener(sokobanGameListener);
+
+        var sokobanGridViewer = instanceRegistry.getComponent(SokobanGridViewer.class);
+        this.xyTransformerProperty.addListener((prop, oldValue, newValue) -> {
+            startLocationGridCellFactory.setXYTransformer(newValue);
+            stepLocationsGridCellFactory.setXYTransformer(newValue);
+        });
+        this.xyTransformerProperty.bind(sokobanGridViewer.xyTransformerProperty());
     }
 
     private FontIcon startFontIcon, stopFontIcon, playFontIcon;
@@ -52,7 +70,6 @@ public class MoveRecorderController {
         startFontIcon = new FontIcon("mdi2a-alpha-r-circle:26");
         stopFontIcon = new FontIcon("mdi2s-stop-circle:26:red");
         playFontIcon = new FontIcon("mdi2p-play-circle:26:green");
-
     
         recordButton = new Button(null, startFontIcon);
 		recordButton.setOnAction(actionEvent -> handleRecording());

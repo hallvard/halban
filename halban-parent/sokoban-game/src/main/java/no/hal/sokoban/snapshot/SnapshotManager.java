@@ -3,7 +3,6 @@ package no.hal.sokoban.snapshot;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.WatchKey;
@@ -22,6 +21,10 @@ import no.hal.sokoban.level.SokobanLevel.MetaData;
 import no.hal.sokoban.parser.SokobanParser;
 
 public class SnapshotManager implements SokobanLevel.Collection {
+
+    public enum SnapshotState {
+        NONE, STARTED, FINISHED
+    }
 
     private WatchService watchService = null;
 
@@ -129,7 +132,12 @@ public class SnapshotManager implements SokobanLevel.Collection {
         }
         return null;
     }
-    
+
+    public SnapshotState getSnapshotState(SokobanLevel sokobanLevel) {
+        int[] targetCounters = sokobanLevel.getSokobanGrid().countTargets();
+        return targetCounters[1] == 0 ? SnapshotState.FINISHED : SnapshotState.STARTED;
+    }
+
     private SokobanParser sokobanParser = new SokobanParser();
 
     private void updateSokobanSnapshots() {

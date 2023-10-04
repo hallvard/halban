@@ -3,7 +3,6 @@ package no.hal.plugin.fx;
 import java.util.function.Function;
 
 import javafx.scene.image.Image;
-import no.hal.plugin.Context;
 
 @FunctionalInterface
 public interface LabelAdapter extends Adapter<Object> {

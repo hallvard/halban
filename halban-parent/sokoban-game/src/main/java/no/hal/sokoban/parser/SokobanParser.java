@@ -113,6 +113,13 @@ public class SokobanParser {
         return getSokobanGrid(Arrays.asList(grid.split("\n")));
     }
 
+    public static SokobanLevel getSokobanLevel(SokobanLevel.MetaData metaData, SokobanGrid sokobanGrid) {
+        return new SokobanLevelImpl(metaData, sokobanGrid);
+    }
+    public static SokobanLevel getSokobanLevel(Map<String, String> metaData, SokobanGrid sokobanGrid) {
+        return new SokobanLevelImpl(metaData, sokobanGrid);
+    }
+
     private void putIfMissingAndNonNull(Map<String, String> target, String property, String value) {
         if (value != null && (! target.containsKey(property))) {
             target.put(property, value);
@@ -165,7 +172,7 @@ public class SokobanParser {
 
     protected void extendProperty(String key, String extendWith, Map<String, String> currentProperties) {
         var currentValue = currentProperties.get(key);
-        currentProperties.put(key, currentValue + " " + extendWith.trim());
+        currentProperties.put(key, (currentValue == null ? "" : currentValue + " ") + extendWith.trim());
     }
 
     protected Map.Entry<String, String> isMetaData(String line, Map<String, String> currentProperties) {

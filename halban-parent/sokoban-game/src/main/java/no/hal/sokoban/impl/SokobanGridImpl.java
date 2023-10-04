@@ -66,13 +66,18 @@ public class SokobanGridImpl extends GridImpl<SokobanGrid.CellKind> implements S
 	}
 
 	@Override
-	public int countCells(FloorKind floor, ContentKind content) {
-		return reduceCells(0, (count, cellKind, x, y) ->
-			(floor == null || floor == cellKind.floor()) && (content == null || content == cellKind.content()) ? count + 1 : count);
+	public int[] countTargets() {
+		int[] counters = new int[]{0, 0};
+		forEachCell((cell, x, y) -> {
+			if (cell.floor() == FloorKind.TARGET) {
+				counters[cell.content() == ContentKind.BOX ? 0 : 1]++;
+			}
+		});
+		return counters;
 	}
 
 	@Override
-	public void setCell(int x, int y, CellKind cellKind) {
+	protected void setCell(int x, int y, CellKind cellKind) {
 		super.setCell(x, y, cellKind);
 		if (cellKind.content() == ContentKind.PLAYER) {
 			playerLocation = new Location(x, y);

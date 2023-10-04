@@ -6,7 +6,7 @@ public interface Plugin extends LifeCycle {
 
     Collection<Contribution> getContributions();
 
-    default void activate(Context context) {
-        getContributions().forEach(contribution -> LifeCycle.activate(contribution, context));
+    default void activate(InstanceRegistry instanceRegistry) {
+        getContributions().forEach(contribution -> LifeCycle.activate(contribution, instanceRegistry));
     }
 }

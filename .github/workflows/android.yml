@@ -41,7 +41,7 @@ jobs:
       - name: Copy packages to staging
         run: |
           mkdir staging
-          cp halban-parent/sokoban-app/target/gluonfx/aarch64-android/gvm/sokoban-app.apk staging
+          cp halban-parent/sokoban-app/target/gluonfx/aarch64-android/gvm/halban.apk staging
 
       - name: Upload
         uses: actions/upload-artifact@v3

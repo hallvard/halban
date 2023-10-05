@@ -8,7 +8,7 @@ class SokobanGridCellFactory extends
 	no.hal.grid.fx.ImageGridCellFactory<CellKind> {
 
     public SokobanGridCellFactory(Settings settings) {
-        super(cellKind -> SokobanGridCellFactory.class.getResource("/no/hal/sokoban/fx/images/%s.png".formatted(
+        super(cellKind -> SokobanGridCellFactory.class.getResource("/no/hal/sokoban/fx/images/default/%s.png".formatted(
 				switch (cellKind) {
 					case WALL 			-> settings.getString("sokoban.grid.wall", "wall16x16");
 					case EMPTY 			-> settings.getString("sokoban.grid.empty", "empty16x16");

@@ -1,28 +1,26 @@
 package no.hal.sokoban.fx;
 
+import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.layout.Region;
 import javafx.util.Callback;
-import no.hal.sokoban.fx.util.ItemSelector;
-import no.hal.sokoban.fx.util.RegionSizeTracker;
+import no.hal.sokoban.fx.util.AbstractItemSelector;
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.plugin.InstanceRegistry;
+import no.hal.plugin.fx.ContentProvider;
 import no.hal.plugin.fx.LabelAdapter;
 
-class SokobanLevelCollectionListViewer extends ItemSelector<SokobanLevel> {
+class SokobanLevelCollectionListViewer extends AbstractItemSelector<SokobanLevel> implements ContentProvider.Child {
 
     private final Callback<ListView<SokobanLevel>, ListCell<SokobanLevel>> listCellFactory;
     
     public SokobanLevelCollectionListViewer(InstanceRegistry instanceRegistry) {
         this.listCellFactory = listView -> new SokobanLevelListCell(labelAdapter, instanceRegistry);
     }
-
-    private SokobanLevel.CollectionProvider sokobanLevelCollectionProvider;
 
     private LabelAdapter labelAdapter;
     private ListView<SokobanLevel> listView;
@@ -42,7 +40,8 @@ class SokobanLevelCollectionListViewer extends ItemSelector<SokobanLevel> {
         return listView.getSelectionModel().selectedItemProperty();
     }
 
-    public Region createContent() {
+    @Override
+    public ListView<SokobanLevel> getContent() {
         listView = new ListView<>();
         listView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         listView.setCellFactory(listCellFactory);
@@ -51,19 +50,17 @@ class SokobanLevelCollectionListViewer extends ItemSelector<SokobanLevel> {
             updateList();
         });
         updateList();
-
-        RegionSizeTracker.trackSize(listView, "list view");
-
         return listView;
     }
 
     private void updateList() {
         if (listView != null) {
-            listView.getItems().clear();
+            var sokobanLevelCollectionProvider = sokobanCollectionProviderProperty().getValue();
             if (sokobanLevelCollectionProvider != null) {
-                listView.getItems().addAll(
-                    sokobanLevelCollectionProvider.getSokobanLevelCollection().getSokobanLevels()
-                );
+                new Thread(() -> {
+                    var sokobanLevels = sokobanLevelCollectionProvider.getSokobanLevelCollection().getSokobanLevels();
+                    Platform.runLater(() -> listView.getItems().setAll(sokobanLevels));
+                }).start();
             }
         }
     }

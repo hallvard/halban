@@ -1,46 +1,23 @@
 package no.hal.sokoban.fx.util;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyProperty;
-import javafx.scene.Node;
-import javafx.scene.input.KeyCode;
+import javafx.beans.property.SimpleObjectProperty;
 
-public abstract class ItemSelector<T> {
-    
-    public abstract ReadOnlyProperty<T> selectedItemProperty();
+public interface ItemSelector<T> {    
 
-    protected void attachOnActionListeners(Node node) {
-        node.setOnMouseClicked(mouseEvent -> {
-            if (mouseEvent.getClickCount() == 2) {
-                openAction();
-            }
-        });
-        node.setOnKeyPressed(keyEvent -> {
-            if (keyEvent.getCode() == KeyCode.ENTER) {
-                openAction();
-            }
-        });
-        node.setOnTouchStationary(touchEvent -> {
-            openAction();
-        });
-    }
+    public void setOnOpenAction(Consumer<T> onOpenAction);
 
-    protected boolean openAction() {
-        if (selectedItemProperty().getValue() != null && getOnOpenAction() != null) {
-            getOnOpenAction().accept(selectedItemProperty().getValue());
-            return true;
-        }
-        return false;
-    }
-
-    private Consumer<T> onOpenAction = null;
-
-    public  Consumer<T> getOnOpenAction() {
-        return this.onOpenAction;
-    }
-    
-    public void setOnOpenAction(Consumer<T> onOpenAction) {
-        this.onOpenAction = onOpenAction;
+    public static <T, S> ReadOnlyProperty<T> selectedItemProperty(ReadOnlyProperty<S> selectedItemProp, Function<S, T> mapper) {
+        Property<T> derivedProp = new SimpleObjectProperty<T>();
+        derivedProp.bind(Bindings.createObjectBinding(() -> {
+            var item = selectedItemProp.getValue();
+            return mapper.apply(item);
+        }, selectedItemProp));
+        return derivedProp;
     }
 }

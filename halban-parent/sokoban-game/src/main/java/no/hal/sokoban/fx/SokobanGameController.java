@@ -1,5 +1,6 @@
 package no.hal.sokoban.fx;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -8,6 +9,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 import javafx.application.Platform;
 import javafx.geometry.Dimension2D;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -17,6 +19,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import no.hal.gridgame.Direction;
@@ -159,7 +162,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		updateGridView();
 
 		this.messageText = new Text();
-		Button closeButton = new Button(null, new FontIcon("mdi2c-close:18"));
+		Button closeButton = new Button(null, new FontIcon("mdi2c-close:28"));
 		closeButton.setOnAction(actionEvent -> closer.run());
 
 		sokobanPane.setPadding(new Insets(10));
@@ -169,23 +172,27 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		Pane extensionsPane = new HBox();
 		extensionsPane.setPadding(new Insets(10));
 
+		var mainPaneFiller = new Region();
+		VBox.setVgrow(mainPaneFiller, Priority.ALWAYS);
+
 		VBox mainPane = new VBox(
-			closeButton,
-			new HBox(
+			createAligningHbox(HPos.RIGHT, closeButton),
+			createAligningHbox(HPos.CENTER,
 				createXYTransformButton("mdi2r-rotate-right:18", 90.0, t -> t.rotate(! t.rotate())),
 				createXYTransformButton("mdi2f-flip-horizontal:18", 0.0, t -> t.flipX(! t.flipX())),
 				createXYTransformButton("mdi2f-flip-vertical:18", 0.0, t -> t.flipY(! t.flipY()))
 			),
 			sokobanPane,
 			messageText,
-			movementPane,
-			undoPane,
-			extensionsPane
+			createAligningHbox(HPos.CENTER, movementPane),
+			createAligningHbox(HPos.CENTER, undoPane),
+			createAligningHbox(HPos.CENTER, extensionsPane),
+			mainPaneFiller
 		);
 		mainPane.setPadding(new Insets(10));
 		mainPane.setAlignment(Pos.CENTER);
-		mainPane.setFillWidth(false);
-		VBox.setVgrow(sokobanPane, Priority.ALWAYS);
+		mainPane.setFillWidth(true);
+		VBox.setVgrow(sokobanPane, Priority.SOMETIMES);
 
 		InstanceRegistry scope = new InstanceRegistryImpl(instanceRegistry);
 		scope.registerComponent(sokobanGridViewer);
@@ -199,6 +206,22 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		instanceRegistry.registerInstance(extensionPoint, FxExtensionPoint.class, this);
 
 		return mainPane;
+	}
+
+	private HBox createAligningHbox(HPos alignment, Node... nodes) {
+		var hbox = new HBox();
+		if (alignment != HPos.LEFT) {
+			var leftSpacer = new Region();
+			HBox.setHgrow(leftSpacer, Priority.ALWAYS);
+			hbox.getChildren().add(leftSpacer);
+		}
+		hbox.getChildren().addAll(Arrays.asList(nodes));
+		if (alignment != HPos.RIGHT) {
+			var rightSpacer = new Region();
+			HBox.setHgrow(rightSpacer, Priority.ALWAYS);
+			hbox.getChildren().add(rightSpacer);
+		}
+		return hbox;
 	}
 
 	private void setSokobanGridCellFactories(Collection<GridCellFactory> gridCellFactories) {

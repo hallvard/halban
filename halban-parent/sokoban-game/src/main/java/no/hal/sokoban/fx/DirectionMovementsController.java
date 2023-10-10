@@ -39,16 +39,17 @@ class DirectionMovementsController extends SokobanGameHelperController {
 
 	private boolean includeDragButton = true;
 	private boolean includeStandardButtons = true;
-	private boolean includeMoveAlongButtons = false;
+	private boolean includeMoveAlongButtons = true;
 
 	private double dragSpeed = 1.5;
+	private int iconSize = 24;
 
 	@Override
 	public Region createLayout(Node keyboardFocus) {
 		var gridPane = new GridPane();
 		int posMin = 1, posMid = 2, max = 3;
 		if (includeDragButton) {
-			var dragIcon = createFontIcon("mdi2a-arrow-all:24", 0);
+			var dragIcon = createFontIcon("mdi2a-arrow-all:" + iconSize, 0);
 			setGridConstraints(dragIcon, posMid, posMid);
 			dragIcon.addEventHandler(MouseEvent.ANY, new GridItemDragController.MouseEventHandler(
 				(x, y) -> {
@@ -64,19 +65,19 @@ class DirectionMovementsController extends SokobanGameHelperController {
 		}
 		if (includeStandardButtons) {
 			gridPane.getChildren().addAll(List.of(
-				createMovementButton(createFontIcon("mdi2t-triangle:24", 270), Direction.LEFT, false, posMin, posMid),
-				createMovementButton(createFontIcon("mdi2t-triangle:24", 90), Direction.RIGHT, false, max, posMid),
-				createMovementButton(createFontIcon("mdi2t-triangle:24", 0), Direction.UP, false, posMid, posMin),
-				createMovementButton(createFontIcon("mdi2t-triangle:24", 180), Direction.DOWN, false, 2, max)
+				createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 270), Direction.LEFT, false, posMin, posMid),
+				createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 90), Direction.RIGHT, false, max, posMid),
+				createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 0), Direction.UP, false, posMid, posMin),
+				createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 180), Direction.DOWN, false, 2, max)
 			));
 			posMin = 0; max = 4;
 		}
 		if (includeMoveAlongButtons) {
 			gridPane.getChildren().addAll(List.of(
-				createMovementButton(createFontIcon("mdi2f-fast-forward:24", 180), Direction.LEFT, true, posMin, posMid),
-				createMovementButton(createFontIcon("mdi2f-fast-forward:24", 0), Direction.RIGHT, true, max, posMid),
-				createMovementButton(createFontIcon("mdi2f-fast-forward:24", 270), Direction.UP, true, posMid, posMin),
-				createMovementButton(createFontIcon("mdi2f-fast-forward:24", 90), Direction.DOWN, true, posMid, max)
+				createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 180), Direction.LEFT, true, posMin, posMid),
+				createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 0), Direction.RIGHT, true, max, posMid),
+				createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 270), Direction.UP, true, posMid, posMin),
+				createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 90), Direction.DOWN, true, posMid, max)
 			));
 		}
 
@@ -125,10 +126,11 @@ class DirectionMovementsController extends SokobanGameHelperController {
 		if (getSokobanGameState() != null) {
 			var transformer = xyTransformerProperty.get();
 			var gameDirection = (transformer != null ? transformer.untransformed(viewDirection) : viewDirection);
-			var moveKind = getSokobanGameActions().movePlayer(gameDirection);
-			if (moveKind == Move.Kind.MOVE && moveAlong) {
+			if (moveAlong) {
 				Moves moves = MovesComputer.computeMovesAlong(getSokobanGameState(), gameDirection);
 				getSokobanGameActions().movePlayer(moves);
+			} else {
+				getSokobanGameActions().movePlayer(gameDirection);
 			}
 			return true;
 		}

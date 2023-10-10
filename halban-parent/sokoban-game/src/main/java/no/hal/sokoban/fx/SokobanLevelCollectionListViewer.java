@@ -13,13 +13,14 @@ import no.hal.sokoban.level.SokobanLevel;
 import no.hal.plugin.InstanceRegistry;
 import no.hal.plugin.fx.ContentProvider;
 import no.hal.plugin.fx.LabelAdapter;
+import no.hal.plugin.fx.LabelAdapterListCell;
 
 class SokobanLevelCollectionListViewer extends AbstractItemSelector<SokobanLevel> implements ContentProvider.Child {
 
     private final Callback<ListView<SokobanLevel>, ListCell<SokobanLevel>> listCellFactory;
     
     public SokobanLevelCollectionListViewer(InstanceRegistry instanceRegistry) {
-        this.listCellFactory = listView -> new SokobanLevelListCell(labelAdapter, instanceRegistry);
+        this.listCellFactory = listView -> new LabelAdapterListCell<SokobanLevel>(new SokobanLevelCellHelper<SokobanLevel>(labelAdapter, instanceRegistry));
     }
 
     private LabelAdapter labelAdapter;

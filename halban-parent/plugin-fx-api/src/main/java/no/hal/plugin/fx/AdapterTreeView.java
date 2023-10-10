@@ -17,7 +17,7 @@ public class AdapterTreeView extends TreeView<Object> {
     public AdapterTreeView(InstanceRegistry instanceRegistry) {
         labelAdapter = CompositeLabelAdapter.fromInstanceRegistry(instanceRegistry);
         childrenAdapter = CompositeChildrenAdapter.fromInstanceRegistry(instanceRegistry);
-        setCellFactory(treeView -> new LabelAdapterTreeCell<Object>(labelAdapter));
+        setCellFactory(treeView -> new LabelAdapterTreeCell<Object>(new LabelAdapterListCellHelper<>(labelAdapter)));
         setShowRoot(false);
     }
 

@@ -18,13 +18,14 @@ import no.hal.sokoban.fx.util.ItemSelector;
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.plugin.InstanceRegistry;
 import no.hal.plugin.fx.LabelAdapter;
+import no.hal.plugin.fx.LabelAdapterTreeCell;
 
 abstract class AbstractSokobanLevelCollectionsTreeViewer<T> extends AbstractItemSelector<T> {
 
     private final Callback<TreeView<Object>, TreeCell<Object>> treeCellFactory;
 
     public AbstractSokobanLevelCollectionsTreeViewer(InstanceRegistry instanceRegistry) {
-        this.treeCellFactory = treeView -> new SokobanLevelTreeCell(labelAdapter, instanceRegistry);
+        this.treeCellFactory = treeView -> new LabelAdapterTreeCell<Object>(new SokobanLevelCellHelper<Object>(labelAdapter, instanceRegistry));
     }
 
     private Collection<SokobanLevel.CollectionProvider> sokobanLevelCollectionProviders;

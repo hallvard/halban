@@ -162,7 +162,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		updateGridView();
 
 		this.messageText = new Text();
-		Button closeButton = new Button(null, new FontIcon("mdi2c-close:28"));
+		Button closeButton = new Button(null, new FontIcon("mdi2c-close:24"));
 		closeButton.setOnAction(actionEvent -> closer.run());
 
 		sokobanPane.setPadding(new Insets(10));

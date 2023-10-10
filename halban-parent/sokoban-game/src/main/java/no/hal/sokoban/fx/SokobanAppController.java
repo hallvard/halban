@@ -30,6 +30,7 @@ public class SokobanAppController {
 	public SokobanAppController(FxExtensionPoint<ContentProvider.Container, Parent> extensionPoint) {
 		InstanceRegistry instanceRegistry = extensionPoint.getInstanceRegistry();
 		this.snapshotSaver = new SnapshotManager();
+		instanceRegistry.registerInstance(snapshotSaver, SnapshotManager.class);
 		SokobanLevel.CollectionProvider snapshotsProvider = () -> snapshotSaver;
 		instanceRegistry.registerQualifiedInstance(snapshotsProvider, SokobanLevel.CollectionProvider.class);
 		var settings = instanceRegistry.getComponent(Settings.class);

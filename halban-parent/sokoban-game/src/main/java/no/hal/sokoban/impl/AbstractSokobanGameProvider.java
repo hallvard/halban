@@ -8,13 +8,10 @@ import java.util.Collection;
 
 public abstract class AbstractSokobanGameProvider implements SokobanGame.Provider {
 
-	private Collection<SokobanGame.Listener> gameListeners;
+	private Collection<SokobanGame.Listener> gameListeners = new ArrayList<>();
 
 	@Override
 	public void addGameListener(SokobanGame.Listener listener) {
-		if (gameListeners == null) {
-			gameListeners = new ArrayList<>();
-		}
 		gameListeners.add(listener);
 		var sokobanGame = getSokobanGame();
 		if (sokobanGame != null) {
@@ -24,13 +21,11 @@ public abstract class AbstractSokobanGameProvider implements SokobanGame.Provide
 
 	@Override
 	public void removeGameListener(SokobanGame.Listener listener) {
-		if (gameListeners != null) {
-			gameListeners.remove(listener);
-		}
+		gameListeners.remove(listener);
 	}
 
 	protected void fireGameStarted() {
-		if (getSokobanGame() != null && gameListeners != null) {
+		if (getSokobanGame() != null) {
 			for (var listener: gameListeners) {
 				listener.gameStarted(getSokobanGame());
 			}
@@ -38,7 +33,7 @@ public abstract class AbstractSokobanGameProvider implements SokobanGame.Provide
 	}
 
 	protected void fireMoveDone(Move move) {
-		if (getSokobanGame() != null && gameListeners != null) {
+		if (getSokobanGame() != null) {
 			for (var listener: gameListeners) {
 				listener.moveDone(getSokobanGame(), move);
 			}
@@ -46,7 +41,7 @@ public abstract class AbstractSokobanGameProvider implements SokobanGame.Provide
 	}
 
 	protected void fireMoveUndone(Move move) {
-		if (getSokobanGame() != null && gameListeners != null) {
+		if (getSokobanGame() != null) {
 			for (var listener: gameListeners) {
 				listener.moveUndone(getSokobanGame(), move);
 			}

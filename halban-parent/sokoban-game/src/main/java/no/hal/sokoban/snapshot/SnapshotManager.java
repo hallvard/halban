@@ -133,9 +133,18 @@ public class SnapshotManager implements SokobanLevel.Collection {
         return null;
     }
 
-    public SnapshotState getSnapshotState(SokobanLevel sokobanLevel) {
-        int[] targetCounters = sokobanLevel.getSokobanGrid().countTargets();
+    public SnapshotState getSnapshotState(SokobanLevel snapshot) {
+        int[] targetCounters = snapshot.getSokobanGrid().countTargets();
         return targetCounters[1] == 0 ? SnapshotState.FINISHED : SnapshotState.STARTED;
+    }
+
+    public SokobanLevel getSnapshot(SokobanLevel sokobanLevel) {
+        return getSnapshot("uri", sokobanLevel.getMetaData().get("uri"));
+    }
+
+    public SnapshotState getSokobanLevelSnapshotState(SokobanLevel sokobanLevel) {
+        var snapshot = getSnapshot(sokobanLevel);
+        return (snapshot != null ? getSnapshotState(snapshot) : null);
     }
 
     private SokobanParser sokobanParser = new SokobanParser();

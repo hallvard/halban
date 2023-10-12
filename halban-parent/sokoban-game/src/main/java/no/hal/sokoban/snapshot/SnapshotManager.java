@@ -139,7 +139,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
     }
 
     public SokobanLevel getSnapshot(SokobanLevel sokobanLevel) {
-        return getSnapshot("uri", sokobanLevel.getMetaData().get("uri"));
+        return getSnapshot("hash", sokobanLevel.getMetaData().get("hash"));
     }
 
     public SnapshotState getSokobanLevelSnapshotState(SokobanLevel sokobanLevel) {

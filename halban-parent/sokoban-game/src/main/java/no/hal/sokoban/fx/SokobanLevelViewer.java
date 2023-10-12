@@ -3,6 +3,7 @@ package no.hal.sokoban.fx;
 import java.util.List;
 import java.util.function.Consumer;
 
+import javafx.collections.ObservableList;
 import javafx.geometry.Dimension2D;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -63,9 +64,11 @@ public class SokobanLevelViewer {
         this.sokobanGridViewer.setSokobanGrid(sokobanLevel.getSokobanGrid());
         var metaData = sokobanLevel.getMetaData();
         metaDataPane.getChildren().clear();
-        addMetaDataText(metaDataPane.getChildren(), "Title", metaData, null);
-        addMetaDataText(metaDataPane.getChildren(), "Description", sokobanLevel.getMetaData(), null);
-        addMetaDataText(metaDataPane.getChildren(), "Author", sokobanLevel.getMetaData(), null);
+        ObservableList<Node> metaDataChildren = metaDataPane.getChildren();
+        addMetaDataText(metaDataChildren, "Title", metaData, null);
+        addMetaDataText(metaDataChildren, "Description", sokobanLevel.getMetaData(), null);
+        addMetaDataText(metaDataChildren, "Author", sokobanLevel.getMetaData(), null);
+        addMetaDataText(metaDataChildren, "hash", sokobanLevel.getMetaData(), "#");
 
         if (snapshotState != null) {
             var paint = switch (snapshotState) {

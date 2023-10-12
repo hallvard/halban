@@ -12,7 +12,7 @@ public interface Grid<T> {
 	int getHeight();
 	
 	default boolean isLegalLocation(int x, int y) {
-		return ! (x < 0 || y < 0 || x >= getWidth() || y >= getHeight());
+		return x >= 0 && y >= 0 && x < getWidth() && y < getHeight();
 	}
 
 	default boolean isLegal(Location location) {
@@ -47,7 +47,13 @@ public interface Grid<T> {
 	 * @param w
 	 * @param h
 	 */
-	void forEachCell(CellConsumer<T> consumer, int x, int y, int w, int h);
+	default void forEachCell(CellConsumer<T> consumer, int x, int y, int w, int h) {
+		for (int dy = 0; dy < h; dy++) {
+            for (int dx = 0; dx < w; dx++) {
+                consumer.accept(getCell(x + dx, y + dy), x + dx, y + dy);
+            }
+        }
+	}
 
 	default void forEachCell(CellConsumer<T> consumer) {
 		forEachCell(consumer, 0, 0, getWidth(), getHeight());
@@ -66,7 +72,14 @@ public interface Grid<T> {
 	 * @param h
 	 * @param r
 	 */
-	<R> R reduceCells(R r, CellFunction<T, R> reducer, int x, int y, int w, int h);
+	default <R> R reduceCells(R r, CellFunction<T, R> reducer, int x, int y, int w, int h) {
+		for (int dy = 0; dy < h; dy++) {
+            for (int dx = 0; dx < w; dx++) {
+                r = reducer.reduce(r, getCell(x + dx, y + dy), x + dx, y + dy);
+            }
+        }
+        return r;
+	}
 
 	default <R> R reduceCells(R r, CellFunction<T, R> reducer) {
 		return reduceCells(r, reducer, 0, 0, getWidth(), getHeight());

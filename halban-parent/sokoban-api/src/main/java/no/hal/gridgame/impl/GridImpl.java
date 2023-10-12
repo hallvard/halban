@@ -1,11 +1,8 @@
 package no.hal.gridgame.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import no.hal.gridgame.Grid;
 
-public class GridImpl<T> implements Grid<T> {
+public class GridImpl<T> extends AbstractGridImpl<T> {
 
     private int width, height;
     private Object[] grid;
@@ -37,25 +34,6 @@ public class GridImpl<T> implements Grid<T> {
     }
 
     @Override
-    public void forEachCell(CellConsumer<T> consumer, int x, int y, int w, int h) {
-        for (int dy = 0; dy < h; dy++) {
-            for (int dx = 0; dx < w; dx++) {
-                consumer.accept(getCell(x + dx, y + dy), x + dx, y + dy);
-            }
-        }
-    }
-
-    @Override
-    public <R> R reduceCells(R r, CellFunction<T, R> reducer, int x, int y, int w, int h) {
-        for (int dy = 0; dy < h; dy++) {
-            for (int dx = 0; dx < w; dx++) {
-                r = reducer.reduce(r, getCell(x + dx, y + dy), x + dx, y + dy);
-            }
-        }
-        return r;
-    }
-
-    @Override
     public int getWidth() {
         return width;
     }
@@ -79,31 +57,5 @@ public class GridImpl<T> implements Grid<T> {
 
     protected void setCell(int x, int y, T t) {
         grid[(pos(x, y))] = t;
-    }
-
-    //
-    
-    private Collection<Listener<T>> gridListeners = new ArrayList<>();
-    
-    @Override
-    public void addGridListener(Listener<T> gridListener) {
-        gridListeners.add(gridListener);
-    }
-
-    @Override
-    public void removeGridListener(Listener<T> gridListener) {
-        gridListeners.remove(gridListener);
-    }
-        
-    protected void fireGridDimensionsChanged(int w, int h) {
-        for (Listener<T> gridListener : gridListeners) {
-            gridListener.gridDimensionsChanged(this, w, h);
-        }
-    }
-    
-    protected void fireGridContentsChanged(int x, int y, int w, int h) {
-        for (Listener<T> gridListener : gridListeners) {
-            gridListener.gridContentsChanged(this, x, y, w, h);
-        }
     }
 }

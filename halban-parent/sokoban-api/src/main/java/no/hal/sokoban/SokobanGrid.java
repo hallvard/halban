@@ -13,7 +13,15 @@ public interface SokobanGrid extends Grid<SokobanGrid.CellKind> {
 	 * Count the number of targets, with or without boxes on them.
 	 * @return An array of length two, with the count of the targets with or without a box on, respectively
 	 */
-	int[] countTargets();
+	default int[] countTargets() {
+		int[] counters = new int[]{0, 0};
+		forEachCell((cell, x, y) -> {
+			if (cell.floor() == FloorKind.TARGET) {
+				counters[cell.content() == ContentKind.BOX ? 0 : 1]++;
+			}
+		});
+		return counters;
+	}
 
 	/**
 	 * 

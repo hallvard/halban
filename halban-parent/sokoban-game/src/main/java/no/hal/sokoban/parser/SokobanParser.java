@@ -11,11 +11,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import no.hal.sokoban.SokobanGameState;
 import no.hal.sokoban.SokobanGrid;
+import no.hal.sokoban.SokobanHasher;
 import no.hal.sokoban.SokobanGrid.CellKind;
 import no.hal.sokoban.impl.SokobanGridImpl;
 import no.hal.sokoban.impl.SokobanLevelImpl;
@@ -129,12 +131,19 @@ public class SokobanParser {
         putIfMissingAndNonNull(source, altProperty != null ? altProperty : property, source.get(property));
     }
 
+    private SokobanHasher hasher = new SokobanHasher.Impl();
+
+    public SokobanHasher getHasher() {
+        return hasher;
+    }
+
     private MetaData getLevelMetaData(SokobanGrid sokobanGrid, Section section, Map<String, String> collectionProperties) {
         var levelProperties = section.properties();
         if (levelProperties == null) {
             levelProperties = new HashMap<>();
         }
-        levelProperties.put("dimensions", sokobanGrid.getWidth() + "x" + sokobanGrid.getHeight());
+        putIfMissingAndNonNull(levelProperties, "dimensions", sokobanGrid.getWidth() + "x" + sokobanGrid.getHeight());
+        putIfMissingAndNonNull(levelProperties, "hash", Long.toHexString(hasher.hash(sokobanGrid)));
         if (section.moves() != null) {
             levelProperties.put("moves", RunLengthEncoding.decode(section.moves()).toString());
         }
@@ -261,6 +270,7 @@ public class SokobanParser {
         appendMetaData("Id", metaData, "LevelId", builder);
         appendMetaData("Title", metaData, builder);
         appendMetaData("uri", metaData, null, builder);
+        appendMetaData("hash", metaData, null, builder);
         appendMetaData("collectionId", metaData, null, builder);
         appendMetaData("collectionUri", metaData, null, builder);
         grid.forEachCell((cellKind, x, y) -> {

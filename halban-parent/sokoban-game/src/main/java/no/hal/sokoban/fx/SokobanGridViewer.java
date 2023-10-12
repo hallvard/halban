@@ -11,10 +11,13 @@ import no.hal.settings.Settings;
 import no.hal.grid.fx.GridCellFactory;
 import no.hal.grid.fx.GridView;
 import no.hal.sokoban.SokobanGrid;
+import no.hal.sokoban.SokobanHasher;
 import no.hal.sokoban.SokobanGrid.CellKind;
+import no.hal.sokoban.fx.util.TransformedSokobanGrid;
 import no.hal.sokoban.fx.util.XYTransform;
 import no.hal.sokoban.fx.util.XYTransformStrategy;
 import no.hal.sokoban.fx.util.XYTransformer;
+import no.hal.sokoban.parser.SokobanParser;
 
 public class SokobanGridViewer {
 
@@ -143,12 +146,17 @@ public class SokobanGridViewer {
 
 	private final SokobanGridListener sokobanGridListener;
 
+//	private SokobanHasher hasher = new SokobanHasher.Impl();
+
 	private void updateCells(int x1, int y1, int x2, int y2) {
 		for (int y = y1; y != y2; y += Math.signum(y2 - y1)) {
 			for (int x = x1; x != x2; x += Math.signum(x2 - x1)) {
 				updateCell(x, y);
 			}
 		}
+//		TransformedSokobanGrid tsg = new TransformedSokobanGrid(getSokobanGrid(), getXYTransform());
+//		System.out.println(hasher.hash(tsg));
+//		System.out.println(SokobanParser.toString(tsg, null));
 	}
 
 	private void updateCell(int x, int y) {

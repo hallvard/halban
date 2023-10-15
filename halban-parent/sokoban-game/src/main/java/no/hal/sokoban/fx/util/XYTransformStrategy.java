@@ -2,6 +2,8 @@ package no.hal.sokoban.fx.util;
 
 import java.util.function.Function;
 
+import no.hal.grid.util.XYTransform;
+import no.hal.grid.util.XYTransformer;
 import no.hal.sokoban.SokobanGrid;
 
 public interface XYTransformStrategy extends Function<SokobanGrid, XYTransformer> {

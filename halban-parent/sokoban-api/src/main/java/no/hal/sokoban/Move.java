@@ -3,7 +3,7 @@ package no.hal.sokoban;
 import java.util.Collections;
 import java.util.List;
 
-import no.hal.gridgame.Direction;
+import no.hal.grid.Direction;
 
 public record Move(Direction direction, Kind moveKind) implements Moves {
 

@@ -13,6 +13,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 
 import no.hal.grid.fx.GridCellFactory;
+import no.hal.grid.util.XYTransformer;
 import no.hal.plugin.fx.ContentProvider;
 import no.hal.plugin.fx.xp.FxExtensionPoint;
 import no.hal.sokoban.Move;
@@ -20,7 +21,6 @@ import no.hal.sokoban.SokobanGame;
 import no.hal.sokoban.SokobanGameState;
 import no.hal.sokoban.SokobanGrid;
 import no.hal.sokoban.fx.SokobanGridViewer;
-import no.hal.sokoban.fx.util.XYTransformer;
 import no.hal.sokoban.recorder.MoveRecorder;
 import no.hal.sokoban.recorder.MoveRecording;
 

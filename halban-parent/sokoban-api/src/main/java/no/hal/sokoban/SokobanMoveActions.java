@@ -1,9 +1,8 @@
 package no.hal.sokoban;
 
 import no.hal.grid.Direction;
-import no.hal.gridgame.UndoActions;
 
-public interface SokobanGameActions extends SokobanMoveActions, UndoActions {
+public interface SokobanMoveActions {
 
 	/**
 	 * Moves the player in the indicated direction. Returns whether or not it was a push, or legal at all. 

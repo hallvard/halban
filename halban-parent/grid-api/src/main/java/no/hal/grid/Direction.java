@@ -1,4 +1,4 @@
-package no.hal.gridgame;
+package no.hal.grid;
 
 public enum Direction {
 

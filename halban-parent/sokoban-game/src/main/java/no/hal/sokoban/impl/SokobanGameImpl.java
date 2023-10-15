@@ -1,14 +1,13 @@
 package no.hal.sokoban.impl;
 
-import no.hal.gridgame.Direction;
+import no.hal.grid.Direction;
+import no.hal.grid.Grid.Location;
 import no.hal.sokoban.Move;
 import no.hal.sokoban.Moves;
 import no.hal.sokoban.SokobanGame;
 import no.hal.sokoban.SokobanGrid;
-import no.hal.sokoban.SokobanGrid.CellKind;
 import no.hal.sokoban.SokobanGrid.ContentKind;
 import no.hal.sokoban.level.SokobanLevel;
-import no.hal.gridgame.Grid.Location;
 import no.hal.sokoban.parser.SokobanParser;
 
 import java.util.ArrayList;

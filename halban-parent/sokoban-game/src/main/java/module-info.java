@@ -5,6 +5,7 @@ module sokoban.game {
 
     requires settings.api;
 
+    requires transitive grid.api;
     requires transitive sokoban.api;
     requires grid.fx;
 

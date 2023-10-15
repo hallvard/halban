@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
-import no.hal.gridgame.Direction;
+import no.hal.grid.Direction;
 import no.hal.sokoban.SokobanGrid;
 
 public class GridItemDragController {

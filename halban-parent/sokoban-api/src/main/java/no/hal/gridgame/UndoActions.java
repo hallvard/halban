@@ -1,6 +1,6 @@
 package no.hal.gridgame;
 
-public interface Undoable {
+public interface UndoActions {
 
 	/**
 	 * Tells if the previous action can be undone.

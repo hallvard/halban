@@ -16,13 +16,12 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
-import no.hal.gridgame.Direction;
-import no.hal.gridgame.Grid;
-import no.hal.sokoban.Move;
+import no.hal.grid.Direction;
+import no.hal.grid.Grid;
+import no.hal.grid.util.XYTransformer;
 import no.hal.sokoban.Moves;
 import no.hal.sokoban.SokobanGame;
 import no.hal.sokoban.fx.util.GridItemDragController;
-import no.hal.sokoban.fx.util.XYTransformer;
 import no.hal.sokoban.impl.MovesComputer;
 
 class DirectionMovementsController extends SokobanGameHelperController {

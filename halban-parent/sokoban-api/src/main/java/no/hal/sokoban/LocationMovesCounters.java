@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import no.hal.gridgame.Grid;
+import no.hal.grid.Grid;
 
 public class LocationMovesCounters {
 

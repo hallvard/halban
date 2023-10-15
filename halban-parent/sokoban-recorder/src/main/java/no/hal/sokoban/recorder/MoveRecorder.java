@@ -2,8 +2,8 @@ package no.hal.sokoban.recorder;
 
 import java.util.ArrayList;
 import java.util.List;
-import no.hal.gridgame.Grid.Location;
 
+import no.hal.grid.Grid.Location;
 import no.hal.sokoban.LocationMovesCounters;
 import no.hal.sokoban.Move;
 import no.hal.sokoban.Moves;

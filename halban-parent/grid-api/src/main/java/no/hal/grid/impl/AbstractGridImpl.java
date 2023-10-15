@@ -1,9 +1,9 @@
-package no.hal.gridgame.impl;
+package no.hal.grid.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-import no.hal.gridgame.Grid;
+import no.hal.grid.Grid;
 
 public abstract class AbstractGridImpl<T> implements Grid<T> {
 

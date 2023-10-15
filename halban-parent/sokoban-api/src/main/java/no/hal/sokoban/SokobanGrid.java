@@ -1,6 +1,6 @@
 package no.hal.sokoban;
 
-import no.hal.gridgame.Grid;
+import no.hal.grid.Grid;
 
 public interface SokobanGrid extends Grid<SokobanGrid.CellKind> {
 	

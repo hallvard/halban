@@ -1,6 +1,6 @@
 package no.hal.sokoban;
 
-import no.hal.gridgame.Direction;
+import no.hal.grid.Direction;
 
 public interface SokobanHasher {
 

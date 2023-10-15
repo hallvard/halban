@@ -22,9 +22,10 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import no.hal.gridgame.Direction;
+import no.hal.grid.Direction;
 import no.hal.grid.fx.CompositeGridCellFactory;
 import no.hal.grid.fx.GridCellFactory;
+import no.hal.grid.util.XYTransform;
 import no.hal.plugin.InstanceRegistry;
 import no.hal.plugin.Scope;
 import no.hal.sokoban.LocationMovesCounters;
@@ -36,7 +37,6 @@ import no.hal.sokoban.SokobanGameState;
 import no.hal.sokoban.SokobanGrid;
 import no.hal.sokoban.SokobanGrid.CellKind;
 import no.hal.sokoban.SokobanGrid.ContentKind;
-import no.hal.sokoban.fx.util.XYTransform;
 import no.hal.sokoban.fx.util.XYTransformStrategy;
 import no.hal.sokoban.impl.AbstractSokobanGameProvider;
 import no.hal.sokoban.impl.MovesComputer;
@@ -286,7 +286,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 	}
 
 	private void callWithGridLocation(MouseEvent mouseEvent, Consumer<SokobanGrid.Location> locationConsumer) {
-		var gridLocation = sokobanGridViewer.getGridLocation(mouseEvent.getPickResult().getIntersectedNode());
+		var gridLocation = sokobanGridViewer.getGridView().getGridLocation(mouseEvent.getPickResult().getIntersectedNode());
 		locationConsumer.accept(gridLocation);
 		mouseEvent.consume();
 	}

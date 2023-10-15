@@ -1,6 +1,6 @@
-package no.hal.gridgame.impl;
+package no.hal.grid.impl;
 
-import no.hal.gridgame.Grid;
+import no.hal.grid.Grid;
 
 public class GridImpl<T> extends AbstractGridImpl<T> {
 

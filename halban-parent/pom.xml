@@ -18,6 +18,7 @@
 
         <module>plugin-fx-api</module>
 
+        <module>grid-api</module>
         <module>grid-fx</module>
         <module>sokoban-api</module>
         <module>sokoban-game</module>

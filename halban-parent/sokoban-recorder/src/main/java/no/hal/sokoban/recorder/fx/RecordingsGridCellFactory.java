@@ -6,8 +6,8 @@ import java.util.stream.Stream;
 
 import javafx.scene.shape.Circle;
 import no.hal.grid.fx.GridView.Cell;
+import no.hal.grid.util.XYTransformer;
 import no.hal.grid.fx.ShapeGridCellFactory;
-import no.hal.sokoban.fx.util.XYTransformer;
 import no.hal.sokoban.recorder.MoveRecordingLocationData;
 
 public abstract class RecordingsGridCellFactory<T> extends ShapeGridCellFactory<T, Circle> {

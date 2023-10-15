@@ -1,10 +1,13 @@
 package no.hal.grid.fx;
 
+import javafx.application.Platform;
 import javafx.geometry.Dimension2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.layout.Region;
 import javafx.util.Callback;
+import no.hal.grid.Grid;
+import no.hal.grid.util.XYTransformedGrid;
 
 public class GridView<T> extends Region {
 
@@ -67,10 +70,70 @@ public class GridView<T> extends Region {
 		return cells[row * columnCount + column];
 	}
 
+	private Grid<T> grid;
+
+	public Grid<T> getGrid() {
+		return grid;
+	}
+
 	public void updateCell(T item, int column, int row) {
 		Cell<T> cell = getCell(column, row);
 		cell.setGridItem(item, column, row);
 	}
+
+	// grid model
+
+	public void updateCell(int column, int row) {
+		updateCell(grid.getCell(column, row), column, row);
+	}
+
+	public void updateCells(int x, int y, int w, int h) {
+		for (int cy = y; cy != y + h; cy += Math.signum(h)) {
+			for (int cx = x; cx != x + w; cx += Math.signum(w)) {
+				updateCell(cx, cy);
+			}
+		}
+	}
+
+	public void updateCells() {
+		updateCells(0, 0, grid.getWidth(), grid.getHeight());
+	}
+
+	public void setGrid(Grid<T> grid) {
+		if (this.grid == grid) {
+			return;
+		}
+		if (this.grid != null) {
+			this.grid.removeGridListener(gridListener);
+		}
+		this.grid = grid;
+		if (this.grid != null) {
+			this.grid.addGridListener(gridListener);
+			gridListener.gridDimensionsChanged(this.grid, grid.getWidth(), grid.getHeight());
+		}
+	}
+
+	private Grid.Listener<T> gridListener = new Grid.Listener<T>() {
+
+		@Override
+		public void gridDimensionsChanged(Grid<T> grid, int w, int h) {
+			if (Platform.isFxApplicationThread()) {
+				setDimensions(w, h);
+				updateCells();
+			} else {
+				Platform.runLater(() -> gridDimensionsChanged(grid, w, h));
+			}
+		}
+
+		@Override
+		public void gridContentsChanged(Grid<T> grid, int x, int y, int w, int h) {
+			if (Platform.isFxApplicationThread()) {
+				updateCells(x, y, w, h);
+			} else {
+				Platform.runLater(() -> gridContentsChanged(grid, x, y, w, h));
+			}
+		}
+	};
 
 	// layout
 	
@@ -170,5 +233,21 @@ public class GridView<T> extends Region {
 				}
 			}
 		}
+	}
+
+
+	public Grid.Location getGridLocation(Node child) {
+		while (child.getParent() != this) {
+			child = child.getParent();
+			if (child == null) {
+				return null;
+			}
+		}
+		int pos = getChildrenUnmodifiable().indexOf(child);
+		var location = new Grid.Location(pos % getColumnCount(), pos / getColumnCount());
+		if (grid instanceof XYTransformedGrid xyTransformedGrid) {
+			location = xyTransformedGrid.getXYTransformer().untransformed(location);
+		}
+		return location;
 	}
 }

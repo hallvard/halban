@@ -1,5 +1,6 @@
 module sokoban.recorder {
 
+    requires grid.api;
     requires grid.fx;
     requires sokoban.game;
 

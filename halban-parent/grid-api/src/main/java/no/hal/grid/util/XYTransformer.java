@@ -1,7 +1,7 @@
-package no.hal.sokoban.fx.util;
+package no.hal.grid.util;
 
-import no.hal.gridgame.Direction;
-import no.hal.gridgame.Grid;
+import no.hal.grid.Direction;
+import no.hal.grid.Grid;
 
 public class XYTransformer {
 

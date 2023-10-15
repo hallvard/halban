@@ -8,14 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import no.hal.gridgame.Direction;
+import no.hal.grid.Direction;
+import no.hal.grid.Grid.Location;
 import no.hal.sokoban.Move;
 import no.hal.sokoban.Moves;
 import no.hal.sokoban.SokobanGameState;
 import no.hal.sokoban.SokobanGrid;
 import no.hal.sokoban.SokobanGrid.CellKind;
 import no.hal.sokoban.SokobanGrid.ContentKind;
-import no.hal.gridgame.Grid.Location;
 
 public class MovesComputer {
     

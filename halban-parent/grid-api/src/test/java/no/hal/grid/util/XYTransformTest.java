@@ -1,11 +1,11 @@
-package no.hal.sokoban.fx.util;
+package no.hal.grid.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import no.hal.gridgame.Direction;
-import no.hal.gridgame.Grid;
+import no.hal.grid.Direction;
+import no.hal.grid.Grid;
 
 public class XYTransformTest {
 
@@ -42,7 +42,7 @@ public class XYTransformTest {
 
     @Test
     public void testXYTransform_rotated() {
-        var transform = XYTransform.NONE.rotate(true);
+        var transform = XYTransform.NONE.rotated();
         checkXY(transform, 0, 0, 1, 0, 3, 2);
         checkXY(transform, 2, 1, 0, 2, 3, 2);
         checkWH(transform, 3, 2, 2, 3);
@@ -52,7 +52,7 @@ public class XYTransformTest {
 
     @Test
     public void testXYTransform_flippedX() {
-        var transform = XYTransform.NONE.flipX(true);
+        var transform = XYTransform.NONE.flippedX();
         checkXY(transform, 0, 0, 2, 0, 3, 2);
         checkXY(transform, 2, 1, 0, 1, 3, 2);
         checkWH(transform, 3, 2, 3, 2);
@@ -62,7 +62,7 @@ public class XYTransformTest {
 
     @Test
     public void testXYTransform_flippedY() {
-        var transform = XYTransform.NONE.flipY(true);
+        var transform = XYTransform.NONE.flippedY();
         checkXY(transform, 0, 0, 0, 1, 3, 2);
         checkXY(transform, 2, 1, 2, 0, 3, 2);
         checkWH(transform, 3, 2, 3, 2);
@@ -72,7 +72,7 @@ public class XYTransformTest {
 
     @Test
     public void testXYTransform_flippedX_flippedY() {
-        var transform = XYTransform.NONE.flipX(true).flipY(true);
+        var transform = XYTransform.NONE.flippedX().flippedY();
         checkXY(transform, 0, 0, 2, 1, 3, 2);
         checkXY(transform, 2, 1, 0, 0, 3, 2);
         checkWH(transform, 3, 2, 3, 2);
@@ -82,7 +82,7 @@ public class XYTransformTest {
 
     @Test
     public void testXYTransform_rotated_flippedX() {
-        var transform = XYTransform.NONE.rotate(true).flipX(true);
+        var transform = XYTransform.NONE.rotated().flippedX();
         checkXY(transform, 0, 0, 0, 0, 3, 2);
         checkXY(transform, 2, 1, 1, 2, 3, 2);
         checkWH(transform, 3, 2, 2, 3);
@@ -92,7 +92,7 @@ public class XYTransformTest {
 
     @Test
     public void testXYTransform_rotated_flippedY() {
-        var transform = XYTransform.NONE.rotate(true).flipY(true);
+        var transform = XYTransform.NONE.rotated().flippedY();
         checkXY(transform, 0, 0, 1, 2, 3, 2);
         checkXY(transform, 2, 1, 0, 0, 3, 2);
         checkWH(transform, 3, 2, 2, 3);
@@ -102,7 +102,7 @@ public class XYTransformTest {
 
     @Test
     public void testXYTransform_rotated_flippedX_flippedY() {
-        var transform = XYTransform.NONE.rotate(true).flipX(true).flipY(true);
+        var transform = XYTransform.NONE.rotated().flippedX().flippedY();
         checkXY(transform, 0, 0, 0, 2, 3, 2);
         checkXY(transform, 2, 1, 1, 0, 3, 2);
         checkWH(transform, 3, 2, 2, 3);

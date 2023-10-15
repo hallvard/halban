@@ -1,4 +1,6 @@
 module grid.fx {
+    requires transitive grid.api;
+
     requires transitive javafx.graphics;
     requires javafx.controls;
 

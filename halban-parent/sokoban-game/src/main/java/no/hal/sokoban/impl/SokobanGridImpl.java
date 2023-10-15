@@ -1,6 +1,6 @@
 package no.hal.sokoban.impl;
 
-import no.hal.gridgame.impl.GridImpl;
+import no.hal.grid.impl.GridImpl;
 import no.hal.sokoban.SokobanGrid;
 import no.hal.sokoban.parser.SokobanParser;
 
@@ -95,6 +95,14 @@ public class SokobanGridImpl extends GridImpl<SokobanGrid.CellKind> implements S
 				setCell(x + dx, y + dy, CellKind.valueOf(getCell(x + dx, y + dy).floor(), content));
 				pos++;
 			}
+		}
+		if (w < 0) {
+			x = x + w + 1;
+			w = -w;
+		}
+		if (h < 0) {
+			y = y + h + 1;
+			h = -h;
 		}
 		fireGridContentsChanged(x, y, w, h);
 	}

@@ -1,7 +1,7 @@
-package no.hal.sokoban.fx.util;
+package no.hal.grid.util;
 
-import no.hal.gridgame.Direction;
-import no.hal.gridgame.Grid;
+import no.hal.grid.Direction;
+import no.hal.grid.Grid;
 
 public class XYTransform {
 
@@ -26,6 +26,9 @@ public class XYTransform {
     public XYTransform flipX(boolean flipX) {
         return (this.flipX == flipX ? this : new XYTransform(flipX, this.flipY, this.rotate));
     }
+    public XYTransform flippedX() {
+        return flipX(true);
+    }
 
     public boolean flipY() {
         return this.flipY;
@@ -33,12 +36,18 @@ public class XYTransform {
     public XYTransform flipY(boolean flipY) {
         return (this.flipY == flipY ? this : new XYTransform(this.flipX, flipY, this.rotate));
     }
+    public XYTransform flippedY() {
+        return flipY(true);
+    }
 
     public boolean rotate() {
         return this.rotate;
     }
     public XYTransform rotate(boolean rotate) {
         return (this.rotate == rotate ? this : new XYTransform(this.flipX, this.flipY, rotate));
+    }
+    public XYTransform rotated() {
+        return rotate(true);
     }
 
     public static XYTransform NONE = new XYTransform();

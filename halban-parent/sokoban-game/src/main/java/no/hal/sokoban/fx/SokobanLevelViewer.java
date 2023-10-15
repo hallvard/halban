@@ -15,6 +15,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import no.hal.grid.fx.GridView;
 import no.hal.plugin.InstanceRegistry;
@@ -70,16 +71,16 @@ public class SokobanLevelViewer {
         addMetaDataText(metaDataChildren, "Author", sokobanLevel.getMetaData(), null);
         addMetaDataText(metaDataChildren, "hash", sokobanLevel.getMetaData(), "#");
 
+        Paint paint = null;
         if (snapshotState != null) {
-            var paint = switch (snapshotState) {
-                 case FINISHED -> Color.GREEN;
-                 case STARTED -> Color.ORANGE;
-                 default -> null;
+            paint = switch (snapshotState) {
+                case FINISHED -> Color.GREEN;
+                case STARTED -> Color.ORANGE;
+                default -> null;
             };
-            if (paint != null) {
-                sokobanGridViewer.getGridView().setBorder(new Border(new BorderStroke(paint, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(5))));
-            }
         }
+        var border = (paint != null ? new Border(new BorderStroke(paint, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(5))) : new Border((BorderStroke[]) null));
+        sokobanGridViewer.getGridView().setBorder(border);
     }
 
     private void addMetaDataText(List<Node> children, String property, MetaData metaData, String altProperty) {

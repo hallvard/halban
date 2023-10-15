@@ -3,6 +3,8 @@ package no.hal.sokoban.level;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import no.hal.sokoban.SokobanGrid;
 
@@ -40,6 +42,10 @@ public interface SokobanLevel {
             public String get(String property) {
                 return properties != null && properties.containsKey(property) ? properties.get(property) : null;
             }
+            @Override
+            public String toString() {
+                return (properties != null ? properties.toString() : "{}");
+            }
         };
     }
 
@@ -55,6 +61,10 @@ public interface SokobanLevel {
                     }
                 }
                 return null;
+            }
+            @Override
+            public String toString() {
+                return Stream.of(metaDatas).map(Object::toString).collect(Collectors.joining("+"));
             }
         };
     }

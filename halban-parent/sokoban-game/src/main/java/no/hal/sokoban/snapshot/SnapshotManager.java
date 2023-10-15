@@ -96,7 +96,6 @@ public class SnapshotManager implements SokobanLevel.Collection {
 		String content = SokobanParser.toString(game);
 		try {
 			Files.write(snapshotFile, content.getBytes());
-			// System.out.println("Saved " + content.length() + " chars to snapshot @ " + snapshotFile);
 		} catch (IOException ioex) {
 			System.err.println("Couldn't write game snapshot");
 			return;
@@ -138,12 +137,12 @@ public class SnapshotManager implements SokobanLevel.Collection {
         return targetCounters[1] == 0 ? SnapshotState.FINISHED : SnapshotState.STARTED;
     }
 
-    public SokobanLevel getSnapshot(SokobanLevel sokobanLevel) {
-        return getSnapshot("hash", sokobanLevel.getMetaData().get("hash"));
+    public SokobanLevel getSnapshot(SokobanLevel sokobanLevel, String property) {
+        return getSnapshot(property, sokobanLevel.getMetaData().get(property));
     }
 
     public SnapshotState getSokobanLevelSnapshotState(SokobanLevel sokobanLevel) {
-        var snapshot = getSnapshot(sokobanLevel);
+        var snapshot = getSnapshot(sokobanLevel, "hash");
         return (snapshot != null ? getSnapshotState(snapshot) : null);
     }
 

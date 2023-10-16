@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyProperty;
+import javafx.scene.Node;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
@@ -73,11 +74,31 @@ abstract class AbstractSokobanLevelCollectionsTreeViewer<T> extends AbstractItem
         treeView.setShowRoot(false);
         treeView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         treeView.setCellFactory(treeCellFactory);
+        autoExpandOnClick(treeView);
 
         var selectedTreeItemProperty = treeView.getSelectionModel().selectedItemProperty();
         selectedItemProperty = createSelectedItemProperty(selectedTreeItemProperty);
         updateTreeRoot();
+
         return treeView;
+    }
+
+    private void autoExpandOnClick(TreeView<?> treeView) {
+        treeView.setOnMouseClicked(mouseEvent -> {
+            Object target = mouseEvent.getTarget();
+            while (target instanceof Node node) {
+                if (target instanceof TreeCell treeCell) {
+                    var treeItem = treeCell.getTreeItem();
+                    Platform.runLater(() -> {
+                        if (treeView.getSelectionModel().getSelectedItem() == treeItem) {
+                            treeItem.setExpanded(! treeItem.isExpanded());
+                        }
+                    });
+                    return;
+                }
+                target = node.getParent();
+            }
+        });
     }
 
     private void updateTreeRoot() {

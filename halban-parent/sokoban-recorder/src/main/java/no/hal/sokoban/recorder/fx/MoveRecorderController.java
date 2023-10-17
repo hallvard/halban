@@ -5,13 +5,17 @@ import java.util.Map;
 
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.Mnemonic;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-
+import no.hal.grid.Direction;
 import no.hal.grid.fx.GridCellFactory;
 import no.hal.grid.util.XYTransformer;
 import no.hal.plugin.fx.ContentProvider;
@@ -24,7 +28,7 @@ import no.hal.sokoban.fx.SokobanGridViewer;
 import no.hal.sokoban.recorder.MoveRecorder;
 import no.hal.sokoban.recorder.MoveRecording;
 
-public class MoveRecorderController {
+public class MoveRecorderController implements ContentProvider.Child {
 
     private Map<SokobanGrid.Location, MoveRecording> recordings = new HashMap<>();
     private MoveRecorder moveRecorder = new MoveRecorder();
@@ -40,7 +44,7 @@ public class MoveRecorderController {
 	}
 
     public MoveRecorderController(FxExtensionPoint<ContentProvider.Child, Node> extensionPoint, SokobanGame.Provider sokobanGameProvider) {
-        extensionPoint.extend(() -> createLayout());
+        extensionPoint.extend(() -> getContent());
         this.sokobanGameProvider = sokobanGameProvider;
 
         startLocationGridCellFactory.addLocationData(moveRecorder);
@@ -90,10 +94,16 @@ public class MoveRecorderController {
         playButton.setDisable(sokobanGame == null || (! recordings.containsKey(sokobanGame.getPlayerLocation())));
     }
 
-    public HBox createLayout() {
+    @Override
+    public HBox getContent() {
         createContent();
         var recorderPane = new HBox(recordButton, playButton);
         recorderPane.setSpacing(5);
+        Platform.runLater(() -> {
+			var scene = recorderPane.getScene();
+			scene.addMnemonic(new Mnemonic(recordButton, new KeyCodeCombination(KeyCode.R)));
+			scene.addMnemonic(new Mnemonic(playButton, new KeyCodeCombination(KeyCode.P)));
+		});
         return recorderPane;
     }
 

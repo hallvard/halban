@@ -18,7 +18,11 @@ import no.hal.sokoban.SokobanGrid.CellKind;
 import no.hal.sokoban.SokobanGrid.ContentKind;
 
 public class MovesComputer {
-    
+
+	public static Moves computeMove(SokobanGameState sokobanGameState, Direction direction) {
+		return (canMove(sokobanGameState, direction, null) != null ? new Move(direction) : null);
+	}
+
     public static Moves computeMovesTo(SokobanGameState sokobanGameState, int x, int y) {
         var sokobanGrid = sokobanGameState.getSokobanGrid();
         var playerLocation = sokobanGameState.getPlayerLocation();

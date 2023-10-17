@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
@@ -12,19 +13,21 @@ import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.Mnemonic;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import no.hal.grid.Direction;
-import no.hal.grid.Grid;
 import no.hal.grid.util.XYTransformer;
+import no.hal.plugin.fx.ContentProvider;
 import no.hal.sokoban.Moves;
-import no.hal.sokoban.SokobanGame;
-import no.hal.sokoban.fx.util.GridItemDragController;
+import no.hal.sokoban.SokobanGameState;
+import no.hal.sokoban.SokobanMoveActions;
 import no.hal.sokoban.impl.MovesComputer;
 
-class DirectionMovementsController extends SokobanGameHelperController {
+class DirectionMovementsController implements ContentProvider.Child {
 
 	private SimpleObjectProperty<XYTransformer> xyTransformerProperty = new SimpleObjectProperty<>(null);
 
@@ -32,55 +35,87 @@ class DirectionMovementsController extends SokobanGameHelperController {
 		return xyTransformerProperty;
 	}
 
-	public DirectionMovementsController(SokobanGame.Provider sokobanGameProvider) {
-		super(sokobanGameProvider);
+	private SokobanGameState gameState;
+	private SokobanMoveActions moveActions;
+
+	public SokobanGameState getSokobanGameState() {
+		return gameState;
 	}
 
-	private boolean includeDragButton = true;
+	public void setSokobanGameState(SokobanGameState gameState) {
+		this.gameState = gameState;
+	}
+
+	public SokobanMoveActions getSokobanMoveActions() {
+		return moveActions;
+	}
+
+	public void setSokobanMoveActions(SokobanMoveActions moveActions) {
+		this.moveActions = moveActions;
+	}
+
 	private boolean includeStandardButtons = true;
 	private boolean includeMoveAlongButtons = true;
 
-	private double dragSpeed = 1.5;
 	private int iconSize = 24;
 
+	public int getIconSize() {
+		return iconSize;
+	}
+
+	private GridPane gridPane;
+
+	private Button leftButton = null, rightButton = null, upButton = null, downButton = null;
+	private Button leftAlongButton = null, rightAlongButton = null, upAlongButton = null, downAlongButton = null;
+
 	@Override
-	public Region createLayout(Node keyboardFocus) {
-		var gridPane = new GridPane();
-		int posMin = 1, posMid = 2, max = 3;
-		if (includeDragButton) {
-			var dragIcon = createFontIcon("mdi2a-arrow-all:" + iconSize, 0);
-			setGridConstraints(dragIcon, posMid, posMid);
-			dragIcon.addEventHandler(MouseEvent.ANY, new GridItemDragController.MouseEventHandler(
-				(x, y) -> {
-					var bounds = dragIcon.getLayoutBounds();
-					double dgx = (x - bounds.getCenterX()) / bounds.getWidth(), dgy = (y - bounds.getCenterY()) / bounds.getHeight();
-					return new Grid.Location((int)(dgx * dragSpeed), (int)(dgy * dragSpeed));
-				},
-				(pressedLocation, direction) -> movePlayer(direction, false),
-				null
-				)
-			);
-			gridPane.getChildren().add(dragIcon);
-		}
+	public Region getContent() {
+		this.gridPane = new GridPane();
+		int posMin = 1, posMax = 3;
 		if (includeStandardButtons) {
 			gridPane.getChildren().addAll(List.of(
-				createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 270), Direction.LEFT, false, posMin, posMid),
-				createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 90), Direction.RIGHT, false, max, posMid),
-				createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 0), Direction.UP, false, posMid, posMin),
-				createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 180), Direction.DOWN, false, 2, max)
+				leftButton = createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 270), Direction.LEFT, false, posMin, this.centerPos),
+				rightButton = createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 90), Direction.RIGHT, false, posMax, this.centerPos),
+				upButton = createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 0), Direction.UP, false, this.centerPos, posMin),
+				downButton = createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 180), Direction.DOWN, false, this.centerPos, posMax)
 			));
-			posMin = 0; max = 4;
+			posMin = 0; posMax = 4;
 		}
 		if (includeMoveAlongButtons) {
 			gridPane.getChildren().addAll(List.of(
-				createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 180), Direction.LEFT, true, posMin, posMid),
-				createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 0), Direction.RIGHT, true, max, posMid),
-				createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 270), Direction.UP, true, posMid, posMin),
-				createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 90), Direction.DOWN, true, posMid, max)
+				leftAlongButton = createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 180), Direction.LEFT, true, posMin, this.centerPos),
+				rightButton = createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 0), Direction.RIGHT, true, posMax, this.centerPos),
+				upAlongButton = createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 270), Direction.UP, true, this.centerPos, posMin),
+				downAlongButton = createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 90), Direction.DOWN, true, this.centerPos, posMax)
 			));
 		}
-
+		Platform.runLater(() -> {
+			var scene = gridPane.getScene();
+			if (leftButton != null) scene.addMnemonic(new Mnemonic(leftButton, new KeyCodeCombination(KeyCode.LEFT)));
+			if (rightButton != null) scene.addMnemonic(new Mnemonic(rightButton, new KeyCodeCombination(KeyCode.RIGHT)));
+			if (upButton != null) scene.addMnemonic(new Mnemonic(upButton, new KeyCodeCombination(KeyCode.UP)));
+			if (downButton != null) scene.addMnemonic(new Mnemonic(downButton, new KeyCodeCombination(KeyCode.DOWN)));
+			if (leftAlongButton != null) scene.addMnemonic(new Mnemonic(leftAlongButton, new KeyCodeCombination(KeyCode.LEFT, KeyCodeCombination.SHIFT_DOWN)));
+			if (rightAlongButton != null) scene.addMnemonic(new Mnemonic(rightAlongButton, new KeyCodeCombination(KeyCode.RIGHT, KeyCodeCombination.SHIFT_DOWN)));
+			if (upAlongButton != null) scene.addMnemonic(new Mnemonic(upAlongButton, new KeyCodeCombination(KeyCode.UP, KeyCodeCombination.SHIFT_DOWN)));
+			if (downAlongButton != null) scene.addMnemonic(new Mnemonic(downAlongButton, new KeyCodeCombination(KeyCode.DOWN, KeyCodeCombination.SHIFT_DOWN)));
+		});
 		return gridPane;
+	}
+
+	private Node centerNode = null;
+	private int centerPos = 2;
+
+	public void setCenterNode(Node centerNode) {
+		var gridChildren = gridPane.getChildren();
+		if (this.centerNode != null) {
+			gridChildren.remove(centerNode);
+		}
+		this.centerNode = centerNode;
+		if (this.centerNode != null) {
+			setGridConstraints(centerNode, centerPos, centerPos);
+			gridChildren.add(centerNode);
+		}
 	}
 
 	private FontIcon createFontIcon(String iconCode, double rotate) {
@@ -109,27 +144,15 @@ class DirectionMovementsController extends SokobanGameHelperController {
 		GridPane.setValignment(node, VPos.CENTER);
 	}
 
-	@Override
-	public boolean keyPressed(KeyEvent keyEvent) {
-		boolean isShift = keyEvent.isShiftDown();
-		return switch (keyEvent.getCode()) {
-			case LEFT -> movePlayer(Direction.LEFT, isShift);
-			case RIGHT -> movePlayer(Direction.RIGHT, isShift);
-			case UP -> movePlayer(Direction.UP, isShift);
-			case DOWN -> movePlayer(Direction.DOWN, isShift);
-			default -> false;
-		};
-	}
-
 	protected boolean movePlayer(Direction viewDirection, boolean moveAlong) {
 		if (getSokobanGameState() != null) {
 			var transformer = xyTransformerProperty.get();
 			var gameDirection = (transformer != null ? transformer.untransformed(viewDirection) : viewDirection);
 			if (moveAlong) {
 				Moves moves = MovesComputer.computeMovesAlong(getSokobanGameState(), gameDirection);
-				getSokobanGameActions().movePlayer(moves);
+				getSokobanMoveActions().movePlayer(moves);
 			} else {
-				getSokobanGameActions().movePlayer(gameDirection);
+				getSokobanMoveActions().movePlayer(gameDirection);
 			}
 			return true;
 		}

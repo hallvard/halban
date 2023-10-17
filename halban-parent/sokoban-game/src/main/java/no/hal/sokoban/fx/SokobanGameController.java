@@ -2,7 +2,7 @@ package no.hal.sokoban.fx;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -11,10 +11,13 @@ import javafx.application.Platform;
 import javafx.geometry.Dimension2D;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.Mnemonic;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -23,11 +26,11 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import no.hal.grid.Direction;
+import no.hal.grid.Grid.Location;
 import no.hal.grid.fx.CompositeGridCellFactory;
 import no.hal.grid.fx.GridCellFactory;
 import no.hal.grid.util.XYTransform;
 import no.hal.plugin.InstanceRegistry;
-import no.hal.plugin.Scope;
 import no.hal.sokoban.LocationMovesCounters;
 import no.hal.sokoban.Move;
 import no.hal.sokoban.Moves;
@@ -92,6 +95,9 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		@Override
 		public void gameStarted(SokobanGameState game) {
 			counters.clear(game.getPlayerLocation(), game.getMoves());
+			movementController.setSokobanGameState(sokobanGame);
+			movementController.setSokobanMoveActions(sokobanGame);
+			undoableController.setUndoActions(sokobanGame);
 			fireGameStarted();
 			updateView();
 		}
@@ -136,14 +142,14 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		this.sokobanGridViewer.setXYTransformStrategy(XYTransformStrategy.PREFER_WIDTH);
 		this.defaultCellFactory = sokobanGridViewer.getCellFactory();
 
-		this.movementController = new DirectionMovementsController(this);
+		this.movementController = new DirectionMovementsController();
 		this.movementController.xyTransformerProperty().bind(this.sokobanGridViewer.xyTransformerProperty());
-		var movementPane = movementController.createLayout(sokobanGridViewer.getGridView());
+		var movementPane = movementController.getContent();
 
-		this.undoableController = new UndoRedoController(this);
-		var undoPane = undoableController.createLayout(sokobanGridViewer.getGridView());
+		this.undoableController = new UndoRedoController();
+		var undoPane = undoableController.getContent();
 
-		setSokobanGridCellFactories(null);
+		// setSokobanGridCellFactories(null);
 
 		var gridView = sokobanGridViewer.getGridView();
 		var sokobanPane = gridView; // new StackPane(gridView);
@@ -156,10 +162,22 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 
 		gridView.setOnKeyTyped(this::keyPressed);
 		gridView.setOnKeyPressed(this::keyPressed);
-		gridView.setOnMousePressed(mouseEvent -> callWithGridLocation(mouseEvent, this::mousePressed));
-		gridView.setOnMouseDragged(mouseEvent -> callWithGridLocation(mouseEvent, this::mouseDragged));
-		gridView.setOnMouseReleased(mouseEvent -> callWithGridLocation(mouseEvent, this::mouseReleased));
+		gridView.setOnMousePressed(mouseMovementsController::mousePressed);
+		gridView.setOnMouseDragged(mouseMovementsController::mouseDragged);
+		gridView.setOnMouseReleased(mouseMovementsController::mouseReleased);
 		updateGridView();
+
+		var gridCell = sokobanGridViewer.getCellFactory().call(null);
+		gridCell.setGridItem(CellKind.EMPTY_PLAYER, 0, 0);
+		gridCell.setNodeSize(movementController.getIconSize(), movementController.getIconSize());
+		Node mouseMovementNode = gridCell.getNode();
+		movementController.setCenterNode(mouseMovementNode);
+
+		MouseMovementsController extraMouseMovementsController = new MouseMovementsController(mouseEvent -> sokobanGame.getPlayerLocation());
+		extraMouseMovementsController.setSpeedFactor(2.0);
+		mouseMovementNode.setOnMousePressed(extraMouseMovementsController::mousePressed);
+		mouseMovementNode.setOnMouseDragged(extraMouseMovementsController::mouseDragged);
+		mouseMovementNode.setOnMouseReleased(extraMouseMovementsController::mouseReleased);
 
 		this.messageText = new Text();
 		Button closeButton = new Button(null, new FontIcon("mdi2c-close:24"));
@@ -273,67 +291,92 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 	}
 	
 	protected void keyPressed(KeyEvent keyEvent) {
-		boolean consumed = switch (keyEvent.getCode()) {
-			case ESCAPE -> {
-				startSokobanGame();
-				yield true;
-			}
-			default -> movementController.keyPressed(keyEvent) || undoableController.keyPressed(keyEvent);
-		};
-		if (consumed) {
+		if (keyEvent.getCode() == KeyCode.ESCAPE) {
+			startSokobanGame();
 			keyEvent.consume();
-		}
-	}
-
-	private void callWithGridLocation(MouseEvent mouseEvent, Consumer<SokobanGrid.Location> locationConsumer) {
-		var gridLocation = sokobanGridViewer.getGridView().getGridLocation(mouseEvent.getPickResult().getIntersectedNode());
-		locationConsumer.accept(gridLocation);
-		mouseEvent.consume();
-	}
-	
-	private SokobanGrid.Location pressedLocation;
-	private ContentKind pressedContent = null;
-	private SokobanGrid.Location lastLocation;
-
-	protected void mousePressed(SokobanGrid.Location location) {
-		lastLocation = pressedLocation = location;
-		if (pressedLocation != null) {
-			pressedContent = sokobanGame.getSokobanGrid().getCell(location.x(), location.y()).content();
-		}
-	}
-	
-	private MovesSlowdownController movesSlowdownController = new MovesSlowdownController(this, 10);
-
-	protected void mouseDragged(SokobanGrid.Location location) {
-		if (lastLocation != null && (! location.equals(lastLocation))) {
-			int dx = (int) Math.signum(location.x() - lastLocation.x());
-			int dy = (int) Math.signum(location.y() - lastLocation.y());
-			// one and only one can be non-zero
-			if (dx * dy == 0 && dx + dy != 0) {
-				var direction = Direction.valueOf(dx, dy);
-				if (pressedContent == ContentKind.BOX) {
-					Moves moves = MovesComputer.computeBoxMoves(sokobanGame, lastLocation.x(), lastLocation.y(), direction);
-					movesSlowdownController.withSlowMoves(() -> {
-						if (moves != null) {
-							this.lastLocation = location;
-						}
-						return moves;
-					});
-				} else {
-					var isPush = sokobanGame.movePlayer(direction);
-					if (isPush != null) {
-						this.lastLocation = location;
-					}
+		} else {
+			var scene = sokobanGridViewer.getGridView().getScene();
+			for (var mnemonicEntry : scene.getMnemonics().entrySet()) {
+				if (mnemonicEntry.getKey().match(keyEvent)) {
+					mnemonicEntry.getValue().forEach(Mnemonic::fire);
+					keyEvent.consume();
 				}
 			}
 		}
 	}
 
-	protected void mouseReleased(SokobanGrid.Location location) {
-		if (location != null && location.equals(pressedLocation) && pressedContent == ContentKind.EMPTY) {
-			movesSlowdownController.withSlowMoves(() -> MovesComputer.computeMovesTo(sokobanGame, location.x(), location.y()));
+	private MovesSlowdownController movesSlowdownController = new MovesSlowdownController(this, 10);
+	private MouseMovementsController mouseMovementsController = new MouseMovementsController(mouseEvent -> {
+		var pick = mouseEvent.getPickResult().getIntersectedNode();
+		return sokobanGridViewer.getGridView().getGridLocation(pick);
+	});
+
+	private class MouseMovementsController {
+
+		private SokobanGrid.Location pressedLocation;
+		private ContentKind pressedContent = null;
+		private Point2D lastPoint;
+		private SokobanGrid.Location lastLocation;
+
+		private final Function<MouseEvent, Location> locationProvider;
+
+		public MouseMovementsController(Function<MouseEvent, Location> locationProvider) {
+			this.locationProvider = locationProvider;
 		}
-		pressedContent = null;
-		lastLocation = null;
+
+		private void mousePressed(MouseEvent mouseEvent) {
+			this.lastPoint = new Point2D(mouseEvent.getX(), mouseEvent.getY());
+			this.lastLocation = this.pressedLocation = locationProvider.apply(mouseEvent);
+			if (this.pressedLocation != null) {
+				mouseEvent.consume();
+				pressedContent = sokobanGame.getSokobanGrid().getCell(pressedLocation.x(), pressedLocation.y()).content();
+			}
+		}
+		
+		private double speedFactor = 1.0;
+
+		public void setSpeedFactor(double speedFactor) {
+			this.speedFactor = speedFactor;
+		}
+
+		private Direction getDirection(MouseEvent mouseEvent) {
+			double dx = (mouseEvent.getX() - lastPoint.getX()) * speedFactor / cellSize.getWidth();
+			double dy = (mouseEvent.getY() - lastPoint.getY()) * speedFactor / cellSize.getHeight();
+			Direction direction = (Math.abs(dx) >= Math.abs(dy) && Math.abs(dx) >= 1 ?
+									Direction.valueOf((int) Math.signum(dx), 0) :
+									(Math.abs(dy) >= Math.abs(dx) && Math.abs(dy) >= 1 ?
+										Direction.valueOf(0, (int) Math.signum(dy)) :
+										null));
+			return direction;
+		}
+
+		protected void mouseDragged(MouseEvent mouseEvent) {
+			if (pressedContent != null && lastPoint != null && lastLocation != null) {
+				Direction direction = getDirection(mouseEvent);
+				if (direction != null) {
+					var transformedDirection = sokobanGridViewer.getXYTransformer().untransformed(direction);
+					lastPoint = new Point2D(mouseEvent.getX(), mouseEvent.getY());
+					Moves moves = switch (pressedContent) {
+						case PLAYER -> MovesComputer.computeMove(sokobanGame, transformedDirection);
+						case BOX -> MovesComputer.computeBoxMoves(sokobanGame, lastLocation.x(), lastLocation.y(), transformedDirection);
+						default -> null;
+					};
+					movesSlowdownController.withSlowMoves(() -> {
+						if (moves != null) {
+							this.lastLocation = this.lastLocation.to(transformedDirection);
+						}
+						return moves;
+					});
+				}
+			}
+		}
+
+		protected void mouseReleased(MouseEvent mouseEvent) {
+			if (this.pressedContent == ContentKind.EMPTY && getDirection(mouseEvent) == null) {
+				movesSlowdownController.withSlowMoves(() -> MovesComputer.computeMovesTo(sokobanGame, this.pressedLocation.x(), this.pressedLocation.y()));
+				this.pressedContent = null;
+				this.lastLocation = null;
+			}
+		}
 	}
 }

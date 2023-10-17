@@ -34,8 +34,8 @@ class MovesSlowdownController {
         }
     };
 
-    public void withSlowMoves(Supplier<Moves> movements) {
-        withSlowMoves(sokobanGameProvider.getSokobanGame(), slowdown, movements);
+    public void withSlowMoves(Supplier<Moves> moves) {
+        withSlowMoves(sokobanGameProvider.getSokobanGame(), slowdown, moves);
     }
 
     private void withSlowMoves(SokobanGame game, int slowdown, Supplier<Moves> movements) {

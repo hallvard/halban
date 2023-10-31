@@ -262,7 +262,7 @@
                             <resourcesList>
                             </resourcesList>
                             <attachList>
-                                <list>position</list>
+                                <list>accelerometer</list>
                             </attachList>
                             <releaseConfiguration>
                                 <!-- all targets

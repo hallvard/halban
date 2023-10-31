@@ -11,7 +11,6 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import no.hal.plugin.InstanceRegistry;
 import no.hal.plugin.Plugin;
 import no.hal.plugin.di.Injector;
 import no.hal.plugin.di.impl.DelegatingInjectorImpl;

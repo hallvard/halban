@@ -5,7 +5,8 @@ public class RunLengthEncoding {
     public static CharSequence decode(String s) {
         StringBuffer buffer = new StringBuffer(s.length());
         int pos = 0;
-        while ((pos = decode(1, s, pos, -1, buffer)) < s.length());
+        while ((pos = decode(1, s, pos, -1, buffer)) < s.length()) {
+        }
         return buffer;
     }
 

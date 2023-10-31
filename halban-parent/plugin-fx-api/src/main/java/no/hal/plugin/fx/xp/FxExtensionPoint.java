@@ -13,7 +13,7 @@ public interface FxExtensionPoint<C extends ContentProvider<N>, N> extends Accep
     /**
      * Extends with the provided content provider
      *
-     * @param node
+     * @param contentProvider
      * @return callback for disposing the extension
      */
     Runnable extend(C contentProvider);

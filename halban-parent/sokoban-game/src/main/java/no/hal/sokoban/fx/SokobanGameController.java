@@ -56,7 +56,7 @@ import no.hal.sokoban.level.SokobanLevel;
 public class SokobanGameController extends AbstractSokobanGameProvider {
 
 	private final SokobanLevel sokobanLevel;
-	private Runnable closer;
+	private final Runnable closer;
 
 	public SokobanGameController(FxExtensionPoint<LabeledChildExtender, Node> extensionPoint, SokobanLevel sokobanLevel) {
 		this.sokobanLevel = sokobanLevel;

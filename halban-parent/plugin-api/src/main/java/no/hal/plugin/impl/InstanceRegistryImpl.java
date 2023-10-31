@@ -108,7 +108,7 @@ public class InstanceRegistryImpl implements InstanceRegistry {
         unregisterComponent(t.getClass());
     }
 
-    private Collection<InstanceRegistry.Listener> listeners = new ArrayList<>();
+    private final Collection<InstanceRegistry.Listener> listeners = new ArrayList<>();
 
     @Override
     public void addListener(Listener listener) {

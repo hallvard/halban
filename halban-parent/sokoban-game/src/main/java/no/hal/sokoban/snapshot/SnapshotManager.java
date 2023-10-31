@@ -46,7 +46,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
         sokobanGame.removeGameListener(sokobanGameListener);
     }
 
-    private SokobanGameState.Listener sokobanGameListener = new SokobanGameState.Listener.Impl() {
+    private final SokobanGameState.Listener sokobanGameListener = new SokobanGameState.Listener.Impl() {
 
         @Override
         public void gameStarted(SokobanGameState game) {
@@ -59,10 +59,10 @@ public class SnapshotManager implements SokobanLevel.Collection {
         }
     };
 
-    private final static String userHome = System.getProperty("user.home", System.getenv("HOME"));
+    private final static String USER_HOME = System.getProperty("user.home", System.getenv("HOME"));
 
     private Path getSnapshotsFolderPath() {
-        return Path.of(userHome, ".halban", "snapshots");
+        return Path.of(USER_HOME, ".halban", "snapshots");
     }
 
     private String getSnapshotFilename(SokobanGameState game) {
@@ -74,7 +74,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
         if (filenameBase == null) {
             filenameBase = sokobanLevel.getMetaData().get("Title");
         }
-        return sokobanLevel != null ? filenameBase.replaceAll("\\W", "_") + "-snapshot.txt" : null;
+        return filenameBase.replaceAll("\\W", "_") + "-snapshot.txt";
     }
 
     private boolean isSnapshotFilename(String filename) {

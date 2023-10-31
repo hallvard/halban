@@ -28,14 +28,14 @@ import no.hal.sokoban.recorder.MoveRecording;
 
 public class MoveRecorderController implements ContentProvider.Child {
 
-    private Map<SokobanGrid.Location, MoveRecording> recordings = new HashMap<>();
+    private final Map<SokobanGrid.Location, MoveRecording> recordings = new HashMap<>();
     private MoveRecorder moveRecorder = new MoveRecorder();
 
     private SokobanGame.Provider sokobanGameProvider;
     private StartLocationsGridCellFactory<?> startLocationGridCellFactory = new StartLocationsGridCellFactory<>();
     private StepLocationsGridCellFactory<?> stepLocationsGridCellFactory = new StepLocationsGridCellFactory<>();
 
-   	private SimpleObjectProperty<XYTransformer> xyTransformerProperty = new SimpleObjectProperty<>(null);
+   	private final SimpleObjectProperty<XYTransformer> xyTransformerProperty = new SimpleObjectProperty<>(null);
 
 	public Property<XYTransformer> xyTransformerProperty() {
 		return xyTransformerProperty;

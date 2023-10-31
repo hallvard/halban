@@ -1,22 +1,28 @@
 package no.hal.sokoban.fx;
 
 import java.util.List;
+import java.util.Map;
 
 import org.kordamp.ikonli.javafx.FontIcon;
 
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.Mnemonic;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import no.hal.gridgame.UndoActions;
 import no.hal.plugin.fx.ContentProvider;
+import no.hal.sokoban.fx.util.ShortcutHandler;
 
 class UndoRedoController implements ContentProvider.Child {
 	
+	private final ShortcutHandler shortcutHandler;
+
+	public UndoRedoController(ShortcutHandler shortcutHandler) {
+		this.shortcutHandler = shortcutHandler;
+	}
+
 	private UndoActions undoActions;
 
 	public UndoActions getUndoActions() {
@@ -46,11 +52,14 @@ class UndoRedoController implements ContentProvider.Child {
 		undoButtons = List.of(undoAllButton, undo10Button, undoButton, redoButton, redo10Button, redoAllButton);
 
 		var pane = new HBox(undoButtons.toArray(new Node[undoButtons.size()]));
-		Platform.runLater(() -> {
-			var scene = pane.getScene();
-			scene.addMnemonic(new Mnemonic(undoButton, new KeyCodeCombination(KeyCode.BACK_SPACE)));
-			scene.addMnemonic(new Mnemonic(redoButton, new KeyCodeCombination(KeyCode.SPACE)));
-		});
+		shortcutHandler.registerShortcuts(Map.of(
+			new KeyCodeCombination(KeyCode.BACK_SPACE), undoButton,
+			new KeyCodeCombination(KeyCode.BACK_SPACE, KeyCodeCombination.SHIFT_DOWN), undo10Button,
+			new KeyCodeCombination(KeyCode.BACK_SPACE, KeyCodeCombination.CONTROL_DOWN), undoAllButton,
+			new KeyCodeCombination(KeyCode.SPACE), redoButton,
+			new KeyCodeCombination(KeyCode.SPACE, KeyCodeCombination.SHIFT_DOWN), redo10Button,
+			new KeyCodeCombination(KeyCode.SPACE, KeyCodeCombination.CONTROL_DOWN), redoAllButton
+		));
 		return pane;
 	}
 

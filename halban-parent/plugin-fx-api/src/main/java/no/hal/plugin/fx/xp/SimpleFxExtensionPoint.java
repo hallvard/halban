@@ -25,15 +25,15 @@ public class SimpleFxExtensionPoint<C extends ContentProvider<N>, N> extends Abs
     }
 
     public static SimpleFxExtensionPoint<ContentProvider.Child, Node> forChild(InstanceRegistry instanceRegistry, Function<ContentProvider.Child, Runnable> extender) {
-        return new SimpleFxExtensionPoint<ContentProvider.Child, Node>(instanceRegistry, ContentProvider.Child.class, childProvider -> extender.apply(childProvider));
+        return new SimpleFxExtensionPoint<>(instanceRegistry, ContentProvider.Child.class, childProvider -> extender.apply(childProvider));
     }
     public static SimpleFxExtensionPoint<ContentProvider.Container, Parent> forContainer(InstanceRegistry instanceRegistry, Function<ContentProvider.Container, Runnable> extender) {
-        return new SimpleFxExtensionPoint<ContentProvider.Container, Parent>(instanceRegistry, ContentProvider.Container.class, contentProvider -> extender.apply(contentProvider));
+        return new SimpleFxExtensionPoint<>(instanceRegistry, ContentProvider.Container.class, contentProvider -> extender.apply(contentProvider));
     }
     public static SimpleFxExtensionPoint<ContentProvider.Children, List<Node>> forChildren(InstanceRegistry instanceRegistry, Function<ContentProvider.Children, Runnable> extender) {
-        return new SimpleFxExtensionPoint<ContentProvider.Children, List<Node>>(instanceRegistry, ContentProvider.Children.class, childrenProvider -> extender.apply(childrenProvider));
+        return new SimpleFxExtensionPoint<>(instanceRegistry, ContentProvider.Children.class, childrenProvider -> extender.apply(childrenProvider));
     }
-    
+
     @Override
     public Runnable extend(C contentProvider) {
         return extender.apply(contentProvider);

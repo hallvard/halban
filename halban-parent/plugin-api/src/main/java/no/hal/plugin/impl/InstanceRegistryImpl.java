@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -19,28 +18,29 @@ public class InstanceRegistryImpl implements InstanceRegistry {
 
     protected record InstanceKey(Class<?> clazz, Object qualifier) {}
 
+    protected final Object owner;
     protected final InstanceRegistry parent;
     protected final Map<InstanceKey, Object> instanceMap = new HashMap<>();
 
-    public InstanceRegistryImpl(InstanceRegistry parent) {
+    public InstanceRegistryImpl(Object owner, InstanceRegistry parent) {
+        this.owner = owner;
         this.parent = parent;
         if (parent != null) {
             parent.addListener((clazz, qualifier, oldValue, newValue) -> fireInstanceChanged(clazz, qualifier, oldValue, newValue));
         }
     }
     public InstanceRegistryImpl() {
-        this(null);
+        this(null, null);
     }
 
-    protected InstanceRegistry getParent(Predicate<InstanceRegistry> predicate) {
-        InstanceRegistry instanceRegistry = this;
-        while (instanceRegistry != null) {
-            if (predicate.test(instanceRegistry)) {
-                return instanceRegistry;
-            }
-            instanceRegistry = (instanceRegistry instanceof InstanceRegistryImpl impl ? impl.parent : null);
-        }
-        return null;
+    @Override
+    public Object getOwner() {
+        return owner;
+    }
+    
+    @Override
+    public InstanceRegistry getParent() {
+        return parent;
     }
 
     protected Set<InstanceKey> allKeys(Class<?> clazz) {
@@ -135,14 +135,16 @@ public class InstanceRegistryImpl implements InstanceRegistry {
 		List<T> loadedServices = new ArrayList<>();
 		ServiceLoader<T> serviceLoader = serviceLoaderSupplier.get();
 		for (var service : serviceLoader) {
+			System.out.println("> Loading " + service);
 			if (service instanceof LifeCycle activatable) {
 				if (! LifeCycle.activate(activatable, instanceRegistry)) {
 					continue;
 				}
+    			System.out.println("...activated " + activatable);
 			}
 			instanceRegistry.registerInstance(service, serviceClass, service.getClass().getName());
 			loadedServices.add(service);
-			System.out.println("Loaded " + service);
+			System.out.println("< Loaded " + service);
 		}
 		return loadedServices;
 	}

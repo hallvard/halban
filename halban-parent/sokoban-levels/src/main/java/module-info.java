@@ -6,5 +6,5 @@ module sokoban.levels {
     requires sokoban.game;
     requires org.jsoup;
 
-    provides no.hal.plugin.Plugin with no.hal.sokoban.levels.SokobanLevelsPlugin;
+    provides no.hal.plugin.Plugin with no.hal.sokoban.levels.plugin.SokobanLevelsPlugin;
 }

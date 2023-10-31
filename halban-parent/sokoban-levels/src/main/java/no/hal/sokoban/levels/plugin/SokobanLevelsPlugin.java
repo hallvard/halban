@@ -1,7 +1,5 @@
-package no.hal.sokoban.levels;
+package no.hal.sokoban.levels.plugin;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -15,6 +13,8 @@ import no.hal.sokoban.levels.sourcecodese.SourcecodeSeLevelCollectionsProvider;
 import no.hal.plugin.fx.Adapter;
 import no.hal.plugin.fx.ChildrenAdapter;
 import no.hal.plugin.fx.LabelAdapter;
+import no.hal.sokoban.levels.DownloadableLevelCollectionsProvider;
+import no.hal.sokoban.levels.ResourceLevelCollectionsProvider;
 
 public class SokobanLevelsPlugin implements Plugin {
     

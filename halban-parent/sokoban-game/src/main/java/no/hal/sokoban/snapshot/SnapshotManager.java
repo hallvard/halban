@@ -13,6 +13,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import javafx.application.Application;
+import no.hal.plugin.di.annotation.Scoped;
 import no.hal.sokoban.Move;
 import no.hal.sokoban.SokobanGame;
 import no.hal.sokoban.SokobanGameState;
@@ -20,6 +22,7 @@ import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.level.SokobanLevel.MetaData;
 import no.hal.sokoban.parser.SokobanParser;
 
+@Scoped(Application.class)
 public class SnapshotManager implements SokobanLevel.Collection {
 
     public enum SnapshotState {
@@ -98,7 +101,6 @@ public class SnapshotManager implements SokobanLevel.Collection {
 			Files.write(snapshotFile, content.getBytes());
 		} catch (IOException ioex) {
 			System.err.println("Couldn't write game snapshot");
-			return;
 		}
 	}
 
@@ -107,7 +109,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
         return SokobanLevel.metaDataOf(Map.of("Title", "Snapshots"));
     }
 
-    private List<SokobanLevel> allSokobanSnapshots = new ArrayList<>();
+    private final List<SokobanLevel> allSokobanSnapshots = new ArrayList<>();
 
     @Override
     public List<SokobanLevel> getSokobanLevels() {
@@ -146,7 +148,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
         return (snapshot != null ? getSnapshotState(snapshot) : null);
     }
 
-    private SokobanParser sokobanParser = new SokobanParser();
+    private final SokobanParser sokobanParser = new SokobanParser();
 
     private void updateSokobanSnapshots() {
         var snapshotsFolderPath = getSnapshotsFolderPath();

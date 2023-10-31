@@ -1,10 +1,11 @@
 package no.hal.sokoban.fx;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.kordamp.ikonli.javafx.FontIcon;
 
-import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
@@ -15,8 +16,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.Mnemonic;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import no.hal.grid.Direction;
@@ -25,9 +24,16 @@ import no.hal.plugin.fx.ContentProvider;
 import no.hal.sokoban.Moves;
 import no.hal.sokoban.SokobanGameState;
 import no.hal.sokoban.SokobanMoveActions;
+import no.hal.sokoban.fx.util.ShortcutHandler;
 import no.hal.sokoban.impl.MovesComputer;
 
 class DirectionMovementsController implements ContentProvider.Child {
+
+	private final ShortcutHandler shortcutHandler;
+
+	public DirectionMovementsController(ShortcutHandler shortcutHandler) {
+		this.shortcutHandler = shortcutHandler;
+	}
 
 	private SimpleObjectProperty<XYTransformer> xyTransformerProperty = new SimpleObjectProperty<>(null);
 
@@ -55,7 +61,7 @@ class DirectionMovementsController implements ContentProvider.Child {
 	}
 
 	private boolean includeStandardButtons = true;
-	private boolean includeMoveAlongButtons = true;
+	private boolean includeMoveAlongButtons = false;
 
 	private int iconSize = 24;
 
@@ -89,17 +95,16 @@ class DirectionMovementsController implements ContentProvider.Child {
 				downAlongButton = createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 90), Direction.DOWN, true, this.centerPos, posMax)
 			));
 		}
-		Platform.runLater(() -> {
-			var scene = gridPane.getScene();
-			if (leftButton != null) scene.addMnemonic(new Mnemonic(leftButton, new KeyCodeCombination(KeyCode.LEFT)));
-			if (rightButton != null) scene.addMnemonic(new Mnemonic(rightButton, new KeyCodeCombination(KeyCode.RIGHT)));
-			if (upButton != null) scene.addMnemonic(new Mnemonic(upButton, new KeyCodeCombination(KeyCode.UP)));
-			if (downButton != null) scene.addMnemonic(new Mnemonic(downButton, new KeyCodeCombination(KeyCode.DOWN)));
-			if (leftAlongButton != null) scene.addMnemonic(new Mnemonic(leftAlongButton, new KeyCodeCombination(KeyCode.LEFT, KeyCodeCombination.SHIFT_DOWN)));
-			if (rightAlongButton != null) scene.addMnemonic(new Mnemonic(rightAlongButton, new KeyCodeCombination(KeyCode.RIGHT, KeyCodeCombination.SHIFT_DOWN)));
-			if (upAlongButton != null) scene.addMnemonic(new Mnemonic(upAlongButton, new KeyCodeCombination(KeyCode.UP, KeyCodeCombination.SHIFT_DOWN)));
-			if (downAlongButton != null) scene.addMnemonic(new Mnemonic(downAlongButton, new KeyCodeCombination(KeyCode.DOWN, KeyCodeCombination.SHIFT_DOWN)));
-		});
+		Map<KeyCodeCombination, Button> shortcuts = new HashMap<>();
+		if (leftButton != null) shortcuts.put(new KeyCodeCombination(KeyCode.LEFT), leftButton);
+		if (rightButton != null) shortcuts.put(new KeyCodeCombination(KeyCode.RIGHT), rightButton);
+		if (upButton != null) shortcuts.put(new KeyCodeCombination(KeyCode.UP), upButton);
+		if (downButton != null) shortcuts.put(new KeyCodeCombination(KeyCode.DOWN), downButton);
+		if (leftAlongButton != null) shortcuts.put(new KeyCodeCombination(KeyCode.LEFT, KeyCodeCombination.SHIFT_DOWN), leftAlongButton);
+		if (rightAlongButton != null) shortcuts.put(new KeyCodeCombination(KeyCode.RIGHT, KeyCodeCombination.SHIFT_DOWN), rightAlongButton);
+		if (upAlongButton != null) shortcuts.put(new KeyCodeCombination(KeyCode.UP, KeyCodeCombination.SHIFT_DOWN), upAlongButton);
+		if (downAlongButton != null) shortcuts.put(new KeyCodeCombination(KeyCode.DOWN, KeyCodeCombination.SHIFT_DOWN), downAlongButton);
+		shortcutHandler.registerShortcuts(shortcuts);
 		return gridPane;
 	}
 

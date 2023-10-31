@@ -1,7 +1,5 @@
 package no.hal.plugin.di.gen;
 
-import com.squareup.javapoet.JavaFile;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -19,14 +17,14 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 
 @SupportedAnnotationTypes({
-    "no.hal.plugin.di.annotation.Service",
+    "no.hal.plugin.di.annotation.Component",
     "no.hal.plugin.di.annotation.Reference",
-    "no.hal.plugin.di.annotation.Scope",
+    "no.hal.plugin.di.annotation.Scoped",
 
     "jakarta.inject.Inject",
     "jakarta.inject.Singleton"
 })
-@SupportedSourceVersion(SourceVersion.RELEASE_17)
+@SupportedSourceVersion(SourceVersion.RELEASE_19)
 public class GeneratorProcessor extends AbstractProcessor {
 
     @Override
@@ -37,6 +35,7 @@ public class GeneratorProcessor extends AbstractProcessor {
                 Element typeElement = switch(elt.getKind()) {
                     case CLASS -> elt;
                     case CONSTRUCTOR -> elt.getEnclosingElement();
+                    case FIELD -> elt.getEnclosingElement();
                     case METHOD ->  elt.getEnclosingElement();
                     case PARAMETER -> elt.getEnclosingElement().getEnclosingElement();
                     default -> null;
@@ -56,20 +55,19 @@ public class GeneratorProcessor extends AbstractProcessor {
                 }
             }
         }
-        for (var typeEntry : typeAnnotations.entrySet()) {
-            Element typeElement = typeEntry.getKey();
-            InjectorDelegateImplGenerator injectorDelegateImplGenerator = new InjectorDelegateImplGenerator(typeElement, typeEntry.getValue());
-            JavaFile injectorDelegate = injectorDelegateImplGenerator.generateInjectorDelegate();
-            try {
-                var sourceFile = processingEnv.getFiler().createSourceFile(injectorDelegateImplGenerator.getInjectorDelegateQualifiedName(), typeElement);
-                try (PrintWriter out = new PrintWriter(sourceFile.openWriter())) {
-                    injectorDelegate.writeTo(out);
-                } catch (IOException ioex) {
-                    System.err.println("Exception writing file for " + injectorDelegate + ": " + ioex);
-                }
-            } catch (IOException ioex) {
-                System.err.println("Exception create source file for " + injectorDelegate.typeSpec + ": " + ioex);
-            }
+        if (typeAnnotations.isEmpty()) {
+            return false;
+        }
+        var injectorDelegateGenerators = typeAnnotations.entrySet().stream()
+            .map(typeEntry -> new InjectorDelegateImplGenerator(typeEntry.getKey(), typeEntry.getValue()))
+            .toList();
+        var injectorDelegatesGenerator = new InjectorDelegatesModuleImplGenerator(injectorDelegateGenerators);
+        String delegatesModuleFileName = injectorDelegatesGenerator.getPackageName() + ".InjectorDelegatesModuleImpl";
+        try (PrintWriter out = new PrintWriter(processingEnv.getFiler().createSourceFile(delegatesModuleFileName).openWriter())) {
+            var javaFile = injectorDelegatesGenerator.generateInjectorDelegatesModule();
+            javaFile.writeTo(out);
+        } catch (IOException ioex) {
+            System.err.println("Exception writing " + delegatesModuleFileName + ": " + ioex);
         }
         return true;
     }

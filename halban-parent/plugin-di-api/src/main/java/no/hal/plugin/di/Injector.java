@@ -7,26 +7,40 @@ import no.hal.plugin.InstanceRegistry;
 
 public interface Injector {
 
-    /**
-     * Gets existing instance registered for the class and qualifier.
-     *
-     * @param clazz the component class
-     * @param qualifier the qualifier, may be null
-     * @param scopeClass the scope to search within, may be null
-     * @return an existing component registered for the class and qualifier
-     */
-    <T> T getInstance(Class<T> clazz, Object qualifier, Predicate<InstanceRegistry> scope);
-
-    default <T> T getInstance(Class<T> clazz, Object qualifier) {
-        return getInstance(clazz, qualifier, null);
+    public static Predicate<InstanceRegistry> localScope() {
+        return instanceRegistry -> true;
     }
+
+    public static Predicate<InstanceRegistry> scopeFor(Class<?> clazz) {
+        return instanceRegistry -> clazz.isInstance(instanceRegistry.getOwner());
+    }
+    public static Predicate<InstanceRegistry> scopeFor(Predicate<Object> ownerTest) {
+        return instanceRegistry -> ownerTest.test(instanceRegistry.getOwner());
+    }
+
+    public static Predicate<InstanceRegistry> globalScope() {
+        return instanceRegistry -> instanceRegistry.getOwner() == null;
+    }
+
+    /**
+     * Gets a registered instance for the class and qualifier, if one is available.
+     *
+     * @param <T>
+     * @param clazz the class
+     * @param qualifier the qualifier, may be null
+     * @param scope the scope to search from, may be null
+     * @return an instance, of one is available, otherwise null
+     */
+    public <T> T getInstance(Class<T> clazz, Object qualifier, Predicate<InstanceRegistry> scope);
 
     /**
      * Registers an instance for the class and qualifier, in the current scope.
      *
+     * @param <T>
      * @param instance the instance
      * @param clazz the class
      * @param qualifier the qualifier, may be null
+     * @param scope the scope to search from, may be null
      */
     <T> void registerInstance(T instance, Class<T> clazz, Object qualifier, Predicate<InstanceRegistry> scope);
 
@@ -34,9 +48,10 @@ public interface Injector {
      * Gets existing instance registered for the class and qualifier, or
      * registeres a new one created by a supplier.
      *
+     * @param <T>
      * @param clazz the component class
      * @param qualifier the qualifier, may be null
-     * @param scopeClass the scope to search within, may be null
+     * @param scope the scope to search within, may be null
      * @param supplier supplies a value, if needed
      * @return an existing component registered for the class and qualifier
      */
@@ -53,6 +68,7 @@ public interface Injector {
      * Provides an instance for the class. This is the main injector method.
      * If neccessary, a new one will be creating, injecting into and registered.
      *
+     * @param <T>
      * @param clazz the component class
      * @param qualifier the qualifier
      * @return a new instance registered for the class and qualifier
@@ -62,6 +78,7 @@ public interface Injector {
     /**
      * Injects into an existing instance, based on annotations in the provided class.
      *
+     * @param <T>
      * @param instance
      * @param clazz
      * @return

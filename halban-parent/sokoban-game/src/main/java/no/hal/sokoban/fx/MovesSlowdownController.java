@@ -1,6 +1,7 @@
 package no.hal.sokoban.fx;
 
 import java.util.function.Supplier;
+
 import no.hal.sokoban.Move;
 import no.hal.sokoban.Moves;
 import no.hal.sokoban.SokobanGameState;

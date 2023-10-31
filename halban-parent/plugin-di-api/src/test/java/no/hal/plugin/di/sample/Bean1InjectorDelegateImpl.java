@@ -14,7 +14,7 @@ public class Bean1InjectorDelegateImpl extends AbstractInjectorDelegate<Bean1> {
     public Bean1 createInstance(Injector injector) {
         Singleton1 arg1 = injector.provideInstance(Singleton1.class, null);
         Bean2 arg2 = injector.provideInstance(Bean2.class, null);
-        String arg3 = injector.getInstance(String.class, "stringValue");
+        String arg3 = injector.getInstance(String.class, "stringValue", null);
         return new Bean1(arg1, arg2, arg3);
     }
 

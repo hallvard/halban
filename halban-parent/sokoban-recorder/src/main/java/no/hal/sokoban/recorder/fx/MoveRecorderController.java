@@ -5,17 +5,14 @@ import java.util.Map;
 
 import org.kordamp.ikonli.javafx.FontIcon;
 
-import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.Mnemonic;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-import no.hal.grid.Direction;
 import no.hal.grid.fx.GridCellFactory;
 import no.hal.grid.util.XYTransformer;
 import no.hal.plugin.fx.ContentProvider;
@@ -25,6 +22,7 @@ import no.hal.sokoban.SokobanGame;
 import no.hal.sokoban.SokobanGameState;
 import no.hal.sokoban.SokobanGrid;
 import no.hal.sokoban.fx.SokobanGridViewer;
+import no.hal.sokoban.fx.util.ShortcutHandler;
 import no.hal.sokoban.recorder.MoveRecorder;
 import no.hal.sokoban.recorder.MoveRecording;
 
@@ -70,17 +68,26 @@ public class MoveRecorderController implements ContentProvider.Child {
     private FontIcon startFontIcon, stopFontIcon, playFontIcon;
     private Button recordButton, playButton;
 
-    public void createContent() {
-        startFontIcon = new FontIcon("mdi2a-alpha-r-circle:26");
-        stopFontIcon = new FontIcon("mdi2s-stop-circle:26:red");
-        playFontIcon = new FontIcon("mdi2p-play-circle:26:green");
+    @Override
+    public HBox getContent() {
+        this.startFontIcon = new FontIcon("mdi2a-alpha-r-circle:26");
+        this.stopFontIcon = new FontIcon("mdi2s-stop-circle:26:red");
+        this.playFontIcon = new FontIcon("mdi2p-play-circle:26:green");
     
-        recordButton = new Button(null, startFontIcon);
-		recordButton.setOnAction(actionEvent -> handleRecording());
-	    playButton = new Button(null, playFontIcon);
-		playButton.setOnAction(actionEvent -> playRecording());
+        this.recordButton = new Button(null, startFontIcon);
+		this.recordButton.setOnAction(actionEvent -> handleRecording());
+	    this.playButton = new Button(null, playFontIcon);
+		this.playButton.setOnAction(actionEvent -> playRecording());
 
         updateButtons();
+
+        var recorderPane = new HBox(recordButton, playButton);
+        recorderPane.setSpacing(5);
+        new ShortcutHandler(recorderPane::getScene).registerShortcuts(Map.of(
+            new KeyCodeCombination(KeyCode.R), recordButton,
+            new KeyCodeCombination(KeyCode.P), playButton
+        ));
+        return recorderPane;
     }
 
     protected boolean isRecording() {
@@ -92,19 +99,6 @@ public class MoveRecorderController implements ContentProvider.Child {
         recordButton.setGraphic(sokobanGame != null && moveRecorder.isRecording() ? stopFontIcon : startFontIcon);
         recordButton.setDisable(sokobanGame == null);
         playButton.setDisable(sokobanGame == null || (! recordings.containsKey(sokobanGame.getPlayerLocation())));
-    }
-
-    @Override
-    public HBox getContent() {
-        createContent();
-        var recorderPane = new HBox(recordButton, playButton);
-        recorderPane.setSpacing(5);
-        Platform.runLater(() -> {
-			var scene = recorderPane.getScene();
-			scene.addMnemonic(new Mnemonic(recordButton, new KeyCodeCombination(KeyCode.R)));
-			scene.addMnemonic(new Mnemonic(playButton, new KeyCodeCombination(KeyCode.P)));
-		});
-        return recorderPane;
     }
 
     protected void handleRecording() {

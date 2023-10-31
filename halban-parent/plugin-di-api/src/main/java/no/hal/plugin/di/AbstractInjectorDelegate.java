@@ -1,16 +1,15 @@
 package no.hal.plugin.di;
 
-import java.util.function.Predicate;
-
-import no.hal.plugin.InstanceRegistry;
-
 public abstract class AbstractInjectorDelegate<C> implements InjectorDelegate {
 
     public abstract Class<C> forClass();
-    public Predicate<InstanceRegistry> getScope() {
+
+    public <T> T getInstance(Injector injector) {
         return null;
     }
+
     public abstract C createInstance(Injector injector);
+    
     public boolean injectIntoInstance(C t, Injector injector) {
         return true;
     }
@@ -21,8 +20,8 @@ public abstract class AbstractInjectorDelegate<C> implements InjectorDelegate {
     }
 
     @Override
-    public Predicate<InstanceRegistry> getScope(Class<?> clazz) {
-        return forClass() == clazz ? getScope() : null;
+    public <T> T getInstance(Class<T> clazz, Injector injector) {
+        return forClass() == clazz ? (T) getInstance(injector) : null;
     }
 
     @Override

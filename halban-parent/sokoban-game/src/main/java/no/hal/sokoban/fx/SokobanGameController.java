@@ -31,6 +31,12 @@ import no.hal.grid.fx.CompositeGridCellFactory;
 import no.hal.grid.fx.GridCellFactory;
 import no.hal.grid.util.XYTransform;
 import no.hal.plugin.InstanceRegistry;
+import no.hal.plugin.fx.ContentProvider;
+import no.hal.plugin.fx.xp.FxExtensionPoint;
+import no.hal.plugin.fx.xp.LabeledChildExtender;
+import no.hal.plugin.fx.xp.SimpleFxExtensionPoint;
+import no.hal.plugin.impl.InstanceRegistryImpl;
+import no.hal.settings.Settings;
 import no.hal.sokoban.LocationMovesCounters;
 import no.hal.sokoban.Move;
 import no.hal.sokoban.Moves;
@@ -40,17 +46,12 @@ import no.hal.sokoban.SokobanGameState;
 import no.hal.sokoban.SokobanGrid;
 import no.hal.sokoban.SokobanGrid.CellKind;
 import no.hal.sokoban.SokobanGrid.ContentKind;
+import no.hal.sokoban.fx.util.ShortcutHandler;
 import no.hal.sokoban.fx.util.XYTransformStrategy;
 import no.hal.sokoban.impl.AbstractSokobanGameProvider;
 import no.hal.sokoban.impl.MovesComputer;
 import no.hal.sokoban.impl.SokobanGameImpl;
 import no.hal.sokoban.level.SokobanLevel;
-import no.hal.plugin.fx.ContentProvider;
-import no.hal.plugin.fx.xp.FxExtensionPoint;
-import no.hal.plugin.fx.xp.LabeledChildExtender;
-import no.hal.plugin.fx.xp.SimpleFxExtensionPoint;
-import no.hal.plugin.impl.InstanceRegistryImpl;
-import no.hal.settings.Settings;
 
 public class SokobanGameController extends AbstractSokobanGameProvider {
 
@@ -142,19 +143,9 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		this.sokobanGridViewer.setXYTransformStrategy(XYTransformStrategy.PREFER_WIDTH);
 		this.defaultCellFactory = sokobanGridViewer.getCellFactory();
 
-		this.movementController = new DirectionMovementsController();
-		this.movementController.xyTransformerProperty().bind(this.sokobanGridViewer.xyTransformerProperty());
-		var movementPane = movementController.getContent();
-
-		this.undoableController = new UndoRedoController();
-		var undoPane = undoableController.getContent();
-
-		// setSokobanGridCellFactories(null);
-
 		var gridView = sokobanGridViewer.getGridView();
-		var sokobanPane = gridView; // new StackPane(gridView);
+		var sokobanPane = gridView;
 		sokobanPane.setAlignment(Pos.CENTER);
-		// sokobanPane.setBackground(Background.fill(Color.LIGHTSKYBLUE));
 
 		gridView.setMinCellSize(new Dimension2D(cellSize.getWidth() / 3, cellSize.getHeight() / 3));
 		gridView.setPrefCellSize(new Dimension2D(cellSize.getWidth(), cellSize.getHeight()));
@@ -166,6 +157,13 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		gridView.setOnMouseDragged(mouseMovementsController::mouseDragged);
 		gridView.setOnMouseReleased(mouseMovementsController::mouseReleased);
 		updateGridView();
+
+		Button closeButton = new Button(null, new FontIcon("mdi2c-close:24"));
+		closeButton.setOnAction(actionEvent -> closer.run());
+		ShortcutHandler shortcutHandler = new ShortcutHandler(closeButton::getScene);
+		this.movementController = new DirectionMovementsController(shortcutHandler);
+		this.movementController.xyTransformerProperty().bind(this.sokobanGridViewer.xyTransformerProperty());
+		var movementPane = movementController.getContent();
 
 		var gridCell = sokobanGridViewer.getCellFactory().call(null);
 		gridCell.setGridItem(CellKind.EMPTY_PLAYER, 0, 0);
@@ -180,8 +178,9 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		mouseMovementNode.setOnMouseReleased(extraMouseMovementsController::mouseReleased);
 
 		this.messageText = new Text();
-		Button closeButton = new Button(null, new FontIcon("mdi2c-close:24"));
-		closeButton.setOnAction(actionEvent -> closer.run());
+
+		this.undoableController = new UndoRedoController(shortcutHandler);
+		var undoPane = undoableController.getContent();
 
 		sokobanPane.setPadding(new Insets(10));
 		movementPane.setPadding(new Insets(10));
@@ -212,7 +211,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		mainPane.setFillWidth(true);
 		VBox.setVgrow(sokobanPane, Priority.SOMETIMES);
 
-		InstanceRegistry scope = new InstanceRegistryImpl(instanceRegistry);
+		InstanceRegistry scope = new InstanceRegistryImpl(this, instanceRegistry);
 		scope.registerComponent(sokobanGridViewer);
 		scope.updateAllComponents(GridCellFactory.class, this::setSokobanGridCellFactories);
 	
@@ -296,9 +295,9 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 			keyEvent.consume();
 		} else {
 			var scene = sokobanGridViewer.getGridView().getScene();
-			for (var mnemonicEntry : scene.getMnemonics().entrySet()) {
-				if (mnemonicEntry.getKey().match(keyEvent)) {
-					mnemonicEntry.getValue().forEach(Mnemonic::fire);
+			for (var shortcutEntry : scene.getMnemonics().entrySet()) {
+				if (shortcutEntry.getKey().match(keyEvent)) {
+					shortcutEntry.getValue().forEach(Mnemonic::fire);
 					keyEvent.consume();
 				}
 			}

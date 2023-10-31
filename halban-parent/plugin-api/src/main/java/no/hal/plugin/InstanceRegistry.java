@@ -3,9 +3,24 @@ package no.hal.plugin;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public interface InstanceRegistry {
     
+    Object getOwner();
+    InstanceRegistry getParent();
+
+    default InstanceRegistry getScope(Predicate<InstanceRegistry> predicate) {
+        InstanceRegistry instanceRegistry = this;
+        while (instanceRegistry != null) {
+            if (predicate == null || predicate.test(instanceRegistry)) {
+                return instanceRegistry;
+            }
+            instanceRegistry = instanceRegistry.getParent();
+        }
+        return null;
+    }
+
     <T> T getComponent(Class<T> clazz, Object qualifier);
     
     default <T> T getComponent(Class<T> clazz) {

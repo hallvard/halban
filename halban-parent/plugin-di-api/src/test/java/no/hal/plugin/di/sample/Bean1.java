@@ -2,7 +2,6 @@ package no.hal.plugin.di.sample;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import no.hal.plugin.di.annotation.Reference;
 
 public class Bean1 {
     

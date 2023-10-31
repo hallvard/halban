@@ -3,6 +3,8 @@ module sokoban.game {
     requires transitive plugin.api;
     requires transitive plugin.fx.api;
 
+    requires plugin.di;
+
     requires settings.api;
 
     requires transitive grid.api;

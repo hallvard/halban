@@ -2,6 +2,7 @@ module sokoban.app {
 
     requires plugin.api;
     requires plugin.fx.api;
+    requires plugin.di;
 
     requires settings.api;
 
@@ -14,4 +15,5 @@ module sokoban.app {
 
     uses no.hal.plugin.Plugin;
     uses no.hal.settings.SettingsProvider;
+    uses no.hal.plugin.di.InjectorDelegate;
 }

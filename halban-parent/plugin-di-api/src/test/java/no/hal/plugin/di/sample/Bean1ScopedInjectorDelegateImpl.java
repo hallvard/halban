@@ -1,25 +1,25 @@
 package no.hal.plugin.di.sample;
 
-import java.util.function.Predicate;
-
-import no.hal.plugin.InstanceRegistry;
-import no.hal.plugin.Scope;
 import no.hal.plugin.di.AbstractInjectorDelegate;
 import no.hal.plugin.di.Injector;
 
 public class Bean1ScopedInjectorDelegateImpl extends AbstractInjectorDelegate<Bean1Scoped> {
 
+    @Override
     public Class<Bean1Scoped> forClass() {
         return Bean1Scoped.class;
     }
 
     @Override
-    public Predicate<InstanceRegistry> getScope() {
-        return Scope.classScope(Bean1.class);
+    public Bean1Scoped getInstance(Injector injector) {
+        return injector.getInstance(Bean1Scoped.class, null, Injector.scopeFor(Bean1.class));
     }
+
 
     @Override
     public Bean1Scoped createInstance(Injector injector) {
-        return new Bean1Scoped();
+        Bean1Scoped instance = new Bean1Scoped();
+        injector.registerInstance(instance, Bean1Scoped.class, null, Injector.scopeFor(Bean1.class));
+        return instance;
     }
 }

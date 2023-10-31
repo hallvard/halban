@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>sokoban-game</artifactId>
+    <artifactId>sokoban-movements</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <parent>
@@ -13,12 +13,6 @@
     <dependencies>
         <dependency>
             <groupId>no.hal.halban</groupId>
-            <artifactId>settings-api</artifactId>
-            <version>1.0-SNAPSHOT</version>        
-        </dependency>
-
-        <dependency>
-            <groupId>no.hal.halban</groupId>
             <artifactId>plugin-api</artifactId>
             <version>1.0-SNAPSHOT</version>        
         </dependency>
@@ -27,28 +21,18 @@
             <artifactId>plugin-fx-api</artifactId>
             <version>1.0-SNAPSHOT</version>        
         </dependency>
-        <dependency>
-            <groupId>no.hal.halban</groupId>
-            <artifactId>plugin-di-api</artifactId>
-            <version>1.0-SNAPSHOT</version>        
-        </dependency>
 
         <dependency>
             <groupId>no.hal.halban</groupId>
             <artifactId>grid-api</artifactId>
             <version>1.0-SNAPSHOT</version>        
         </dependency>
-        <dependency>
-            <groupId>no.hal.halban</groupId>
-            <artifactId>sokoban-api</artifactId>
-            <version>1.0-SNAPSHOT</version>        
-        </dependency>
-        <dependency>
-            <groupId>no.hal.halban</groupId>
-            <artifactId>grid-fx</artifactId>
-            <version>1.0-SNAPSHOT</version>        
-        </dependency>
 
+        <dependency>
+            <groupId>no.hal.halban</groupId>
+            <artifactId>sokoban-game</artifactId>
+            <version>1.0-SNAPSHOT</version>        
+        </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -58,21 +42,15 @@
             <groupId>org.kordamp.ikonli</groupId>
             <artifactId>ikonli-javafx</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.kordamp.ikonli</groupId>
             <artifactId>ikonli-materialdesign2-pack</artifactId>
         </dependency>
 
-        <!-- test -->
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
+            <groupId>com.gluonhq.attach</groupId>
+            <artifactId>accelerometer</artifactId>
+            <version>4.0.19</version>
         </dependency>
     </dependencies>
     

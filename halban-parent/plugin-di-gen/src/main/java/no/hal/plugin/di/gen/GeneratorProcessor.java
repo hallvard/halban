@@ -24,7 +24,7 @@ import javax.lang.model.element.TypeElement;
     "jakarta.inject.Inject",
     "jakarta.inject.Singleton"
 })
-@SupportedSourceVersion(SourceVersion.RELEASE_19)
+@SupportedSourceVersion(SourceVersion.RELEASE_17)
 public class GeneratorProcessor extends AbstractProcessor {
 
     @Override

@@ -20,7 +20,6 @@ public class AccelerometerMovementContribution implements Contribution {
 
     @Override
     public void activate(InstanceRegistry instanceRegistry) {
-        System.out.println("AccelerometerService: " + accelerometerService);
         instanceRegistry.addListener((clazz, qualifier, oldValue, newValue) -> {
             if (FxExtensionPoint.class == clazz && newValue instanceof FxExtensionPoint extensionPoint && qualifier instanceof SokobanGame.Provider sokobanGameProvider) {
                 // scope added, check to see if it contains an FxExtensionPoint

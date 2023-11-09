@@ -1,9 +1,12 @@
 package no.hal.plugin;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.ServiceLoader;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public interface InstanceRegistry {
     
@@ -70,4 +73,24 @@ public interface InstanceRegistry {
             }
         });
     }
+
+    //
+    
+	public static <T> List<T> loadServices(InstanceRegistry instanceRegistry, Class<T> serviceClass, Supplier<ServiceLoader<T>> serviceLoaderSupplier) {
+		List<T> loadedServices = new ArrayList<>();
+		ServiceLoader<T> serviceLoader = serviceLoaderSupplier.get();
+		for (var service : serviceLoader) {
+			System.out.println("> Loading " + service);
+			if (service instanceof LifeCycle activatable) {
+				if (! LifeCycle.activate(activatable, instanceRegistry)) {
+					continue;
+				}
+    			System.out.println("...activated " + activatable);
+			}
+			instanceRegistry.registerInstance(service, serviceClass, service.getClass().getName());
+			loadedServices.add(service);
+			System.out.println("< Loaded " + service);
+		}
+		return loadedServices;
+	}
 }

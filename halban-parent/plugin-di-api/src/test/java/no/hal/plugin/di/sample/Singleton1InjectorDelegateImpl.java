@@ -11,14 +11,14 @@ public class Singleton1InjectorDelegateImpl extends AbstractInjectorDelegate<Sin
     }
 
     @Override
-    public Singleton1 getInstance(Injector injector) {
-        return injector.getInstance(Singleton1.class, null, Injector.globalScope());
+    public Singleton1 getInstance(Injector injector, Object qualifier) {
+        return injector.getInstance(Singleton1.class, qualifier, Injector.globalScope());
     }
 
     @Override
-    public Singleton1 createInstance(Injector injector) {
+    public Singleton1 createInstance(Injector injector, Object qualifier) {
         Singleton1 instance = new Singleton1();
-        injector.registerInstance(instance, Singleton1.class, null, Injector.globalScope());
+        injector.registerInstance(instance, Singleton1.class, qualifier, Injector.globalScope());
         return instance;
     }
 }

@@ -59,6 +59,7 @@ public class DelegatingInjectorImpl implements DelegatingInjector {
 
     @Override
     public <T> T provideInstance(Class<T> clazz, Object qualifier) {
+        // special case injection of Injector and InstanceRegistry
         if (qualifier == null) {
             if (clazz.isInstance(this)) {
                 return (T) this;
@@ -68,7 +69,10 @@ public class DelegatingInjectorImpl implements DelegatingInjector {
         }
         var injectorDelegate = getInjectorDelegateForClass(clazz);
         // see if existing one exists, i.e. a singleton or scoped instance
-        T instance = (injectorDelegate != null ? injectorDelegate.getInstance(clazz, this) : this.instanceRegistry.getComponent(clazz, qualifier));
+        T instance = (injectorDelegate != null ?
+            injectorDelegate.getInstance(clazz, qualifier, this) :
+            this.instanceRegistry.getComponent(clazz, qualifier)
+        );
         if (instance == null) {
             // need to create a new instance
             if (injectorDelegate == null) {
@@ -76,7 +80,7 @@ public class DelegatingInjectorImpl implements DelegatingInjector {
             }
             // the injectorDelegate should both create the instance, and
             // register it in the right scope
-            instance = injectorDelegate.createInstance(clazz, this);
+            instance = injectorDelegate.createInstance(clazz, qualifier, this);
             // inject into it
             injectIntoInstance(instance, clazz);
         }

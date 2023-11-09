@@ -11,9 +11,9 @@ public class Bean2InjectorDelegateImpl extends AbstractInjectorDelegate<Bean2> {
     }
 
     @Override
-    public Bean2 createInstance(Injector injector) {
+    public Bean2 createInstance(Injector injector, Object qualifier) {
         Singleton1 arg1 = injector.provideInstance(Singleton1.class, null);
-        int arg2 = injector.getInstance(Integer.class, "intValue", null);
+        int arg2 = injector.provideInstance(Integer.class, "intValue");
         return new Bean2(arg1, arg2);
     }
 }

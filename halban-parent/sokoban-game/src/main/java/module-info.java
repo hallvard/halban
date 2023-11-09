@@ -4,6 +4,7 @@ module sokoban.game {
     requires transitive plugin.fx.api;
 
     requires plugin.di;
+    requires jakarta.inject;
 
     requires settings.api;
 

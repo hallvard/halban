@@ -13,8 +13,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.inject.Named;
 import javafx.application.Application;
+import no.hal.plugin.di.annotation.Reference;
 import no.hal.plugin.di.annotation.Scoped;
+import no.hal.settings.Setting.Value;
 import no.hal.sokoban.Move;
 import no.hal.sokoban.SokobanGame;
 import no.hal.sokoban.SokobanGameState;
@@ -29,7 +32,21 @@ public class SnapshotManager implements SokobanLevel.Collection {
         NONE, STARTED, FINISHED
     }
 
-    private WatchService watchService = null;
+    private final WatchService watchService = null;
+
+    private String folderName;
+
+    @Reference
+    public void setFolderName(@Named("snapshots.folderName") Value folderName) {
+        this.folderName = folderName.asString();
+    }
+
+    private String fileNameEnding;
+
+    @Reference
+    public void setFilenameEnding(@Named("snapshots.fileNameEnding") Value fileNameEnding) {
+        this.fileNameEnding = fileNameEnding.asString();
+    }
 
     public SnapshotManager() {
 //        try {
@@ -62,7 +79,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
     private final static String USER_HOME = System.getProperty("user.home", System.getenv("HOME"));
 
     private Path getSnapshotsFolderPath() {
-        return Path.of(USER_HOME, ".halban", "snapshots");
+        return Path.of(USER_HOME, ".halban", folderName);
     }
 
     private String getSnapshotFilename(SokobanGameState game) {
@@ -74,11 +91,11 @@ public class SnapshotManager implements SokobanLevel.Collection {
         if (filenameBase == null) {
             filenameBase = sokobanLevel.getMetaData().get("Title");
         }
-        return filenameBase.replaceAll("\\W", "_") + "-snapshot.txt";
+        return filenameBase.replaceAll("\\W", "_") + fileNameEnding;
     }
 
     private boolean isSnapshotFilename(String filename) {
-        return filename.endsWith("-snapshot.txt");
+        return filename.endsWith(fileNameEnding);
     }
 
 	public void updateGameSnapshot(SokobanGameState game) {

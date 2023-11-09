@@ -34,6 +34,7 @@ import no.hal.plugin.di.annotation.Scoped;
 public class InjectorDelegateImplGenerator {
 
     private static final String INJECTOR_VAR_NAME = "_injector";
+    private static final String QUALIFIER_VAR_NAME = "_qualifier";
     private static final String SCOPE_VAR_NAME = "_scope";
     private static final String INJECTOR_DELEGATE_IMPL_SUFFIX = "InjectorDelegateImpl";
 
@@ -80,10 +81,6 @@ public class InjectorDelegateImplGenerator {
         return classBuilder.build();
     }
 
-    private ClassName getInjectorInterfaceTypeName() {
-        return ClassName.get(Injector.class);
-    }
-
     private Consumer<MethodSpec.Builder> getScopeProvider() {
         if (typeElement.getAnnotation(Singleton.class) != null) {
             return methodBuilder -> methodBuilder.addStatement("var $L = Injector.globalScope()", SCOPE_VAR_NAME);
@@ -104,10 +101,10 @@ public class InjectorDelegateImplGenerator {
     }
 
     private MethodSpec buildGetMethod(TypeName beanTypeName, Consumer<MethodSpec.Builder> scopeProvider) {
-        var injectorTypeName = getInjectorInterfaceTypeName();
         var methodBuilder = methodImplBuilder("getInstance")
             .returns(beanTypeName)
-            .addParameter(injectorTypeName, INJECTOR_VAR_NAME);
+            .addParameter(ClassName.get(Injector.class), INJECTOR_VAR_NAME)
+            .addParameter(ClassName.get(Object.class), QUALIFIER_VAR_NAME);
         scopeProvider.accept(methodBuilder);
         methodBuilder.addStatement("return $L.getInstance($T.class, null, $L)", INJECTOR_VAR_NAME, beanTypeName, SCOPE_VAR_NAME);
         return methodBuilder.build();
@@ -116,7 +113,8 @@ public class InjectorDelegateImplGenerator {
     private MethodSpec buildCreateMethod(TypeName beanTypeName, Consumer<MethodSpec.Builder> scopeProvider) {
         var methodBuilder = methodImplBuilder("createInstance")
             .returns(beanTypeName)
-            .addParameter(getInjectorInterfaceTypeName(), INJECTOR_VAR_NAME);
+            .addParameter(ClassName.get(Injector.class), INJECTOR_VAR_NAME)
+            .addParameter(ClassName.get(Object.class), QUALIFIER_VAR_NAME);
         var cons = findInjectableConstructor();
         String instanceVarName = "_a" + getElementSimpleName();
         addInjectableCall(cons, "var " + instanceVarName + " = new $T($L)", beanTypeName, methodBuilder);
@@ -125,7 +123,7 @@ public class InjectorDelegateImplGenerator {
             scopeProvider.accept(methodBuilder);
             scope = SCOPE_VAR_NAME;
         }
-        methodBuilder.addStatement("$L.registerInstance($L, $T.class, null, $L)", INJECTOR_VAR_NAME, instanceVarName, beanTypeName, scope);
+        methodBuilder.addStatement("$L.registerInstance($L, $T.class, $L, $L)", INJECTOR_VAR_NAME, instanceVarName, beanTypeName, QUALIFIER_VAR_NAME, scope);
         methodBuilder.addStatement("return " + instanceVarName);
         return methodBuilder.build();
     }
@@ -134,7 +132,7 @@ public class InjectorDelegateImplGenerator {
         var methodBuilder = methodImplBuilder("injectIntoInstance")
             .returns(boolean.class)
             .addParameter(beanTypeName, "_bean")
-            .addParameter(getInjectorInterfaceTypeName(), INJECTOR_VAR_NAME);
+            .addParameter(ClassName.get(Injector.class), INJECTOR_VAR_NAME);
         for (var field : findInjectableFields()) {
             addInjectableFieldAssignment(field, "_bean", methodBuilder);
         }
@@ -217,15 +215,20 @@ public class InjectorDelegateImplGenerator {
             .addModifiers(Modifier.PUBLIC);
     }
 
+    private String getQualifierArg(Element element) {
+        Named named = element.getAnnotation(Named.class);
+        String qualifier = "null";
+        if (named != null) {
+            qualifier = "\"" + named.value() + "\"";
+        }
+        return qualifier;
+    }
+
     private void addInjectableFieldAssignment(Element field, Object receiver, MethodSpec.Builder methodBuilder) {
         String fieldName = field.getSimpleName().toString();
         var fieldType = field.asType();
-        Named named = field.getAnnotation(Named.class);
-        if (named != null) {
-            methodBuilder.addStatement("$L.$L = $L.getInstance($T.class, $S, null)", receiver, fieldName, INJECTOR_VAR_NAME, fieldType, named.value());
-        } else {
-            methodBuilder.addStatement("$L.$L = $L.provideInstance($T.class, null)", receiver, fieldName, INJECTOR_VAR_NAME, fieldType);
-        }
+        String qualifier = getQualifierArg(field);
+        methodBuilder.addStatement("$L.$L = $L.provideInstance($T.class, $L)", receiver, fieldName, INJECTOR_VAR_NAME, fieldType, qualifier);
     }
 
     private void addInjectableCall(Element executable, String format, Object receiver, MethodSpec.Builder methodBuilder) {
@@ -240,12 +243,8 @@ public class InjectorDelegateImplGenerator {
         for (var param : parameters) {
             String argName = argNamePrefix + "arg" + (argNames.size() + 1);
             var paramType = param.asType();
-            Named named = param.getAnnotation(Named.class);
-            if (named != null) {
-                methodBuilder.addStatement("$T $L = $L.getInstance($T.class, $S, null)", paramType, argName, INJECTOR_VAR_NAME, paramType, named.value());
-            } else {
-                methodBuilder.addStatement("$T $L = $L.provideInstance($T.class, null)", paramType, argName, INJECTOR_VAR_NAME, paramType);
-            }
+            String qualifier = getQualifierArg(param);
+            methodBuilder.addStatement("$T $L = $L.provideInstance($T.class, $L)", paramType, argName, INJECTOR_VAR_NAME, paramType, qualifier);
             argNames.add(argName);
         }
         return argNames;

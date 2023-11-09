@@ -6,13 +6,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import no.hal.plugin.InstanceRegistry;
-import no.hal.plugin.LifeCycle;
 
 public class InstanceRegistryImpl implements InstanceRegistry {
 
@@ -128,24 +125,4 @@ public class InstanceRegistryImpl implements InstanceRegistry {
             listener.instanceChanged(clazz, qualifier, oldValue, newValue);
         }
     }
-
-    //
-
-	public static <T> List<T> loadServices(InstanceRegistry instanceRegistry, Class<T> serviceClass, Supplier<ServiceLoader<T>> serviceLoaderSupplier) {
-		List<T> loadedServices = new ArrayList<>();
-		ServiceLoader<T> serviceLoader = serviceLoaderSupplier.get();
-		for (var service : serviceLoader) {
-			System.out.println("> Loading " + service);
-			if (service instanceof LifeCycle activatable) {
-				if (! LifeCycle.activate(activatable, instanceRegistry)) {
-					continue;
-				}
-    			System.out.println("...activated " + activatable);
-			}
-			instanceRegistry.registerInstance(service, serviceClass, service.getClass().getName());
-			loadedServices.add(service);
-			System.out.println("< Loaded " + service);
-		}
-		return loadedServices;
-	}
 }

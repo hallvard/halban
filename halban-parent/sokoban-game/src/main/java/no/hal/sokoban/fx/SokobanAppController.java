@@ -2,6 +2,7 @@ package no.hal.sokoban.fx;
 
 import java.util.ServiceLoader;
 
+import jakarta.inject.Named;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -15,26 +16,25 @@ import no.hal.plugin.fx.LabelAdapter;
 import no.hal.plugin.fx.xp.FxExtensionPoint;
 import no.hal.plugin.fx.xp.LabeledChildExtender;
 import no.hal.plugin.fx.xp.SimpleFxExtensionPoint;
-import no.hal.plugin.impl.InstanceRegistryImpl;
-import no.hal.settings.Settings;
+import no.hal.settings.Setting.Value;
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.snapshot.SnapshotManager;
 
 @Component
 public class SokobanAppController implements ContentProvider.Container {
 
-	private Settings settings;
-
 	@Reference
-	void setSettings(Settings settings) {
-		this.settings = settings;
-	}
+	InstanceRegistry instanceRegistry;
 
 	@Reference
 	SnapshotManager snapshotManager;
 
+	private String snapshotsLabel;
+
 	@Reference
-	InstanceRegistry instanceRegistry;
+	public void setSnapshotsLabel(@Named("snapshots.label") Value snapshotsLabel) {
+		this.snapshotsLabel = snapshotsLabel.asString();
+	}
 
 	public SokobanAppController() {
 	}
@@ -43,9 +43,9 @@ public class SokobanAppController implements ContentProvider.Container {
 	public Parent getContent() {
 		SokobanLevel.CollectionProvider snapshotsProvider = () -> snapshotManager;
 		instanceRegistry.registerQualifiedInstance(snapshotsProvider, SokobanLevel.CollectionProvider.class);
-		instanceRegistry.registerQualifiedInstance(LabelAdapter.forInstance(snapshotsProvider, settings.getValue("snapshots.label").asString()), LabelAdapter.class);
+		instanceRegistry.registerQualifiedInstance(LabelAdapter.forInstance(snapshotsProvider, snapshotsLabel), LabelAdapter.class);
 
-		InstanceRegistryImpl.loadServices(instanceRegistry, LabelAdapter.class, () -> ServiceLoader.load(LabelAdapter.class));
+		InstanceRegistry.loadServices(instanceRegistry, LabelAdapter.class, () -> ServiceLoader.load(LabelAdapter.class));
 		var sokobanCollectionsBrowser = SokobanCollectionsBrowser.Layouts.TREE_AND_LIST_LAYOUT.createSokobanCollectionsBrowser(instanceRegistry);
 		Node content = sokobanCollectionsBrowser.getContent();
 

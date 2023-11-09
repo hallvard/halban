@@ -11,15 +11,14 @@ public class Bean1ScopedInjectorDelegateImpl extends AbstractInjectorDelegate<Be
     }
 
     @Override
-    public Bean1Scoped getInstance(Injector injector) {
-        return injector.getInstance(Bean1Scoped.class, null, Injector.scopeFor(Bean1.class));
+    public Bean1Scoped getInstance(Injector injector, Object qualifier) {
+        return injector.getInstance(Bean1Scoped.class, qualifier, Injector.scopeFor(Bean1.class));
     }
 
-
     @Override
-    public Bean1Scoped createInstance(Injector injector) {
+    public Bean1Scoped createInstance(Injector injector, Object qualifier) {
         Bean1Scoped instance = new Bean1Scoped();
-        injector.registerInstance(instance, Bean1Scoped.class, null, Injector.scopeFor(Bean1.class));
+        injector.registerInstance(instance, Bean1Scoped.class, qualifier, Injector.scopeFor(Bean1.class));
         return instance;
     }
 }

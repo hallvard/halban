@@ -1,5 +1,7 @@
 {
   snapshots: {
+    folderName: "snapshots",
+    fileNameEnding: "-snapshot.txt",
     label: "Your sokoban levels"
   }
 }

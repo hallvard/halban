@@ -11,10 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Java 19
+      - name: Setup Java 17
         uses: actions/setup-java@v3
         with:
-          java-version: '19'
+          java-version: '17'
           distribution: 'temurin'
 
       - name: mvn package
@@ -38,8 +38,8 @@ jobs:
       - name: Show gvm files
         run: ls -l halban-parent/sokoban-app/target/gluonfx/aarch64-android/gvm
 
-      - name: Show AndroidManifest
-        run: less halban-parent/sokoban-app/target/gluonfx/aarch64-android/gensrc/android/AndroidManifest.xml
+#      - name: Show AndroidManifest
+#        run: less halban-parent/sokoban-app/target/gluonfx/aarch64-android/gensrc/android/AndroidManifest.xml
 
       - name: Copy packages to staging
         run: |

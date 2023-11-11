@@ -38,9 +38,6 @@ jobs:
       - name: Show gvm files
         run: ls -l halban-parent/sokoban-app/target/gluonfx/aarch64-android/gvm
 
-      - name: Show android_project files
-        run: ls -l halban-parent/sokoban-app/target/gluonfx/aarch64-android/android_project
-
       - name: Show AndroidManifest
         run: less halban-parent/sokoban-app/target/gluonfx/aarch64-android/gensrc/android/AndroidManifest.xml
 

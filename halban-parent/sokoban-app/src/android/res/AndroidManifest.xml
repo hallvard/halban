@@ -1,0 +1,29 @@
+<?xml version='1.0'?>
+<manifest xmlns:android='http://schemas.android.com/apk/res/android'
+    package='no.hal.sokoban.app.SokobanApp'
+    android:versionCode='1'
+    android:versionName='1.0'
+>
+
+    <!-- accelerometer -->
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
+
+    <!-- position -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    
+    <!-- copied from TiltMaze @ https://github.com/gailasgteach/TiltMaze -->
+    <supports-screens android:xlargeScreens="true"/>
+    <application android:label='halban' android:icon="@mipmap/ic_launcher">
+        <activity android:name='com.gluonhq.helloandroid.MainActivity'
+                  android:screenOrientation='portrait'
+                  android:exported="true"
+                  android:configChanges="orientation|keyboardHidden">
+            <intent-filter>
+                <category android:name='android.intent.category.LAUNCHER'/>
+                <action android:name='android.intent.action.MAIN'/>
+            </intent-filter>      
+        </activity>
+        <activity android:name='com.gluonhq.helloandroid.PermissionRequestActivity'
+                  android:exported="true"/>
+    </application>
+</manifest>

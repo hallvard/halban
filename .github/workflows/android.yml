@@ -35,10 +35,22 @@ jobs:
           export ANDROID_SDK=$ANDROID_HOME
           cd halban-parent && mvn --batch-mode --update-snapshots gluonfx:build gluonfx:package -f sokoban-app -P android
 
-      - name: Show files
+      - name: Show gvm files
         run: ls -l halban-parent/sokoban-app/target/gluonfx/aarch64-android/gvm
 
-      - name: Show AndroidManifest.xml
+      - name: Show gensrc files
+        run: ls -l halban-parent/sokoban-app/target/gluonfx/aarch64-android/gensrc
+
+      - name: Show android files
+        run: ls -l halban-parent/sokoban-app/target/gluonfx/aarch64-android/gensrc/android
+
+      - name: Show res files
+        run: ls -l halban-parent/sokoban-app/target/gluonfx/aarch64-android/gensrc/android/res
+
+      - name: Show AndroidManifest.xml 1
+        run: less halban-parent/sokoban-app/target/gluonfx/aarch64-android/gensrc/android/AndroidManifest.xml
+
+      - name: Show AndroidManifest.xml 2
         run: less halban-parent/sokoban-app/target/gluonfx/aarch64-android/gensrc/android/res/AndroidManifest.xml
 
       - name: Copy packages to staging

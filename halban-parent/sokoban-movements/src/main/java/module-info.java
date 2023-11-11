@@ -5,6 +5,7 @@ module sokoban.movements {
     requires sokoban.game;
 
     requires com.gluonhq.attach.accelerometer;
+    requires com.gluonhq.attach.position;
 
-    provides no.hal.plugin.Plugin with no.hal.sokoban.movements.plugin.AccelerometerMovementPlugin;
+    provides no.hal.plugin.Plugin with no.hal.sokoban.movements.plugin.MovementPlugin;
 }

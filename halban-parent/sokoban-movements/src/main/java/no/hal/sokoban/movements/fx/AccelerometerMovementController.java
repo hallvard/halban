@@ -2,10 +2,12 @@ package no.hal.sokoban.movements.fx;
 
 import com.gluonhq.attach.accelerometer.Acceleration;
 import com.gluonhq.attach.accelerometer.AccelerometerService;
+import com.gluonhq.attach.accelerometer.Parameters;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Slider;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -26,16 +28,25 @@ public class AccelerometerMovementController implements ContentProvider.Child {
     private long t = 0;
     private double vx = 0.0, vy = 0.0;
 
-    private Text axText, ayText;
-    private Text vxText, vyText;
+    private ToggleButton serviceToggle;
+    private Text aText;
+    private Text vText;
     private Slider sensitivitySelector;
 
     @Override
     public HBox getContent() {
-        axText = new Text("-.-");
-        ayText = new Text("-.-");
-        vxText = new Text("-.-");
-        vyText = new Text("-.-");
+        serviceToggle = new ToggleButton("On/off");
+        serviceToggle.selectedProperty().addListener((prop, oldValue, newValue) -> {
+            if (newValue) {
+                accelerometerService.stop();
+                aText.setText("ax: -.-, ay: -.-");
+                vText.setText("vx: -.-, vy: -.-");
+            } else {
+                accelerometerService.start(new Parameters(10.0d, true));
+            }
+        });
+        aText = new Text("ax: -.-, ay: -.-");
+        vText = new Text("vx: -.-, vy: -.-");
         sensitivitySelector = new Slider(0, 10, 5);
         sensitivitySelector.setShowTickLabels(true);
         sensitivitySelector.setMajorTickUnit(5);
@@ -49,8 +60,8 @@ public class AccelerometerMovementController implements ContentProvider.Child {
         }
         return new HBox(
             new VBox(
-                new HBox(new Text("ax: "), axText, new Text("vx: "), vxText),
-                new HBox(new Text("ay: "), ayText, new Text("vy: "), vyText),
+                aText,
+                vText,
                 this.sensitivitySelector
             )
         );
@@ -81,9 +92,7 @@ public class AccelerometerMovementController implements ContentProvider.Child {
             // }
             t = t2;
         }
-        this.axText.setText(String.valueOf(ax));
-        this.ayText.setText(String.valueOf(ay));
-        this.vxText.setText(String.valueOf(vx));
-        this.vyText.setText(String.valueOf(vy));
+        this.aText.setText(String.format("ax: %.2f, ay: %.2f", ax, ay));
+        this.vText.setText(String.format("vx: %.2f, vy: %.2f", ax, ay));
     }
 }

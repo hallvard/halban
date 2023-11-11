@@ -9,6 +9,7 @@
     <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
 
     <!-- position -->
+    <uses-permission android:name="android.permission.ACCESS_COURSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     
     <!-- copied from TiltMaze @ https://github.com/gailasgteach/TiltMaze -->
@@ -21,9 +22,16 @@
             <intent-filter>
                 <category android:name='android.intent.category.LAUNCHER'/>
                 <action android:name='android.intent.action.MAIN'/>
-            </intent-filter>      
+            </intent-filter>
         </activity>
         <activity android:name='com.gluonhq.helloandroid.PermissionRequestActivity'
                   android:exported="true"/>
     </application>
+
+    <service
+        android:name="SokobanService"
+        android:foregroundServiceType="position"
+        android:exported="false">
+    </service>
+
 </manifest>

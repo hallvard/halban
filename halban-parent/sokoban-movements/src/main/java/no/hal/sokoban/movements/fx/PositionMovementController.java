@@ -1,14 +1,15 @@
 package no.hal.sokoban.movements.fx;
 
+import com.gluonhq.attach.position.Parameters;
 import com.gluonhq.attach.position.Position;
 import com.gluonhq.attach.position.PositionService;
-import com.gluonhq.attach.position.Parameters;
+
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import no.hal.plugin.fx.ContentProvider;
 import no.hal.plugin.fx.xp.FxExtensionPoint;
@@ -31,16 +32,23 @@ public class PositionMovementController implements ContentProvider.Child {
     private ToggleButton serviceToggle;
     private Slider sensitivitySelector;
 
+    private final ChangeListener<Position> positionListener = (prop, oldValue, newValue) -> {
+        Platform.runLater(this::updatePosition);
+    };
+
     @Override
     public HBox getContent() {
         serviceToggle = new ToggleButton("On/off");
         serviceToggle.selectedProperty().addListener((prop, oldValue, newValue) -> {
             if (newValue) {
+                positionService.positionProperty().removeListener(positionListener);
                 positionService.stop();
                 posText.setText("lat: -.-, long: -.-");
             } else {
                 positionService.start(new Parameters(Parameters.Accuracy.HIGHEST, false));
                 startPosition = null;
+                updatePosition();
+                positionService.positionProperty().addListener(positionListener);
             }
         });
         posText = new Text("lat: -.-, long: -.-");
@@ -48,19 +56,14 @@ public class PositionMovementController implements ContentProvider.Child {
         sensitivitySelector = new Slider(0, 10, 5);
         sensitivitySelector.setShowTickLabels(true);
         sensitivitySelector.setMajorTickUnit(5);
-        sensitivitySelector.setMinorTickCount(0);
+        sensitivitySelector.setMinorTickCount(4);
         sensitivitySelector.setShowTickMarks(true);
-        updatePosition();
-        if (this.positionService != null) {
-            this.positionService.positionProperty().addListener((prop, oldValue, newValue) -> {
-                Platform.runLater(this::updatePosition);
-            });
-        }
         return new HBox(
-            new VBox(
+            new HBox(
                 serviceToggle,
-                new HBox(posText, distanceText),
-                this.sensitivitySelector
+                posText,
+                distanceText,
+                sensitivitySelector
             )
         );
     }
@@ -69,7 +72,6 @@ public class PositionMovementController implements ContentProvider.Child {
         if (positionService == null) {
             return;
         }
-        sensitivitySelector.setMinorTickCount(4);
         Position pos = positionService.getPosition();
         if (startPosition == null) {
             startPosition = pos;

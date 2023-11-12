@@ -5,11 +5,11 @@ import com.gluonhq.attach.accelerometer.AccelerometerService;
 import com.gluonhq.attach.accelerometer.Parameters;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import no.hal.plugin.fx.ContentProvider;
 import no.hal.plugin.fx.xp.FxExtensionPoint;
@@ -33,16 +33,26 @@ public class AccelerometerMovementController implements ContentProvider.Child {
     private Text vText;
     private Slider sensitivitySelector;
 
+    private final ChangeListener<Acceleration> accelerationListener = (prop, oldValue, newValue) -> {
+        Platform.runLater(this::updateAcceleration);
+    };
+
     @Override
     public HBox getContent() {
         serviceToggle = new ToggleButton("On/off");
         serviceToggle.selectedProperty().addListener((prop, oldValue, newValue) -> {
             if (newValue) {
+                accelerometerService.accelerationProperty().removeListener(accelerationListener);
                 accelerometerService.stop();
                 aText.setText("ax: -.-, ay: -.-");
                 vText.setText("vx: -.-, vy: -.-");
             } else {
                 accelerometerService.start(new Parameters(10.0d, true));
+                vx = 0.0d;
+                vy = 0.0d;
+                t = System.currentTimeMillis();
+            updateAcceleration();
+                accelerometerService.accelerationProperty().addListener(accelerationListener);
             }
         });
         aText = new Text("ax: -.-, ay: -.-");
@@ -50,20 +60,13 @@ public class AccelerometerMovementController implements ContentProvider.Child {
         sensitivitySelector = new Slider(0, 10, 5);
         sensitivitySelector.setShowTickLabels(true);
         sensitivitySelector.setMajorTickUnit(5);
-        sensitivitySelector.setMinorTickCount(0);
+        sensitivitySelector.setMinorTickCount(4);
         sensitivitySelector.setShowTickMarks(true);
-        updateAcceleration();
-        if (this.accelerometerService != null) {
-            this.accelerometerService.accelerationProperty().addListener((prop, oldValue, newValue) -> {
-                Platform.runLater(this::updateAcceleration);
-            });
-        }
         return new HBox(
-            new VBox(
-                aText,
-                vText,
-                this.sensitivitySelector
-            )
+            serviceToggle,
+            aText,
+            vText,
+            sensitivitySelector
         );
     }
 
@@ -71,13 +74,9 @@ public class AccelerometerMovementController implements ContentProvider.Child {
         if (accelerometerService == null) {
             return;
         }
-        sensitivitySelector.setMinorTickCount(4);
         Acceleration a = accelerometerService.getCurrentAcceleration();
         double ax = a.getX(), ay = a.getY();
         if (t == 0) {
-            vx = 0.0d;
-            vy = 0.0d;
-            t = System.currentTimeMillis();
         } else {
             long t2 = System.currentTimeMillis(), dt = t2 - t;
             // if (Math.abs(ax) > sensitivitySelector.getValue() / 10) {

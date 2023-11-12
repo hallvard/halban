@@ -186,7 +186,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		movementPane.setPadding(new Insets(10));
 		undoPane.setPadding(new Insets(10));
 		
-		Pane extensionsPane = new HBox();
+		Pane extensionsPane = new VBox();
 		extensionsPane.setPadding(new Insets(10));
 
 		var mainPaneFiller = new Region();

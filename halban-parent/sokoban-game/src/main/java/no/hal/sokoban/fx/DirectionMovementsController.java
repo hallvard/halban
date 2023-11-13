@@ -35,7 +35,7 @@ class DirectionMovementsController implements ContentProvider.Child {
 		this.shortcutHandler = shortcutHandler;
 	}
 
-	private SimpleObjectProperty<XYTransformer> xyTransformerProperty = new SimpleObjectProperty<>(null);
+	private final SimpleObjectProperty<XYTransformer> xyTransformerProperty = new SimpleObjectProperty<>(null);
 
 	public Property<XYTransformer> xyTransformerProperty() {
 		return xyTransformerProperty;
@@ -60,10 +60,10 @@ class DirectionMovementsController implements ContentProvider.Child {
 		this.moveActions = moveActions;
 	}
 
-	private boolean includeStandardButtons = true;
-	private boolean includeMoveAlongButtons = false;
+	private final boolean includeStandardButtons = true;
+	private final boolean includeMoveAlongButtons = false;
 
-	private int iconSize = 24;
+	private final int iconSize = 24;
 
 	public int getIconSize() {
 		return iconSize;
@@ -90,7 +90,7 @@ class DirectionMovementsController implements ContentProvider.Child {
 		if (includeMoveAlongButtons) {
 			gridPane.getChildren().addAll(List.of(
 				leftAlongButton = createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 180), Direction.LEFT, true, posMin, this.centerPos),
-				rightButton = createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 0), Direction.RIGHT, true, posMax, this.centerPos),
+				rightAlongButton = createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 0), Direction.RIGHT, true, posMax, this.centerPos),
 				upAlongButton = createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 270), Direction.UP, true, this.centerPos, posMin),
 				downAlongButton = createMovementButton(createFontIcon("mdi2f-fast-forward:" + iconSize, 90), Direction.DOWN, true, this.centerPos, posMax)
 			));
@@ -109,7 +109,7 @@ class DirectionMovementsController implements ContentProvider.Child {
 	}
 
 	private Node centerNode = null;
-	private int centerPos = 2;
+	private final int centerPos = 2;
 
 	public void setCenterNode(Node centerNode) {
 		var gridChildren = gridPane.getChildren();

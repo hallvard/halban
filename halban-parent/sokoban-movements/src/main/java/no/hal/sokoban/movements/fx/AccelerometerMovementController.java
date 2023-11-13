@@ -28,6 +28,7 @@ public class AccelerometerMovementController implements ContentProvider.Child {
 
     private long t = 0;
     private double vx = 0.0, vy = 0.0;
+    private double dx = 0.0, dy = 0.0;
 
     private ToggleButton serviceToggle;
     private Text aText;
@@ -45,25 +46,26 @@ public class AccelerometerMovementController implements ContentProvider.Child {
                 accelerometerService.start(new Parameters(10.0d, true));
                 vx = 0.0d;
                 vy = 0.0d;
+                dx = 0.0d;
+                dy = 0.0d;
                 t = System.currentTimeMillis();
                 updateAcceleration();
                 accelerometerService.accelerationProperty().addListener(accelerationListener);
             } else {
                 accelerometerService.accelerationProperty().removeListener(accelerationListener);
                 accelerometerService.stop();
-                aText.setText("ax: -.-, ay: -.-, vx: -.-, vy: -.-");
+                aText.setText("ax: -.-, ay: -.-, dx: -.-, dy: -.-");
             }
         });
-        aText = new Text("ax: -.-, ay: -.-, vx: -.-, vy: -.-");
+        aText = new Text("ax: -.-, ay: -.-, dx: -.-, dy: -.-");
         sensitivitySelector = new Slider(0, 10, 5);
         sensitivitySelector.setShowTickLabels(true);
         sensitivitySelector.setMajorTickUnit(5);
         sensitivitySelector.setMinorTickCount(4);
         sensitivitySelector.setShowTickMarks(true);
         return new HBox(
-            serviceToggle,
-            aText,
-            sensitivitySelector
+            serviceToggle, sensitivitySelector,
+            aText
         );
     }
 
@@ -75,21 +77,24 @@ public class AccelerometerMovementController implements ContentProvider.Child {
             Acceleration a = accelerometerService.getCurrentAcceleration();
             double ax = a.getX(), ay = a.getY();
             long t2 = System.currentTimeMillis();
-            if (t > 0) {
-                long dt = t2 - t;
-                // if (Math.abs(ax) > sensitivitySelector.getValue() / 10) {
-                    vx += ax * dt / 1000;
-                // } else if (Math.abs(vx) < sensitivitySelector.getValue() / 10) {
-                //    vx = 0.0;
-                // }
-                // if (Math.abs(ay) > sensitivitySelector.getValue() / 10) {
-                    vy += ay * dt / 1000;
-                // } else if (Math.abs(vy) < sensitivitySelector.getValue() / 10) {
-                //    vy = 0.0;
-                // }
+            long dt = t2 - t;
+            double vx1 = vx, vx2 = vx, vy1 = vy, vy2 = vy;
+            if (Math.abs(vx1) > 0.0 || Math.abs(ax) > sensitivitySelector.getValue() / 10) {
+                vx2 = vx1 + ax * dt / 1000.0;
+            } else if (Math.abs(vx1) < sensitivitySelector.getValue() / 10) {
+                vx2 = 0.0;
             }
+            if (Math.abs(vy1) > 0.0 || Math.abs(ay) > sensitivitySelector.getValue() / 10) {
+                vy2 = vy1 + ay * dt / 1000;
+            } else if (Math.abs(vy1) < sensitivitySelector.getValue() / 10) {
+                vy2 = 0.0;
+            }
+            dx += (vx1 + vx2) * dt / 2000.0;
+            dy += (vy1 + vy2) * dt / 2000.0;
             t = t2;
-            this.aText.setText(String.format("ax: %.2f, ay: %.2f, vx: %.2f, vy: %.2f", ax, ay, vx, vy));
+            vx = vx2;
+            vy = vy2;
+            this.aText.setText(String.format("ax: %.2f, ay: %.2f, dx: %.2f, dy: %.2f", ax, ay, dx, dy));
         } catch (Exception e) {
             this.aText.setText(e.getMessage());
         }

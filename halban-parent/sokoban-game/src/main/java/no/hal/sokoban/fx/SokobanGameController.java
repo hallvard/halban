@@ -173,9 +173,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 
 		MouseMovementsController extraMouseMovementsController = new MouseMovementsController(mouseEvent -> sokobanGame.getPlayerLocation());
 		extraMouseMovementsController.setSpeedFactor(2.0);
-		mouseMovementNode.setOnMousePressed(extraMouseMovementsController::mousePressed);
-		mouseMovementNode.setOnMouseDragged(extraMouseMovementsController::mouseDragged);
-		mouseMovementNode.setOnMouseReleased(extraMouseMovementsController::mouseReleased);
+		extraMouseMovementsController.setMovementNode(mouseMovementNode, true);
 
 		this.messageText = new Text();
 
@@ -310,7 +308,11 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		return sokobanGridViewer.getGridView().getGridLocation(pick);
 	});
 
+	private record MovementDirection(Direction direction, double movementFactor) {}
+
 	private class MouseMovementsController {
+
+		private Node movementNode = null;
 
 		private SokobanGrid.Location pressedLocation;
 		private ContentKind pressedContent = null;
@@ -321,6 +323,15 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 
 		public MouseMovementsController(Function<MouseEvent, Location> locationProvider) {
 			this.locationProvider = locationProvider;
+		}
+
+		public void setMovementNode(Node movementNode, boolean registerMouseHandlers) {
+			this.movementNode = movementNode;
+			if (registerMouseHandlers) {
+				movementNode.setOnMousePressed(this::mousePressed);
+				movementNode.setOnMouseDragged(this::mouseDragged);
+				movementNode.setOnMouseReleased(this::mouseReleased);
+			}
 		}
 
 		private void mousePressed(MouseEvent mouseEvent) {
@@ -338,44 +349,71 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 			this.speedFactor = speedFactor;
 		}
 
-		private Direction getDirection(MouseEvent mouseEvent) {
-			double dx = (mouseEvent.getX() - lastPoint.getX()) * speedFactor / cellSize.getWidth();
-			double dy = (mouseEvent.getY() - lastPoint.getY()) * speedFactor / cellSize.getHeight();
-			Direction direction = (Math.abs(dx) >= Math.abs(dy) && Math.abs(dx) >= 1 ?
-									Direction.valueOf((int) Math.signum(dx), 0) :
-									(Math.abs(dy) >= Math.abs(dx) && Math.abs(dy) >= 1 ?
-										Direction.valueOf(0, (int) Math.signum(dy)) :
-										null));
-			return direction;
+		private Point2D getMousePoint(MouseEvent mouseEvent) {
+			double mx = mouseEvent.getX(), my = mouseEvent.getY();
+			if (mouseEvent.getSource() == movementNode) {
+				mx += movementNode.getTranslateX();
+				my += movementNode.getTranslateY();
+			}
+			return new Point2D(mx, my);
+		}
+
+		private MovementDirection getDirection(Point2D mousePoint) {
+			double dx = (mousePoint.getX() - lastPoint.getX()) * speedFactor / cellSize.getWidth();
+			double dy = (mousePoint.getY() - lastPoint.getY()) * speedFactor / cellSize.getHeight();
+			if (Math.abs(dx) > Math.abs(dy)) {
+				return new MovementDirection(Direction.valueOf((int) Math.signum(dx), 0), Math.abs(dx));
+			} else if (Math.abs(dy) > Math.abs(dx)) {
+				return new MovementDirection(Direction.valueOf(0, (int) Math.signum(dy)), Math.abs(dy));
+			}
+			return null;
 		}
 
 		protected void mouseDragged(MouseEvent mouseEvent) {
 			if (pressedContent != null && lastPoint != null && lastLocation != null) {
-				Direction direction = getDirection(mouseEvent);
-				if (direction != null) {
-					var transformedDirection = sokobanGridViewer.getXYTransformer().untransformed(direction);
-					lastPoint = new Point2D(mouseEvent.getX(), mouseEvent.getY());
-					Moves moves = switch (pressedContent) {
-						case PLAYER -> MovesComputer.computeMove(sokobanGame, transformedDirection);
-						case BOX -> MovesComputer.computeBoxMoves(sokobanGame, lastLocation.x(), lastLocation.y(), transformedDirection);
-						default -> null;
-					};
-					movesSlowdownController.withSlowMoves(() -> {
-						if (moves != null) {
-							this.lastLocation = this.lastLocation.to(transformedDirection);
-						}
-						return moves;
-					});
+				Point2D mousePoint = getMousePoint(mouseEvent);
+				MovementDirection movementDirection = getDirection(mousePoint);
+				if (movementDirection != null) {
+					if (movementDirection.movementFactor() >= 1.0) {
+						updateMovementNodeTranslation(null);
+						var transformedDirection = sokobanGridViewer.getXYTransformer().untransformed(movementDirection.direction());
+						lastPoint = mousePoint;
+						Moves moves = switch (pressedContent) {
+							case PLAYER -> MovesComputer.computeMove(sokobanGame, transformedDirection);
+							case BOX -> MovesComputer.computeBoxMoves(sokobanGame, lastLocation.x(), lastLocation.y(), transformedDirection);
+							default -> null;
+						};
+						movesSlowdownController.withSlowMoves(() -> {
+							if (moves != null) {
+								this.lastLocation = this.lastLocation.to(transformedDirection);
+							}
+							return moves;
+						});
+					} else {
+						updateMovementNodeTranslation(movementDirection);
+					}
 				}
 			}
 		}
 
-		protected void mouseReleased(MouseEvent mouseEvent) {
-			if (this.pressedContent == ContentKind.EMPTY && getDirection(mouseEvent) == null) {
-				movesSlowdownController.withSlowMoves(() -> MovesComputer.computeMovesTo(sokobanGame, this.pressedLocation.x(), this.pressedLocation.y()));
-				this.pressedContent = null;
-				this.lastLocation = null;
+		private void updateMovementNodeTranslation(MovementDirection movementDirection) {
+			double tx = 0.0, ty = 0.0;
+			if (movementDirection != null) {
+				var bounds = movementNode.getBoundsInLocal();
+				tx = movementDirection.direction().dx * movementDirection.movementFactor() * bounds.getWidth();
+				ty = movementDirection.direction().dy * movementDirection.movementFactor() * bounds.getHeight();
 			}
+			movementNode.setTranslateX(tx);
+			movementNode.setTranslateY(ty);
+		}
+
+		protected void mouseReleased(MouseEvent mouseEvent) {
+			if (this.pressedContent == ContentKind.EMPTY && getDirection(getMousePoint(mouseEvent)) == null) {
+				movesSlowdownController.withSlowMoves(() -> MovesComputer.computeMovesTo(sokobanGame, this.pressedLocation.x(), this.pressedLocation.y()));
+			}
+			updateMovementNodeTranslation(null);
+			this.pressedContent = null;
+			this.lastLocation = null;
 		}
 	}
 }

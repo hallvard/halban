@@ -42,17 +42,17 @@ public class AccelerometerMovementController implements ContentProvider.Child {
         serviceToggle = new ToggleButton("On/off");
         serviceToggle.selectedProperty().addListener((prop, oldValue, newValue) -> {
             if (newValue) {
-                accelerometerService.accelerationProperty().removeListener(accelerationListener);
-                accelerometerService.stop();
-                aText.setText("ax: -.-, ay: -.-");
-                vText.setText("vx: -.-, vy: -.-");
-            } else {
                 accelerometerService.start(new Parameters(10.0d, true));
                 vx = 0.0d;
                 vy = 0.0d;
                 t = System.currentTimeMillis();
-            updateAcceleration();
+                updateAcceleration();
                 accelerometerService.accelerationProperty().addListener(accelerationListener);
+            } else {
+                accelerometerService.accelerationProperty().removeListener(accelerationListener);
+                accelerometerService.stop();
+                aText.setText("ax: -.-, ay: -.-");
+                vText.setText("vx: -.-, vy: -.-");
             }
         });
         aText = new Text("ax: -.-, ay: -.-");
@@ -76,9 +76,9 @@ public class AccelerometerMovementController implements ContentProvider.Child {
         }
         Acceleration a = accelerometerService.getCurrentAcceleration();
         double ax = a.getX(), ay = a.getY();
-        if (t == 0) {
-        } else {
-            long t2 = System.currentTimeMillis(), dt = t2 - t;
+        long t2 = System.currentTimeMillis();
+        if (t > 0) {
+            long dt = t2 - t;
             // if (Math.abs(ax) > sensitivitySelector.getValue() / 10) {
                 vx += ax * dt / 1000;
             // } else if (Math.abs(vx) < sensitivitySelector.getValue() / 10) {
@@ -89,8 +89,8 @@ public class AccelerometerMovementController implements ContentProvider.Child {
             // } else if (Math.abs(vy) < sensitivitySelector.getValue() / 10) {
             //    vy = 0.0;
             // }
-            t = t2;
         }
+        t = t2;
         this.aText.setText(String.format("ax: %.2f, ay: %.2f", ax, ay));
         this.vText.setText(String.format("vx: %.2f, vy: %.2f", ax, ay));
     }

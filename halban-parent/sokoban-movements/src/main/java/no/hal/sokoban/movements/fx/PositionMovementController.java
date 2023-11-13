@@ -41,14 +41,14 @@ public class PositionMovementController implements ContentProvider.Child {
         serviceToggle = new ToggleButton("On/off");
         serviceToggle.selectedProperty().addListener((prop, oldValue, newValue) -> {
             if (newValue) {
-                positionService.positionProperty().removeListener(positionListener);
-                positionService.stop();
-                posText.setText("lat: -.-, long: -.-");
-            } else {
                 positionService.start(new Parameters(Parameters.Accuracy.HIGHEST, false));
                 startPosition = null;
                 updatePosition();
                 positionService.positionProperty().addListener(positionListener);
+            } else {
+                positionService.positionProperty().removeListener(positionListener);
+                positionService.stop();
+                posText.setText("lat: -.-, long: -.-");
             }
         });
         posText = new Text("lat: -.-, long: -.-");

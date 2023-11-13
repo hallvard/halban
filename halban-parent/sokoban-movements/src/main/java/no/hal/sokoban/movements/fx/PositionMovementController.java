@@ -28,7 +28,6 @@ public class PositionMovementController implements ContentProvider.Child {
     private Position startPosition = null;
 
     private Text posText;
-    private Text distanceText;
     private ToggleButton serviceToggle;
     private Slider sensitivitySelector;
 
@@ -51,8 +50,7 @@ public class PositionMovementController implements ContentProvider.Child {
                 posText.setText("lat: -.-, long: -.-");
             }
         });
-        posText = new Text("lat: -.-, long: -.-");
-        distanceText = new Text("dist: -.-");
+        posText = new Text("lat: -.-, long: -.-, dist: -.-");
         sensitivitySelector = new Slider(0, 10, 5);
         sensitivitySelector.setShowTickLabels(true);
         sensitivitySelector.setMajorTickUnit(5);
@@ -62,7 +60,6 @@ public class PositionMovementController implements ContentProvider.Child {
             new HBox(
                 serviceToggle,
                 posText,
-                distanceText,
                 sensitivitySelector
             )
         );
@@ -72,12 +69,15 @@ public class PositionMovementController implements ContentProvider.Child {
         if (positionService == null) {
             return;
         }
-        Position pos = positionService.getPosition();
-        if (startPosition == null) {
-            startPosition = pos;
+        try {
+            Position pos = positionService.getPosition();
+            if (startPosition == null) {
+                startPosition = pos;
+            }
+            this.posText.setText(String.format("lat: %.5f, long: %.5f, distance: %.1f", pos.getLatitude(), pos.getLongitude(), distance(startPosition, pos)));
+        } catch (Exception e) {
+            this.posText.setText(e.getMessage());
         }
-        this.posText.setText(String.format("lat: %.5f, long: %.5f", pos.getLatitude(), pos.getLongitude()));
-        this.posText.setText(String.format("distance: %.1f", distance(startPosition, pos)));
     }
 
     public static double distance(Position pos1, Position pos2) {

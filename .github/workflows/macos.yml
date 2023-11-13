@@ -2,7 +2,7 @@ name: Macos
 
 on:
   push:
-    branches: [ main ]
+    branches: [ macos ]
 
 jobs:
   build:

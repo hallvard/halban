@@ -17,9 +17,10 @@ import no.hal.sokoban.SokobanGame;
 
 public class PositionMovementController implements ContentProvider.Child {
 
-    private PositionService positionService;
+    private final PositionService positionService;
 
     public PositionMovementController(FxExtensionPoint<ContentProvider.Child, Node> extensionPoint, SokobanGame.Provider sokobanGameProvider, PositionService positionService) {
+        this.positionService = positionService;
         extensionPoint.extend(() -> getContent());
 //        var instanceRegistry = extensionPoint.getInstanceRegistry();
 //        var sokobanGridViewer = instanceRegistry.getComponent(SokobanGridViewer.class);

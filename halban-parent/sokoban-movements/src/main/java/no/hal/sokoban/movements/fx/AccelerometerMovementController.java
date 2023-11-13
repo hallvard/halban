@@ -17,9 +17,10 @@ import no.hal.sokoban.SokobanGame;
 
 public class AccelerometerMovementController implements ContentProvider.Child {
 
-    private AccelerometerService accelerometerService;
+    private final AccelerometerService accelerometerService;
 
     public AccelerometerMovementController(FxExtensionPoint<ContentProvider.Child, Node> extensionPoint, SokobanGame.Provider sokobanGameProvider, AccelerometerService accelerometerService) {
+        this.accelerometerService = accelerometerService;
         extensionPoint.extend(() -> getContent());
 //        var instanceRegistry = extensionPoint.getInstanceRegistry();
 //        var sokobanGridViewer = instanceRegistry.getComponent(SokobanGridViewer.class);

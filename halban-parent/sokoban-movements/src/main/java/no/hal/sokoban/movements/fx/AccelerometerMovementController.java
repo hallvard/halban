@@ -79,14 +79,14 @@ public class AccelerometerMovementController implements ContentProvider.Child {
             long t2 = System.currentTimeMillis();
             long dt = t2 - t;
             double vx1 = vx, vx2 = vx, vy1 = vy, vy2 = vy;
-            if (Math.abs(vx1) > 0.0 || Math.abs(ax) > sensitivitySelector.getValue() / 10) {
+            if (Math.abs(ax) > sensitivitySelector.getValue() / 5) {
                 vx2 = vx1 + ax * dt / 1000.0;
-            } else if (Math.abs(vx1) < sensitivitySelector.getValue() / 10) {
+            } else if (Math.abs(ax) < sensitivitySelector.getValue() / 50) {
                 vx2 = 0.0;
             }
-            if (Math.abs(vy1) > 0.0 || Math.abs(ay) > sensitivitySelector.getValue() / 10) {
+            if (Math.abs(ay) > sensitivitySelector.getValue() / 5) {
                 vy2 = vy1 + ay * dt / 1000;
-            } else if (Math.abs(vy1) < sensitivitySelector.getValue() / 10) {
+            } else if (Math.abs(ay) < sensitivitySelector.getValue() / 50) {
                 vy2 = 0.0;
             }
             dx += (vx1 + vx2) * dt / 2000.0;

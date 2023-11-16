@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.layout.Pane;
 import no.hal.plugin.InstanceRegistry;
 import no.hal.plugin.fx.ContentProvider;
 
@@ -24,6 +25,13 @@ public class SimpleFxExtensionPoint<C extends ContentProvider<N>, N> extends Abs
         });
     }
 
+    @Override
+    public Runnable extend(C contentProvider) {
+        return extender.apply(contentProvider);
+    }
+
+    //
+
     public static SimpleFxExtensionPoint<ContentProvider.Child, Node> forChild(InstanceRegistry instanceRegistry, Function<ContentProvider.Child, Runnable> extender) {
         return new SimpleFxExtensionPoint<>(instanceRegistry, ContentProvider.Child.class, childProvider -> extender.apply(childProvider));
     }
@@ -34,8 +42,17 @@ public class SimpleFxExtensionPoint<C extends ContentProvider<N>, N> extends Abs
         return new SimpleFxExtensionPoint<>(instanceRegistry, ContentProvider.Children.class, childrenProvider -> extender.apply(childrenProvider));
     }
 
-    @Override
-    public Runnable extend(C contentProvider) {
-        return extender.apply(contentProvider);
+    //
+
+    public static SimpleFxExtensionPoint createPaneExtensionPoint(Pane pane, InstanceRegistry instanceRegistry) {
+        return new SimpleFxExtensionPoint<>(instanceRegistry, ContentProvider.Child.class, createPaneExtender(pane));
+    }
+
+    public static Function<ContentProvider.Child, Runnable> createPaneExtender(Pane pane) {
+        return childProvider -> {
+			Node child = childProvider.getContent();
+			pane.getChildren().add(child);
+			return () -> pane.getChildren().remove(child);
+		};
     }
 }

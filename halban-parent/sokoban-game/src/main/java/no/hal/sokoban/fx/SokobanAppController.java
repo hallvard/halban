@@ -15,7 +15,6 @@ import no.hal.plugin.fx.ContentProvider;
 import no.hal.plugin.fx.LabelAdapter;
 import no.hal.plugin.fx.xp.FxExtensionPoint;
 import no.hal.plugin.fx.xp.LabeledChildExtender;
-import no.hal.plugin.fx.xp.SimpleFxExtensionPoint;
 import no.hal.settings.Setting.Value;
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.snapshot.SnapshotManager;
@@ -55,13 +54,11 @@ public class SokobanAppController implements ContentProvider.Container {
 		sokobanLevelCollectionsTab.setClosable(false);
 		tabPane.getTabs().add(sokobanLevelCollectionsTab);
 
-		FxExtensionPoint<LabeledChildExtender, Node> sokobanGamesExtensionPoint = new SimpleFxExtensionPoint<>(instanceRegistry, LabeledChildExtender.class, extender -> {
-			var newGameTab = new Tab(extender.getText(), extender.getContent());
-			newGameTab.setClosable(false);
-			tabPane.getTabs().add(newGameTab);
-			tabPane.getSelectionModel().select(newGameTab);
-			return () -> tabPane.getTabs().remove(newGameTab);
-		});
+		FxExtensionPoint<LabeledChildExtender, Node> sokobanGamesExtensionPoint = LabeledChildExtender.createTabPaneExtensionPoint(tabPane, instanceRegistry);
+		instanceRegistry.registerInstance(sokobanGamesExtensionPoint, FxExtensionPoint.class, this);
+
+		FxExtensionPoint<LabeledChildExtender, Node> xtrasExtensionPoint = LabeledChildExtender.createTabPaneExtensionPoint(tabPane, instanceRegistry);
+		instanceRegistry.registerInstance(xtrasExtensionPoint, FxExtensionPoint.class);
 
 		sokobanCollectionsBrowser.setOnOpenAction(sokobanLevel -> {
 			SokobanGameController sokobanGameController = new SokobanGameController(sokobanGamesExtensionPoint, sokobanLevel);

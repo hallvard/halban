@@ -213,11 +213,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider {
 		scope.registerComponent(sokobanGridViewer);
 		scope.updateAllComponents(GridCellFactory.class, this::setSokobanGridCellFactories);
 	
-		FxExtensionPoint<ContentProvider.Child, Node> extensionPoint = SimpleFxExtensionPoint.forChild(scope, childProvider -> {
-			Node child = childProvider.getContent();
-			extensionsPane.getChildren().add(child);
-			return () -> extensionsPane.getChildren().remove(child);
-		});
+		FxExtensionPoint<ContentProvider.Child, Node> extensionPoint = SimpleFxExtensionPoint.createPaneExtensionPoint(extensionsPane, scope);
 		instanceRegistry.registerInstance(extensionPoint, FxExtensionPoint.class, this);
 
 		return mainPane;

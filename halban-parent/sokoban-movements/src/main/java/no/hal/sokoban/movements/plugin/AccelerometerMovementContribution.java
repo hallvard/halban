@@ -19,7 +19,7 @@ public class AccelerometerMovementContribution implements Contribution {
     private AccelerometerService service = null;
 
     private AccelerometerService getAccelerometerService() {
-        if (service == null) {
+        if (this.service == null) {
             AccelerometerService.create().ifPresent(service -> {
                 this.service = service;
             });
@@ -46,7 +46,7 @@ public class AccelerometerMovementContribution implements Contribution {
                         new AccelerometerMovementController((FxExtensionPoint<ContentProvider.Child, Node>) extensionPoint, sokobanGameProvider, service)
                     );
                 } else if (LabeledChildExtender.class == extensionPoint.forClass() && qualifier == null) {
-                    new AccelerometerConfigurationController((FxExtensionPoint<LabeledChildExtender, Node>)extensionPoint, service);
+                    new AccelerometerConfigurationController((FxExtensionPoint<LabeledChildExtender, Node>)extensionPoint, getAccelerometerService());
                 }
             }
         });

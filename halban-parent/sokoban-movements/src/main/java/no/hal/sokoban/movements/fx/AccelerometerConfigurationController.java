@@ -21,8 +21,10 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import no.hal.plugin.fx.xp.FxExtensionPoint;
 import no.hal.plugin.fx.xp.LabeledChildExtender;
 
@@ -81,6 +83,7 @@ public class AccelerometerConfigurationController implements LabeledChildExtende
     }
 
     private ToggleButton serviceToggle;
+    private Text infoText;
 
     private final ChangeListener<Acceleration> accelerationListener = (prop, oldValue, newValue) -> {
         if (Platform.isFxApplicationThread()) {
@@ -96,6 +99,7 @@ public class AccelerometerConfigurationController implements LabeledChildExtende
     @Override
     public Pane getContent() {
         serviceToggle = new ToggleButton("On/off");
+        infoText = new Text("Accelerometer " + (accelerometerService != null ? "" : "un") + "available");
         serviceToggle.selectedProperty().addListener((prop, oldValue, newValue) -> {
             if (newValue) {
                 if (accelerometerService != null) {
@@ -103,7 +107,7 @@ public class AccelerometerConfigurationController implements LabeledChildExtende
                 }
                 timestamp0 = -1;
                 dateTime0 = null;
-                as.clear();
+                axAverager = new Averager(10);
                 resetChart();
                 accelerationProperty.addListener(accelerationListener);
             } else {
@@ -113,7 +117,7 @@ public class AccelerometerConfigurationController implements LabeledChildExtende
                 }
             }
         });
-        mouseAccelerationPane.getChildren().addAll(serviceToggle);
+        mouseAccelerationPane.getChildren().add(new HBox(serviceToggle, infoText));
         resetChart();
         return mouseAccelerationPane;
     }
@@ -133,25 +137,17 @@ public class AccelerometerConfigurationController implements LabeledChildExtende
     }
 
     private LocalDateTime dateTime0 = null;
-
-    private List<Double> as = new ArrayList<>();
+    private Averager axAverager;
 
     private void updateSeries() {
         Acceleration acceleration = accelerationProperty.get();
-        as.add(acceleration.getX());
-        if (as.size() > 10) {
-            as.remove(0);
-            double sum = 0.0;
-            for (int i = 0; i < as.size(); i++) {
-                sum += as.get(i);
-            }
-            var dateTime = acceleration.getTimestamp();
-            if (dateTime0 == null) {
-                dateTime0 = dateTime;
-            }
-            long t = ChronoUnit.MILLIS.between(dateTime0, dateTime);
-            axSeries.getData().add(new XYChart.Data(t, sum / as.size()));
-            // System.out.printf("%s, %.2f (%.2f)\n", t, a, sum);
+        double ax = axAverager.average(acceleration.getX());
+        var dateTime = acceleration.getTimestamp();
+        if (dateTime0 == null) {
+            dateTime0 = dateTime;
         }
+        long t = ChronoUnit.MILLIS.between(dateTime0, dateTime);
+        axSeries.getData().add(new XYChart.Data(t, ax));
+        // System.out.printf("%s, %.2f\n", t, ax);
     }
 }

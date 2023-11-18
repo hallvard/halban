@@ -16,19 +16,17 @@ import no.hal.sokoban.movements.fx.AccelerometerMovementController;
 
 public class AccelerometerMovementContribution implements Contribution {
 
-    private AccelerometerService service = null;
+    private AccelerometerService accelerometerService = null;
 
     private AccelerometerService getAccelerometerService() {
-        if (this.service == null) {
-            AccelerometerService.create().ifPresent(service -> {
-                this.service = service;
-            });
+        if (accelerometerService == null) {
+            AccelerometerService.create().ifPresent(service -> this.accelerometerService = service);
         }
-        return service;
+        return accelerometerService;
     }
 
     private void ifAccelerometerServicePresent(Consumer<AccelerometerService> consumer) {
-        getAccelerometerService();
+        var service = getAccelerometerService();
         if (service != null) {
             consumer.accept(service);
         }
@@ -38,8 +36,6 @@ public class AccelerometerMovementContribution implements Contribution {
     public void activate(InstanceRegistry instanceRegistry) {
         instanceRegistry.addListener((clazz, qualifier, oldValue, newValue) -> {
             if (FxExtensionPoint.class == clazz && newValue instanceof FxExtensionPoint extensionPoint && extensionPoint != null) {
-                System.out.println("Instance " + clazz.getName() + "#" + qualifier + ": " + newValue);
-                System.out.println("Extension point for " + extensionPoint.forClass());
                 // scope added, check to see if it contains an FxExtensionPoint
                 if (ContentProvider.Child.class == extensionPoint.forClass() && qualifier instanceof SokobanGame.Provider sokobanGameProvider) {
                     ifAccelerometerServicePresent(service ->

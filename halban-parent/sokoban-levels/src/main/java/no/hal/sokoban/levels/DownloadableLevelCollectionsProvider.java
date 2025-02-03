@@ -2,7 +2,6 @@ package no.hal.sokoban.levels;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import no.hal.sokoban.level.SokobanLevel;
 
 public abstract class DownloadableLevelCollectionsProvider implements SokobanLevel.CollectionsProvider {
@@ -33,7 +32,7 @@ public abstract class DownloadableLevelCollectionsProvider implements SokobanLev
         return result.toString();
     }
 
-    public static class LabelAdapter implements no.hal.plugin.fx.LabelAdapter {
+    public static class LabelAdapter implements no.hal.fx.LabelAdapter {
 
         @Override
         public Class<?> forClass() {

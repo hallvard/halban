@@ -3,9 +3,10 @@ package no.hal.grid.fx;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
+import java.util.function.BiConsumer;
 import javafx.geometry.Dimension2D;
 import javafx.scene.layout.StackPane;
+import no.hal.grid.Grid.Location;
 import no.hal.grid.fx.GridView.Cell;
 
 public class CompositeGridCellFactory<T> extends GridCellFactory<T, StackPane> {
@@ -26,6 +27,14 @@ public class CompositeGridCellFactory<T> extends GridCellFactory<T, StackPane> {
     }
     public CompositeGridCellFactory(GridCellFactory<T, ?> mainGridCellFactory) {
         this(mainGridCellFactory, null);
+    }
+
+    @Override
+    public void setUpdateCallback(BiConsumer<Location, Location> refreshCallback) {
+      super.setUpdateCallback(refreshCallback);
+      for (var cellFactory : cellFactories) {
+        cellFactory.setUpdateCallback(refreshCallback);
+      }
     }
 
     private Dimension2D minNodeSize = null;

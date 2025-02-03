@@ -1,7 +1,6 @@
 package no.hal.sokoban.fx.util;
 
 import java.util.function.Consumer;
-
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
@@ -21,7 +20,7 @@ public abstract class AbstractItemSelector<T> implements ItemSelector<T> {
                 openAction();
             }
         });
-        node.setOnTouchStationary(touchEvent -> {
+        node.setOnTouchStationary(_ -> {
             openAction();
         });
     }

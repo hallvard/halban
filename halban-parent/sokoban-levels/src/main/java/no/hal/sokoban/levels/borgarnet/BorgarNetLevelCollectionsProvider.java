@@ -13,10 +13,12 @@ import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import no.hal.sokoban.impl.SokobanFactoryImpl;
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.level.SokobanLevel.MetaData;
 import no.hal.sokoban.levels.DownloadableLevelCollection;
 import no.hal.sokoban.levels.DownloadableLevelCollectionsProvider;
+import no.hal.sokoban.parser.SokobanFactory;
 import no.hal.sokoban.parser.SokobanParser;
 
 public class BorgarNetLevelCollectionsProvider extends DownloadableLevelCollectionsProvider {
@@ -36,7 +38,7 @@ public class BorgarNetLevelCollectionsProvider extends DownloadableLevelCollecti
             for (var option : optionDivs) {
                 var levelsName = option.attr("value");
                 var levelsUri = new URI(getBaseUri() + "/levels/" + encodeUriPath(levelsName) + ".txt");
-                var metaData = SokobanParser.metaDataOf(Map.of("id", levelsUri.toString(), "uri", levelsUri.toString(), "Title", levelsName));
+                var metaData = SokobanFactory.metaDataOf(Map.of("id", levelsUri.toString(), "uri", levelsUri.toString(), "Title", levelsName));
                 collections.add(new DownloadableBorgarNetLevelCollection(levelsUri, metaData));
             }
             return collections;
@@ -47,7 +49,7 @@ public class BorgarNetLevelCollectionsProvider extends DownloadableLevelCollecti
 
     private static Pattern PROPERTY_PATTERN = Pattern.compile(";(\\w+):(.*)");
 
-    public final static SokobanParser sokobanParser = new SokobanParser() {
+    public final static SokobanParser sokobanParser = new SokobanParser(new SokobanFactoryImpl()) {
         
         @Override
         protected boolean isIgnorable(String line) {

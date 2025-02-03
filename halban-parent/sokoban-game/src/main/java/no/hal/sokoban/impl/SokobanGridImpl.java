@@ -2,7 +2,7 @@ package no.hal.sokoban.impl;
 
 import no.hal.grid.impl.GridImpl;
 import no.hal.sokoban.SokobanGrid;
-import no.hal.sokoban.parser.SokobanParser;
+import no.hal.sokoban.parser.SokobanSerializer;
 
 public class SokobanGridImpl extends GridImpl<SokobanGrid.CellKind> implements SokobanGrid {
 	
@@ -58,17 +58,19 @@ public class SokobanGridImpl extends GridImpl<SokobanGrid.CellKind> implements S
 		return playerLocation;
 	}
 
+	private final SokobanSerializer sokobanSerializer = new SokobanSerializer();
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		SokobanParser.toString(this, null, builder);
+		sokobanSerializer.toString(this, null, builder);
 		return builder.toString();
 	}
 
 	@Override
 	public int[] countTargets() {
 		int[] counters = new int[]{0, 0};
-		forEachCell((cell, x, y) -> {
+		forEachCell((cell, _, _) -> {
 			if (cell.floor() == FloorKind.TARGET) {
 				counters[cell.content() == ContentKind.BOX ? 0 : 1]++;
 			}

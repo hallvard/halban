@@ -7,7 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-
 import no.hal.grid.Direction;
 import no.hal.grid.Grid.Location;
 import no.hal.sokoban.Move;
@@ -67,7 +66,7 @@ public class MovesComputer {
 		return moves != null ? Moves.of(moves) : null;
 	}
 
-    public static Move.Kind canMove(SokobanGameState sokobanGameState, int x, int y, Direction direction, Move.Kind allowedMoveKind) {
+    private static Move.Kind canMove(SokobanGameState sokobanGameState, int x, int y, Direction direction, Move.Kind allowedMoveKind) {
         var sokobanGrid = sokobanGameState.getSokobanGrid();
 		int dx = direction.dx, dy = direction.dy;
 		CellKind forward1 = sokobanGrid.isLegalLocation(x + dx, y + dy) ? sokobanGrid.getCell(x + dx, y + dy) : null;
@@ -86,9 +85,12 @@ public class MovesComputer {
 		return (allowedMoveKind != null && moveKind != allowedMoveKind ? null : moveKind);
 	}
 
+	public static Move.Kind canMove(SokobanGameState sokobanGameState, Location location, Direction direction, Move.Kind allowedMoveKind) {
+		return canMove(sokobanGameState, location.x(), location.y(), direction, allowedMoveKind);
+	}
+
 	public static Move.Kind canMove(SokobanGameState sokobanGameState, Direction direction, Move.Kind allowedMoveKind) {
-        var playerLocation = sokobanGameState.getPlayerLocation();
-		return canMove(sokobanGameState, playerLocation.x(), playerLocation.y(), direction, allowedMoveKind);
+		return canMove(sokobanGameState, sokobanGameState.getPlayerLocation(), direction, allowedMoveKind);
 	}
 
 	public static Moves computeMovesAlong(SokobanGameState sokobanGameState, Direction direction) {
@@ -127,8 +129,9 @@ public class MovesComputer {
 		return Moves.of(moves);
 	}
 
-    public static Moves computeBoxMoves(SokobanGameState sokobanGameState, int x, int y, Direction direction) {
+    public static Moves computeBoxMoves(SokobanGameState sokobanGameState, Location location, Direction direction) {
         var sokobanGrid = sokobanGameState.getSokobanGrid();
+		int x = location.x(), y = location.y();
 		CellKind box = sokobanGrid.getCell(x, y);
 		if (box.content() != ContentKind.BOX || direction == null) {
 			return null;

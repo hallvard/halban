@@ -1,10 +1,8 @@
 module sokoban.app {
 
-    requires plugin.api;
-    requires plugin.fx.api;
-    requires plugin.di;
+    requires fx.api;
 
-    requires settings.api;
+    requires config.api;
 
     requires sokoban.game;
 
@@ -13,7 +11,5 @@ module sokoban.app {
 
     exports no.hal.sokoban.app to javafx.graphics;
 
-    uses no.hal.plugin.Plugin;
-    uses no.hal.settings.SettingsProvider;
-    uses no.hal.plugin.di.InjectorDelegate;
+    uses no.hal.config.ConfigurationProvider;
 }

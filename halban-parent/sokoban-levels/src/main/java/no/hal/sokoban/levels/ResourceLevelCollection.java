@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 
+import no.hal.sokoban.impl.SokobanFactoryImpl;
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.level.SokobanLevel.MetaData;
+import no.hal.sokoban.parser.SokobanFactory;
 import no.hal.sokoban.parser.SokobanParser;
 
 public abstract class ResourceLevelCollection extends LoadableLevelCollection {
@@ -48,13 +50,13 @@ public abstract class ResourceLevelCollection extends LoadableLevelCollection {
 
     private SokobanParser sokobanParser;
 
-    protected SokobanParser createSokobanParser() {
-        return new SokobanParser();
+    protected SokobanParser createSokobanParser(SokobanFactory sokobanFactory) {
+        return new SokobanParser(sokobanFactory);
     }
 
     protected SokobanParser getSokobanParser() {
         if (sokobanParser == null) {
-            sokobanParser = createSokobanParser();
+            sokobanParser = createSokobanParser(new SokobanFactoryImpl());
         }
         return sokobanParser;
     }

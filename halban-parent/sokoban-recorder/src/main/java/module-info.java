@@ -1,11 +1,13 @@
 module sokoban.recorder {
 
+    requires config.api;
+    requires fx.api;
     requires grid.api;
     requires grid.fx;
-    requires sokoban.game;
+    requires sokoban.game.api;
 
     requires org.kordamp.ikonli.core;
     requires org.kordamp.ikonli.javafx;
 
-    provides no.hal.plugin.Plugin with no.hal.sokoban.recorder.plugin.MoveRecorderPlugin; 
+    provides no.hal.config.ext.ExtConfigurationProvider with no.hal.sokoban.recorder.fx.ext.MoveRecorderExtConfigurationProvider;
 }

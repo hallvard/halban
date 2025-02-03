@@ -13,27 +13,13 @@
     <dependencies>
         <dependency>
             <groupId>no.hal.halban</groupId>
-            <artifactId>settings-api</artifactId>
+            <artifactId>config-api</artifactId>
             <version>1.0-SNAPSHOT</version>        
         </dependency>
 
         <dependency>
             <groupId>no.hal.halban</groupId>
-            <artifactId>plugin-api</artifactId>
-            <version>1.0-SNAPSHOT</version>        
-        </dependency>
-        <dependency>
-            <groupId>no.hal.halban</groupId>
-            <artifactId>plugin-fx-api</artifactId>
-            <version>1.0-SNAPSHOT</version>        
-        </dependency>
-        <dependency>
-            <groupId>jakarta.inject</groupId>
-            <artifactId>jakarta.inject-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>no.hal.halban</groupId>
-            <artifactId>plugin-di-api</artifactId>
+            <artifactId>fx-api</artifactId>
             <version>1.0-SNAPSHOT</version>        
         </dependency>
 
@@ -50,6 +36,11 @@
         <dependency>
             <groupId>no.hal.halban</groupId>
             <artifactId>grid-fx</artifactId>
+            <version>1.0-SNAPSHOT</version>        
+        </dependency>
+        <dependency>
+            <groupId>no.hal.halban</groupId>
+            <artifactId>sokoban-game-api</artifactId>
             <version>1.0-SNAPSHOT</version>        
         </dependency>
 
@@ -85,15 +76,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <annotationProcessorPaths>
-                        <annotationProcessorPath>
-                            <groupId>no.hal.halban</groupId>
-                            <artifactId>plugin-di-gen</artifactId>
-                            <version>1.0-SNAPSHOT</version>
-                        </annotationProcessorPath>
-                    </annotationProcessorPaths>
-                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -10,10 +10,12 @@ import java.util.Map;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import no.hal.sokoban.impl.SokobanFactoryImpl;
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.level.SokobanLevel.MetaData;
 import no.hal.sokoban.levels.DownloadableLevelCollection;
 import no.hal.sokoban.levels.DownloadableLevelCollectionsProvider;
+import no.hal.sokoban.parser.SokobanFactory;
 import no.hal.sokoban.parser.SokobanParser;
 
 public class SourcecodeSeLevelCollectionsProvider extends DownloadableLevelCollectionsProvider {
@@ -42,7 +44,7 @@ public class SourcecodeSeLevelCollectionsProvider extends DownloadableLevelColle
                 var title = levelsDiv.getElementsByAttributeValueStarting("class", "Title").text().trim();
                 var author = levelsDiv.getElementsByAttributeValueStarting("class", "Auth").text().trim();
                 var slcInfoUri = levelsUri.resolve("level_func.php?act=buttons&id=" + collectionId);
-                var metaData = SokobanParser.metaDataOf(Map.of("Title", title, "Author", author, "infoUrl", slcInfoUri.toString()));
+                var metaData = SokobanFactory.metaDataOf(Map.of("Title", title, "Author", author, "infoUrl", slcInfoUri.toString()));
                 collections.add(new DownloadableSourcecodeSeLevelCollection(slcInfoUri, metaData));
             }
             return collections;
@@ -83,7 +85,7 @@ public class SourcecodeSeLevelCollectionsProvider extends DownloadableLevelColle
             super(downloadHref, metaData);
         }
 
-        private SokobanParser sokobanParser = new SokobanParser();
+        private final SokobanParser sokobanParser = new SokobanParser(new SokobanFactoryImpl());
 
         @Override
         protected SokobanLevel.Collection extractSokobanLevelsCollection(Document document) {

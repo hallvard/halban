@@ -1,16 +1,13 @@
 module sokoban.game {
 
-    requires transitive plugin.api;
-    requires transitive plugin.fx.api;
+    requires transitive fx.api;
 
-    requires plugin.di;
-    requires jakarta.inject;
-
-    requires settings.api;
+    requires transitive config.api;
 
     requires transitive grid.api;
     requires transitive sokoban.api;
     requires grid.fx;
+    requires sokoban.game.api;
 
     requires javafx.graphics;
     requires transitive javafx.controls;
@@ -20,9 +17,10 @@ module sokoban.game {
 
     requires org.kordamp.ikonli.materialdesign2;
 
-    exports no.hal.sokoban.fx;
+    exports no.hal.sokoban.impl;
     exports no.hal.sokoban.fx.util;
-    exports no.hal.sokoban.parser;
+    exports no.hal.sokoban.fx.controllers;
+    exports no.hal.sokoban.snapshot;
 
-    uses no.hal.plugin.fx.LabelAdapter;
+    uses no.hal.fx.LabelAdapter;
 }

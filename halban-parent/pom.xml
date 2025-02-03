@@ -8,19 +8,14 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>plugin-api</module>
+        <module>config</module>
 
-        <module>plugin-di-api</module>
-        <module>plugin-di-gen</module>
-        <module>plugin-di-sample</module>
-
-        <module>settings</module>
-
-        <module>plugin-fx-api</module>
+        <module>fx-api</module>
 
         <module>grid-api</module>
         <module>grid-fx</module>
         <module>sokoban-api</module>
+        <module>sokoban-game-api</module>
         <module>sokoban-game</module>
         <module>sokoban-recorder</module>
         <module>sokoban-levels</module>
@@ -36,12 +31,6 @@
     
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>jakarta.inject</groupId>
-                <artifactId>jakarta.inject-api</artifactId>
-                <version>2.0.1</version>
-            </dependency>
-
             <dependency>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-graphics</artifactId>
@@ -90,7 +79,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.11.0</version>
                     <configuration>
-                        <release>17</release>
+                        <release>23</release>
                         <compilerArgs>
                         <!-- <arg>-enable-preview</arg> -->
                         </compilerArgs>

@@ -15,7 +15,7 @@ public interface SokobanGrid extends Grid<SokobanGrid.CellKind> {
 	 */
 	default int[] countTargets() {
 		int[] counters = new int[]{0, 0};
-		forEachCell((cell, x, y) -> {
+		forEachCell((cell, _, _) -> {
 			if (cell.floor() == FloorKind.TARGET) {
 				counters[cell.content() == ContentKind.BOX ? 0 : 1]++;
 			}

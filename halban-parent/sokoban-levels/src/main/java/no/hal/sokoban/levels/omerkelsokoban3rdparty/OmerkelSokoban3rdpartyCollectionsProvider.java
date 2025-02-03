@@ -8,8 +8,9 @@ import java.util.regex.Pattern;
 
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.level.SokobanLevel.Collection;
-import no.hal.sokoban.levels.ResourceLevelCollectionsProvider;
 import no.hal.sokoban.levels.ResourceLevelCollection;
+import no.hal.sokoban.levels.ResourceLevelCollectionsProvider;
+import no.hal.sokoban.parser.SokobanFactory;
 import no.hal.sokoban.parser.SokobanParser;
 
 public class OmerkelSokoban3rdpartyCollectionsProvider extends ResourceLevelCollectionsProvider {
@@ -32,9 +33,9 @@ public class OmerkelSokoban3rdpartyCollectionsProvider extends ResourceLevelColl
         private static Pattern PROPERTY_PATTERN = Pattern.compile(";\\s+([\\w\\-\\s]+):(.*)");
 
         @Override
-        protected SokobanParser createSokobanParser() {
+        protected SokobanParser createSokobanParser(SokobanFactory sokobanFactory) {
             
-            return new SokobanParser() {
+            return new SokobanParser(sokobanFactory) {
 
                 @Override
                 public SokobanLevel.Collection parse(BufferedReader reader, Map<String, String> defaultCollectionProperties) throws IOException {

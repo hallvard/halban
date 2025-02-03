@@ -12,20 +12,16 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-
-import jakarta.inject.Named;
-import javafx.application.Application;
-import no.hal.plugin.di.annotation.Reference;
-import no.hal.plugin.di.annotation.Scoped;
-import no.hal.settings.Setting.Value;
+import no.hal.config.Configuration;
 import no.hal.sokoban.Move;
 import no.hal.sokoban.SokobanGame;
 import no.hal.sokoban.SokobanGameState;
+import no.hal.sokoban.impl.SokobanFactoryImpl;
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.level.SokobanLevel.MetaData;
 import no.hal.sokoban.parser.SokobanParser;
+import no.hal.sokoban.parser.SokobanSerializer;
 
-@Scoped(Application.class)
 public class SnapshotManager implements SokobanLevel.Collection {
 
     public enum SnapshotState {
@@ -35,20 +31,11 @@ public class SnapshotManager implements SokobanLevel.Collection {
     private final WatchService watchService = null;
 
     private String folderName;
-
-    @Reference
-    public void setFolderName(@Named("snapshots.folderName") Value folderName) {
-        this.folderName = folderName.asString();
-    }
-
     private String fileNameEnding;
 
-    @Reference
-    public void setFilenameEnding(@Named("snapshots.fileNameEnding") Value fileNameEnding) {
-        this.fileNameEnding = fileNameEnding.asString();
-    }
-
-    public SnapshotManager() {
+    public SnapshotManager(Configuration config) {
+      this.folderName = config.getString("snapshots.folderName", null);
+      this.fileNameEnding = config.getString("snapshots.fileNameEnding", null);
 //        try {
 //            watchService = FileSystems.getDefault().newWatchService();
 //            getSnapshotsFolderPath().register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY, StandardWatchEventKinds.ENTRY_DELETE);
@@ -98,6 +85,8 @@ public class SnapshotManager implements SokobanLevel.Collection {
         return filename.endsWith(fileNameEnding);
     }
 
+    private final SokobanSerializer sokobanSerializer = new SokobanSerializer();
+
 	public void updateGameSnapshot(SokobanGameState game) {
 		Path snapshotsFolderPath = getSnapshotsFolderPath();
 		if (! snapshotsFolderPath.toFile().exists()) {
@@ -113,7 +102,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
             return;
         }
         Path snapshotFile = snapshotsFolderPath.resolve(snapshotFilename);
-		String content = SokobanParser.toString(game);
+		String content = sokobanSerializer.toString(game);
 		try {
 			Files.write(snapshotFile, content.getBytes());
 		} catch (IOException ioex) {
@@ -165,7 +154,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
         return (snapshot != null ? getSnapshotState(snapshot) : null);
     }
 
-    private final SokobanParser sokobanParser = new SokobanParser();
+    private final SokobanParser sokobanParser = new SokobanParser(new SokobanFactoryImpl());
 
     private void updateSokobanSnapshots() {
         var snapshotsFolderPath = getSnapshotsFolderPath();

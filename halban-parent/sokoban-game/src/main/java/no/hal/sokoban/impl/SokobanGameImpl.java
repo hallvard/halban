@@ -1,5 +1,7 @@
 package no.hal.sokoban.impl;
 
+import java.util.ArrayList;
+import java.util.List;
 import no.hal.grid.Direction;
 import no.hal.grid.Grid.Location;
 import no.hal.sokoban.Move;
@@ -8,10 +10,7 @@ import no.hal.sokoban.SokobanGame;
 import no.hal.sokoban.SokobanGrid;
 import no.hal.sokoban.SokobanGrid.ContentKind;
 import no.hal.sokoban.level.SokobanLevel;
-import no.hal.sokoban.parser.SokobanParser;
-
-import java.util.ArrayList;
-import java.util.List;
+import no.hal.sokoban.parser.SokobanSerializer;
 
 public class SokobanGameImpl extends AbstractSokobanGameProvider implements SokobanGame {
 
@@ -43,9 +42,11 @@ public class SokobanGameImpl extends AbstractSokobanGameProvider implements Soko
 		this(sokobanLevel, new SokobanGridImpl(sokobanLevel.getSokobanGrid()), sokobanLevel.getMetaData().get("moves"));
 	}
 
+	private final SokobanSerializer sokobanSerializer = new SokobanSerializer();
+
 	@Override
 	public String toString() {
-		return SokobanParser.toString(this);
+		return sokobanSerializer.toString(this);
 	}
 
 	@Override
@@ -146,13 +147,14 @@ public class SokobanGameImpl extends AbstractSokobanGameProvider implements Soko
 	}
 
 	@Override
-	public boolean canUndo() {
-		return undoPos > 0;
+	public int undoCount() {
+		return undoPos;
 	}
 	
 	@Override
-	public void undo() {
-		if (canUndo()) {
+	public int undo(int count) {
+    int undone = 0;
+		while (canUndo() && undone < count) {
 			undoPos--;
 			var moves = this.moves.get(undoPos).getMoves();
 			for (int i = moves.size() - 1; i >= 0; i--) {
@@ -160,23 +162,28 @@ public class SokobanGameImpl extends AbstractSokobanGameProvider implements Soko
 				undoMove(move.direction(), move.moveKind());
 				fireMoveUndone(move);
 			}
+      undone++;
 		}
+    return undone;
 	}
 
 	@Override
-	public boolean canRedo() {
-		return undoPos < moves.size();
+	public int redoCount() {
+		return moves.size() - undoPos;
 	}
 	
 	@Override
-	public void redo() {
-		if (canRedo()) {
+	public int redo(int count) {
+    int redone = 0;
+		while (canRedo() && redone < count) {
 			Moves moves = this.moves.get(undoPos);
 			undoPos++;
 			for (var move : moves) {
 				doMove(move.direction(), move.moveKind());
 				fireMoveDone(move);
 			}
+      redone++;
 		}
+    return redone;
 	}
 }

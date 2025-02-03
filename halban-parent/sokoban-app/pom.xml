@@ -30,18 +30,12 @@
     <dependencies>
         <dependency>
             <groupId>no.hal.halban</groupId>
-            <artifactId>settings-api</artifactId>
+            <artifactId>config-api</artifactId>
             <version>1.0-SNAPSHOT</version>        
         </dependency>
         <dependency>
             <groupId>no.hal.halban</groupId>
-            <artifactId>settings-yaml</artifactId>
-            <version>1.0-SNAPSHOT</version>        
-        </dependency>
-
-        <dependency>
-            <groupId>no.hal.halban</groupId>
-            <artifactId>plugin-di-api</artifactId>
+            <artifactId>config-yaml</artifactId>
             <version>1.0-SNAPSHOT</version>        
         </dependency>
 
@@ -77,7 +71,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.8.1</version>
                 <executions>
                     <execution>
                         <id>copy-dependencies</id>
@@ -251,10 +245,10 @@
                     <plugin>
                         <groupId>com.gluonhq</groupId>
                         <artifactId>gluonfx-maven-plugin</artifactId>
-                        <version>1.0.21</version>
+                        <version>1.0.25</version>
                         <configuration>
                             <mainClass>sokoban.app/no.hal.sokoban.app.SokobanApp</mainClass>
-                            <graalvmHome>${env.HOME}/.sdkman/candidates/java/22.3.r19-grl</graalvmHome>
+                            <graalvmHome>${env.HOME}/dev/graal/graalvm-java23-darwin-aarch64-gluon-23+25.1-dev/Contents/Home</graalvmHome>
                             <!--
                             <graalvmHome>${env.HOME}/.sdkman/candidates/java/21-graal</graalvmHome>
                             <graalvmHome>${env.HOME}/.sdkman/candidates/java/22.1.0.1.r17-gln</graalvmHome>
@@ -305,7 +299,7 @@
                     <plugin>
                         <groupId>com.gluonhq</groupId>
                         <artifactId>gluonfx-maven-plugin</artifactId>
-                        <version>1.0.21</version>
+                        <version>1.0.25</version>
                         <configuration>
                             <target>android</target>
                             <mainClass>sokoban.app/no.hal.sokoban.app.SokobanApp</mainClass>

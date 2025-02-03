@@ -1,10 +1,9 @@
 module sokoban.levels {
-
-    requires plugin.api;
-    requires plugin.fx.api;
+    requires config.api;
+    requires fx.api;
     requires sokoban.api;
     requires sokoban.game;
     requires org.jsoup;
 
-    provides no.hal.plugin.Plugin with no.hal.sokoban.levels.plugin.SokobanLevelsPlugin;
+    provides no.hal.config.ext.ExtConfigurationProvider with no.hal.sokoban.levels.ext.SokobanLevelsExtConfigurationProvider;
 }

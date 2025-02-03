@@ -3,27 +3,21 @@ package no.hal.sokoban.movements.fx;
 import com.gluonhq.attach.position.Parameters;
 import com.gluonhq.attach.position.Position;
 import com.gluonhq.attach.position.PositionService;
-
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
-import javafx.scene.Node;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
-import no.hal.plugin.fx.ContentProvider;
-import no.hal.plugin.fx.xp.FxExtensionPoint;
+import no.hal.fx.ContentProvider;
 import no.hal.sokoban.SokobanGame;
 
 public class PositionMovementController implements ContentProvider.Child {
 
     private final PositionService positionService;
 
-    public PositionMovementController(FxExtensionPoint<ContentProvider.Child, Node> extensionPoint, SokobanGame.Provider sokobanGameProvider, PositionService positionService) {
+    public PositionMovementController(SokobanGame.Provider sokobanGameProvider, PositionService positionService) {
         this.positionService = positionService;
-        extensionPoint.extend(() -> getContent());
-//        var instanceRegistry = extensionPoint.getInstanceRegistry();
-//        var sokobanGridViewer = instanceRegistry.getComponent(SokobanGridViewer.class);
     }
 
     private Position startPosition = null;
@@ -32,14 +26,14 @@ public class PositionMovementController implements ContentProvider.Child {
     private ToggleButton serviceToggle;
     private Slider sensitivitySelector;
 
-    private final ChangeListener<Position> positionListener = (prop, oldValue, newValue) -> {
+    private final ChangeListener<Position> positionListener = (_, _, _) -> {
         Platform.runLater(this::updatePosition);
     };
 
     @Override
     public HBox getContent() {
         serviceToggle = new ToggleButton("On/off");
-        serviceToggle.selectedProperty().addListener((prop, oldValue, newValue) -> {
+        serviceToggle.selectedProperty().addListener((_, _, newValue) -> {
             if (newValue) {
                 positionService.start(new Parameters(Parameters.Accuracy.HIGHEST, false));
                 startPosition = null;

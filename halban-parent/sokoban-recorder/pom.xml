@@ -13,12 +13,12 @@
     <dependencies>
         <dependency>
             <groupId>no.hal.halban</groupId>
-            <artifactId>plugin-api</artifactId>
+            <artifactId>config-api</artifactId>
             <version>1.0-SNAPSHOT</version>        
         </dependency>
         <dependency>
             <groupId>no.hal.halban</groupId>
-            <artifactId>plugin-fx-api</artifactId>
+            <artifactId>fx-api</artifactId>
             <version>1.0-SNAPSHOT</version>        
         </dependency>
 
@@ -35,7 +35,7 @@
 
         <dependency>
             <groupId>no.hal.halban</groupId>
-            <artifactId>sokoban-game</artifactId>
+            <artifactId>sokoban-game-api</artifactId>
             <version>1.0-SNAPSHOT</version>        
         </dependency>
         <dependency>

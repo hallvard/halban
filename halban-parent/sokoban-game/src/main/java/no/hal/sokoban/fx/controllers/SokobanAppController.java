@@ -1,5 +1,6 @@
 package no.hal.sokoban.fx.controllers;
 
+import java.util.List;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -11,6 +12,8 @@ import no.hal.fx.ContentProvider;
 import no.hal.fx.LabelAdapter;
 import no.hal.sokoban.fx.ShortcutHandler;
 import no.hal.sokoban.fx.views.SokobanCollectionsBrowser;
+import no.hal.sokoban.level.SokobanLevel;
+import no.hal.sokoban.level.SokobanLevel.MetaData;
 import no.hal.sokoban.snapshot.SnapshotManager;
 
 public class SokobanAppController implements ContentProvider.Container {
@@ -24,9 +27,14 @@ public class SokobanAppController implements ContentProvider.Container {
     this.snapshotManager = new SnapshotManager(config);
     this.snapshotsLabel = config.getString("snapshots.label", "Snapshots");
 
-    config.registerInstance(new ShortcutHandler(() -> config.getInstance(Scene.class)), ShortcutHandler.class);
     config.registerInstance(snapshotManager, SnapshotManager.class);
     config.registerInstance(LabelAdapter.forInstance(snapshotManager, snapshotsLabel), LabelAdapter.class);
+    
+    SokobanLevel.CollectionProvider snapshotManagerSupplier = () -> snapshotManager;
+    config.registerInstance(snapshotManagerSupplier, SokobanLevel.CollectionProvider.class);
+    config.registerInstance(LabelAdapter.forInstance(snapshotManagerSupplier, snapshotsLabel), LabelAdapter.class);
+
+    config.registerInstance(new ShortcutHandler(() -> config.getInstance(Scene.class)), ShortcutHandler.class);
   }
 
 	@Override	

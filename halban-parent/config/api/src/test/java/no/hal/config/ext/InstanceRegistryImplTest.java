@@ -16,15 +16,14 @@ public class InstanceRegistryImplTest {
     registry = new InstanceRegistryImpl();
   }
 
-  private void checkInstances(Collection<?> actual, Object... expected) {
+  public static void checkInstances(Collection<?> actual, Object... expected) {
     assertEquals(expected.length, actual.size());
     for (var instance : expected) {
       assertTrue(actual.contains(instance));
     }
   }
 
-  @Test
-  public void testGetAllInstances1() {
+  public static void testGetAllInstances1(InstanceRegistry registry) {
     var instance1 = new String();
     var instance2 = new Object();
     registry.registerInstance(instance1, Object.class);
@@ -34,14 +33,22 @@ public class InstanceRegistryImplTest {
   }
 
   @Test
-  public void testGetAllInstances2() {
+  public void testGetAllInstances1() {
+    testGetAllInstances1(registry);
+  }
+
+  public static void testGetAllInstances2(InstanceRegistry registry, InstanceRegistry registry2) {
     var instance1 = new String();
     var instance2 = new Object();
     registry.registerInstance(instance1, Object.class);
     checkInstances(registry.getAllInstances(Object.class), instance1);
-    var registry2 = new InstanceRegistryImpl(registry);
     registry2.registerInstance(instance2, Object.class);
     checkInstances(registry.getAllInstances(Object.class), instance1);
     checkInstances(registry2.getAllInstances(Object.class), instance1, instance2);
+  }
+
+  @Test
+  public void testGetAllInstances2() {
+    testGetAllInstances2(registry, new InstanceRegistryImpl(registry));
   }
 }

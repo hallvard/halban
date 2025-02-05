@@ -24,11 +24,13 @@ public class CompositeConfiguration implements ExtConfiguration {
   }
 
   public CompositeConfiguration(Configuration configuration1, Configuration... configurationN) {
-    this(configuration1, new InstanceRegistryImpl(), List.of(configurationN));
+    this(configuration1, new InstanceRegistryImpl(),
+        // List.of requires non-null elements
+        Arrays.asList(configurationN));
   }
 
   public CompositeConfiguration(CompositeConfiguration configuration) {
-    this(configuration, new InstanceRegistryImpl(configuration.instanceRegistry), List.of());
+    this(configuration, new InstanceRegistryImpl(configuration != null ? configuration.instanceRegistry : null), List.of());
   }
 
   public void addConfiguration(Configuration configuration) {

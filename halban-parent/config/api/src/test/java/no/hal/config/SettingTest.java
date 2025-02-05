@@ -10,10 +10,10 @@ import no.hal.config.Setting.Kind;
 import no.hal.config.Setting.Value;
 import org.junit.jupiter.api.Test;
 
-public class SettingsTest {
+public class SettingTest {
 
     @Test
-    public void testConfiguration() {
+    public void testSetting() {
         Setting.Object settings = new SettingImpl.Object(Map.of(
             "prop1", SettingImpl.Value.of("1"),
             "prop2", new SettingImpl.Object(Map.of(

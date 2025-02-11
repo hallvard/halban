@@ -7,7 +7,7 @@ module sokoban.game {
     requires transitive grid.api;
     requires transitive sokoban.api;
     requires grid.fx;
-    requires sokoban.game.api;
+    requires transitive sokoban.game.api;
 
     requires javafx.graphics;
     requires transitive javafx.controls;

@@ -57,11 +57,11 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 
   private final ExtConfiguration config;
 	private final SokobanLevel sokobanLevel;
-	private final Runnable closer;
+	private final Consumer<SokobanGame> closer;
 
 	private ShortcutHandler shortcutHandler;
 
-	public SokobanGameController(ExtConfiguration config, SokobanLevel sokobanLevel, Runnable closer) {
+	public SokobanGameController(ExtConfiguration config, SokobanLevel sokobanLevel, Consumer<SokobanGame> closer) {
     this.config = config;
 		this.sokobanLevel = sokobanLevel;
 		this.shortcutHandler = config.getInstance(ShortcutHandler.class);
@@ -160,7 +160,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		updateGridView();
 
 		Button closeButton = new Button(null, new FontIcon("mdi2c-close:24"));
-		closeButton.setOnAction(_ -> closer.run());
+		closeButton.setOnAction(_ -> closer.accept(getSokobanGame()));
 		this.movementController = new DirectionMovementsController(shortcutHandler);
 		this.movementController.xyTransformerProperty().bind(this.sokobanGridView.xyTransformerProperty());
 		var movementPane = movementController.getContent();

@@ -52,7 +52,8 @@ public class SokobanAppController implements ContentProvider.Container {
       Tab gameTab = new Tab(sokobanLevel.getMetaData().get("Title"));
       tabPane.getTabs().add(gameTab);
       tabPane.getSelectionModel().select(gameTab);
-			SokobanGameController sokobanGameController = new SokobanGameController(config, sokobanLevel, () -> {
+			SokobanGameController sokobanGameController = new SokobanGameController(config, sokobanLevel, (sokobanGame) -> {
+        snapshotManager.unregisterSokobanGame(sokobanGame);
         tabPane.getTabs().remove(gameTab);
       });
       gameTab.setContent(sokobanGameController.createLayout());

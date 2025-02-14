@@ -14,7 +14,6 @@ module sokoban.game {
 
     requires org.kordamp.ikonli.core;
     requires org.kordamp.ikonli.javafx;
-
     requires org.kordamp.ikonli.materialdesign2;
 
     exports no.hal.sokoban.impl;

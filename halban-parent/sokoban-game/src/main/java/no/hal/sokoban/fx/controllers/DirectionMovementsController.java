@@ -15,6 +15,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
+import javafx.scene.text.Text;
 import no.hal.grid.Direction;
 import no.hal.grid.util.XYTransformer;
 import no.hal.sokoban.Moves;
@@ -85,7 +86,9 @@ public class DirectionMovementsController implements SokobanGameSubController {
           upButton = createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 0), Direction.UP, false,
               this.centerPos, posMin),
           downButton = createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 180), Direction.DOWN, false,
-              this.centerPos, posMax)));
+              this.centerPos, posMax)
+          , new Text(leftButton.getGraphic().getStyle())
+      ));
       posMin = 0;
       posMax = 4;
     }

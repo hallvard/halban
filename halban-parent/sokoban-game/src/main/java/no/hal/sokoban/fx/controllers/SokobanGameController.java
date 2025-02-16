@@ -171,6 +171,8 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		Node mouseMovementNode = gridCell.getNode();
 		movementController.setCenterNode(mouseMovementNode);
 
+    this.mouseMovementsController.setMovementNode(mouseMovementNode, false);
+
 		MouseMovementsController extraMouseMovementsController = new MouseMovementsController(_ -> sokobanGame.getPlayerLocation());
 		extraMouseMovementsController.setSpeedFactor(2.0);
 		extraMouseMovementsController.setMovementNode(mouseMovementNode, true);

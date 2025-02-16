@@ -87,7 +87,7 @@ public class DirectionMovementsController implements SokobanGameSubController {
               this.centerPos, posMin),
           downButton = createMovementButton(createFontIcon("mdi2t-triangle:" + iconSize, 180), Direction.DOWN, false,
               this.centerPos, posMax)
-          , new Text(leftButton.getGraphic().getStyle())
+          // , new Text(leftButton.getGraphic().getStyle())
       ));
       posMin = 0;
       posMax = 4;

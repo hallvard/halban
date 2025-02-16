@@ -35,12 +35,12 @@ jobs:
           export ANDROID_SDK=$ANDROID_HOME
           cd halban-parent && mvn --batch-mode --update-snapshots gluonfx:build gluonfx:package -f sokoban-app -P android
 
-      - name: Show gvm files
-        run: ls -l halban-parent/sokoban-app/target/gluonfx/aarch64-android/gvm
-
-      - name: Tree view
+      - name: Tree view of gluon build files
         run: tree halban-parent/sokoban-app/target/gluonfx
 
+#      - name: Show gvm files
+#        run: ls -l halban-parent/sokoban-app/target/gluonfx/aarch64-android/gvm
+    
 #      - name: Show AndroidManifest
 #        run: less halban-parent/sokoban-app/target/gluonfx/aarch64-android/gensrc/android/AndroidManifest.xml
 

@@ -8,12 +8,12 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import no.hal.fx.ContentProvider;
 import no.hal.gridgame.UndoActions;
 import no.hal.sokoban.fx.ShortcutHandler;
+import no.hal.sokoban.fx.SokobanGameSubController;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-class UndoRedoController implements ContentProvider.Child {
+class UndoRedoController implements SokobanGameSubController {
 	
 	private final ShortcutHandler shortcutHandler;
 

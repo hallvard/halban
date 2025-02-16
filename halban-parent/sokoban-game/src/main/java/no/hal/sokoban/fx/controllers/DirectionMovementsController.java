@@ -15,17 +15,17 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
-import no.hal.fx.ContentProvider;
 import no.hal.grid.Direction;
 import no.hal.grid.util.XYTransformer;
 import no.hal.sokoban.Moves;
 import no.hal.sokoban.SokobanGameState;
 import no.hal.sokoban.SokobanMoveActions;
 import no.hal.sokoban.fx.ShortcutHandler;
+import no.hal.sokoban.fx.SokobanGameSubController;
 import no.hal.sokoban.impl.MovesComputer;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-public class DirectionMovementsController implements ContentProvider.Child {
+public class DirectionMovementsController implements SokobanGameSubController {
 
   private final ShortcutHandler shortcutHandler;
 

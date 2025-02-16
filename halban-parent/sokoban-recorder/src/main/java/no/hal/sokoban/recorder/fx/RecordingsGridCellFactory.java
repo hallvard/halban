@@ -18,7 +18,7 @@ public abstract class RecordingsGridCellFactory<T> extends ShapeGridCellFactory<
 	}
 
   public void removeLocationData(MoveRecordingLocationData locationData) {
-		boolean removed = this.locationData.remove(locationData);
+		this.locationData.remove(locationData);
     updateGrid(null, null);
 	}
 

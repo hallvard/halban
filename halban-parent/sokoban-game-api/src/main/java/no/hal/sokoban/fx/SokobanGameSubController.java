@@ -6,7 +6,9 @@ import no.hal.grid.fx.GridCellFactory;
 
 public interface SokobanGameSubController extends ContentProvider.Child{
   
-  List<GridCellFactory> getGridCellFactories();
+  default List<GridCellFactory> getGridCellFactories() {
+    return List.of();
+  }
 
   public interface Provider {
     SokobanGameSubController createSokobanGameSubController(SokobanGameController sokobanGameController);

@@ -4,8 +4,10 @@ import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -70,19 +72,22 @@ public class SokobanAppController implements ContentProvider.Container {
   private Tab createFontTestTab() {
     VBox pane = new VBox();
     String ttfUrl = getClass().getResource("/META-INF/resources/materialdesignicons2/5.8.55/fonts/materialdesignicons-webfont.ttf").toExternalForm();
-    Text icons = new Text();
+    String fastForward = new String(Character.toChars(Integer.parseInt("F0211", 16)));
+    Text textIcons = new Text();
+    Label labelIcons = new Label();
     pane.getChildren().addAll(
       new Text(ttfUrl.substring(ttfUrl.lastIndexOf("/"))),
-      icons
+      new HBox(new Text("Text: "), textIcons),
+      new HBox(new Text("Label: "), labelIcons)
     );
     try {
       Font font = Font.loadFont(ttfUrl, 16);
-      icons.setFont(font);
-      int code = Integer.parseInt("F0211", 16);
-      char[] charPair = Character.toChars(code);
-      icons.setText(new String(charPair));
+      textIcons.setFont(font);
+      labelIcons.setFont(font);
+      textIcons.setText(fastForward);
+      labelIcons.setText(fastForward);
     } catch (Exception e) {
-      icons.setText(e.getMessage());
+      textIcons.setText(e.getMessage());
     }
     Tab iconTab = new Tab("Font icon test");
     iconTab.setContent(pane);

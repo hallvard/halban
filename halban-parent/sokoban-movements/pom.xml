@@ -50,7 +50,7 @@
         <dependency>
             <groupId>com.gluonhq.attach</groupId>
             <artifactId>position</artifactId>
-            <version>4.0.19</version>
+            <version>4.0.22</version>
         </dependency>
 
         <!-- test -->

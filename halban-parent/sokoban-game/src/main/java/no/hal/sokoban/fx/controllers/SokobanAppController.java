@@ -88,6 +88,7 @@ public class SokobanAppController implements ContentProvider.Container {
       labelIcons.setText(fastForward);
     } catch (Exception e) {
       textIcons.setText(e.getMessage());
+      labelIcons.setText(e.getMessage());
     }
     Tab iconTab = new Tab("Font icon test");
     iconTab.setContent(pane);

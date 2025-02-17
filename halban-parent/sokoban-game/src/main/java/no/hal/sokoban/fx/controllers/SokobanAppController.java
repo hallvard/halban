@@ -71,24 +71,24 @@ public class SokobanAppController implements ContentProvider.Container {
 
   private Tab createFontTestTab() {
     VBox pane = new VBox();
-    String ttfUrl = getClass().getResource("/META-INF/resources/materialdesignicons2/5.8.55/fonts/materialdesignicons-webfont.ttf").toExternalForm();
+    String fontResource = "/META-INF/resources/materialdesignicons2/5.8.55/fonts/materialdesignicons-webfont.ttf";
     String fastForward = new String(Character.toChars(Integer.parseInt("F0211", 16)));
-    Text textIcons = new Text();
-    Label labelIcons = new Label();
-    pane.getChildren().addAll(
-      new Text(ttfUrl.substring(ttfUrl.lastIndexOf("/"))),
-      new HBox(new Text("Text: "), textIcons),
-      new HBox(new Text("Label: "), labelIcons)
-    );
     try {
+      Text textIcons = new Text();
+      Label labelIcons = new Label();
+      String ttfUrl = getClass().getResource(fontResource).toExternalForm();
       Font font = Font.loadFont(ttfUrl, 16);
       textIcons.setFont(font);
       labelIcons.setFont(font);
       textIcons.setText(fastForward);
       labelIcons.setText(fastForward);
+      pane.getChildren().addAll(
+        new Text(ttfUrl.substring(ttfUrl.lastIndexOf("/"))),
+        new HBox(new Text("Text: "), textIcons),
+        new HBox(new Text("Label: "), labelIcons)
+      );
     } catch (Exception e) {
-      textIcons.setText(e.getMessage());
-      labelIcons.setText(e.getMessage());
+      pane.getChildren().add(new Text(e.getMessage()));
     }
     Tab iconTab = new Tab("Font icon test");
     iconTab.setContent(pane);

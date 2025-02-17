@@ -1,19 +1,20 @@
 package no.hal.sokoban.fx.controllers;
 
-import java.util.List;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import no.hal.config.ext.ExtConfiguration;
 import no.hal.fx.ContentProvider;
 import no.hal.fx.LabelAdapter;
 import no.hal.sokoban.fx.ShortcutHandler;
 import no.hal.sokoban.fx.views.SokobanCollectionsBrowser;
 import no.hal.sokoban.level.SokobanLevel;
-import no.hal.sokoban.level.SokobanLevel.MetaData;
 import no.hal.sokoban.snapshot.SnapshotManager;
 
 public class SokobanAppController implements ContentProvider.Container {
@@ -62,6 +63,29 @@ public class SokobanAppController implements ContentProvider.Container {
 				snapshotManager.registerSokobanGame(sokobanGame);
 			});
 		});
-		return tabPane;
-	}
+    tabPane.getTabs().add(createFontTestTab());
+    return tabPane;
+  }
+
+  private Tab createFontTestTab() {
+    VBox pane = new VBox();
+    String ttfUrl = getClass().getResource("/META-INF/resources/materialdesignicons2/5.8.55/fonts/materialdesignicons-webfont.ttf").toExternalForm();
+    Text icons = new Text();
+    pane.getChildren().addAll(
+      new Text(ttfUrl.substring(ttfUrl.lastIndexOf("/"))),
+      icons
+    );
+    try {
+      Font font = Font.loadFont(ttfUrl, 16);
+      icons.setFont(font);
+      int code = Integer.parseInt("F0211", 16);
+      char[] charPair = Character.toChars(code);
+      icons.setText(new String(charPair));
+    } catch (Exception e) {
+      icons.setText(e.getMessage());
+    }
+    Tab iconTab = new Tab("Font icon test");
+    iconTab.setContent(pane);
+    return iconTab;
+  }
 }

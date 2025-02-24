@@ -31,6 +31,9 @@ jobs:
       - name: Setup Gluon's GraalVM
         uses: gluonhq/setup-graalvm@master
         with:
+          graalvm: '22.1.0.1-Final'
+          jdk: 'java17'
+          arch: 'aarch64'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install linux libraries

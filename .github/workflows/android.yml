@@ -19,7 +19,7 @@ jobs:
       #     cache: 'maven'
 
       - name: Setup Java 17 and Maven 3.8.8
-        uses: s4u/setup-maven-action
+        uses: s4u/setup-maven-action@v1.18.0
         with:
           java-distribution: 'temurin'
           java-version: '17'

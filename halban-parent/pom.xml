@@ -27,6 +27,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>23</java.version>
+        <javafx.version>24-ea+27</javafx.version>
+        <gluonfx-maven-plugin.version>1.0.25</gluonfx-maven-plugin.version>
     </properties>
     
     <dependencyManagement>
@@ -34,12 +37,12 @@
             <dependency>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-graphics</artifactId>
-                <version>24-ea+27</version>
+                <version>${javafx.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-controls</artifactId>
-                <version>24-ea+27</version>
+                <version>${javafx.version}</version>
             </dependency>
 
             <dependency>
@@ -79,7 +82,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.11.0</version>
                     <configuration>
-                        <release>23</release>
+                        <release>${java.version}</release>
                         <compilerArgs>
                         <!-- <arg>-enable-preview</arg> -->
                         </compilerArgs>
@@ -89,8 +92,22 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.1.2</version>
+                    <configuration>
+                        <release>${java.version}</release>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
     </build>
+
+    <profiles>
+        <profile>
+            <id>android</id>
+            <properties>              
+              <java.version>17</java.version>
+              <javafx.version>21.0.6</javafx.version>
+              <gluonfx-maven-plugin.version>1.0.23</gluonfx-maven-plugin.version>
+            </properties>
+        </profile>
+    </profiles>
 </project>

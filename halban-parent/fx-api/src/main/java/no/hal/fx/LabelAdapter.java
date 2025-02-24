@@ -24,6 +24,6 @@ public interface LabelAdapter extends Adapter<Object> {
         return new SimpleLabelAdapter<T>((Class<T>) t.getClass(), t, textFun);
     }
     public static <T> LabelAdapter forInstance(T t, String text) {
-        return forInstance(t, _ -> text);
+        return forInstance(t, t2 -> text);
     }
 }

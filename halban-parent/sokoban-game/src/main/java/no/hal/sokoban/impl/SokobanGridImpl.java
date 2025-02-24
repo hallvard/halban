@@ -70,7 +70,7 @@ public class SokobanGridImpl extends GridImpl<SokobanGrid.CellKind> implements S
 	@Override
 	public int[] countTargets() {
 		int[] counters = new int[]{0, 0};
-		forEachCell((cell, _, _) -> {
+		forEachCell((cell, x, y) -> {
 			if (cell.floor() == FloorKind.TARGET) {
 				counters[cell.content() == ContentKind.BOX ? 0 : 1]++;
 			}

@@ -26,14 +26,14 @@ public class PositionMovementController implements SokobanGameSubController {
   private ToggleButton serviceToggle;
   private Slider sensitivitySelector;
 
-  private final ChangeListener<Position> positionListener = (_, _, _) -> {
+  private final ChangeListener<Position> positionListener = (prop, oldValue, newValue) -> {
     Platform.runLater(this::updatePosition);
   };
 
   @Override
   public HBox getContent() {
     serviceToggle = new ToggleButton("On/off");
-    serviceToggle.selectedProperty().addListener((_, _, newValue) -> {
+    serviceToggle.selectedProperty().addListener((prop, oldValue, newValue) -> {
       if (newValue) {
         positionService.start(new Parameters(Parameters.Accuracy.HIGHEST, false));
         startPosition = null;

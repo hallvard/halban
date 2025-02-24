@@ -22,7 +22,7 @@ class SokobanLevelCollectionListView extends AbstractItemSelector<SokobanLevel> 
     private final Callback<ListView<SokobanLevel>, ListCell<SokobanLevel>> listCellFactory;
     
     public SokobanLevelCollectionListView(ExtConfiguration config, LabelAdapter labelAdapter) {
-        this.listCellFactory = _ -> new LabelAdapterListCell<SokobanLevel>(new SokobanLevelCellHelper<SokobanLevel>(config, labelAdapter));
+        this.listCellFactory = lv_ -> new LabelAdapterListCell<SokobanLevel>(new SokobanLevelCellHelper<SokobanLevel>(config, labelAdapter));
     }
 
     private final Property<SokobanLevel.CollectionProvider> sokobanCollectionProviderProperty = new SimpleObjectProperty<SokobanLevel.CollectionProvider>();
@@ -42,7 +42,7 @@ class SokobanLevelCollectionListView extends AbstractItemSelector<SokobanLevel> 
         listView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         listView.setCellFactory(listCellFactory);
         attachOnActionListeners(listView);
-        sokobanCollectionProviderProperty.addListener((_, _, _) -> {
+        sokobanCollectionProviderProperty.addListener((prop, oldValue, newValue) -> {
             updateList();
         });
         updateList();

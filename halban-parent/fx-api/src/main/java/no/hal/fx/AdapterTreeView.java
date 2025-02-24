@@ -15,7 +15,7 @@ public abstract class AdapterTreeView extends TreeView<Object> {
     protected AdapterTreeView(LabelAdapter labelAdapter, ChildrenAdapter childrenAdapter) {
         this.labelAdapter = labelAdapter;
         this.childrenAdapter = childrenAdapter;
-        setCellFactory(_ -> new LabelAdapterTreeCell<Object>(new LabelAdapterListCellHelper<>(labelAdapter)));
+        setCellFactory(tv -> new LabelAdapterTreeCell<Object>(new LabelAdapterListCellHelper<>(labelAdapter)));
         setShowRoot(false);
     }
 

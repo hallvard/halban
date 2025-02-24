@@ -36,17 +36,17 @@ class UndoRedoController implements SokobanGameSubController {
 	@Override
 	public Region getContent() {
 		Button undoAllButton = new Button(null, new FontIcon("mdi2a-arrow-collapse-left:24"));
-		undoAllButton.setOnAction(_ -> undo(-1));
+		undoAllButton.setOnAction(ev -> undo(-1));
 		Button undo10Button = new Button(null, new FontIcon("mdi2r-rewind-10:24"));
-		undo10Button.setOnAction(_ -> undo(10));
+		undo10Button.setOnAction(ev -> undo(10));
 		Button undoButton = new Button(null, new FontIcon("mdi2u-undo:24"));
-		undoButton.setOnAction(_ -> undo(1));
+		undoButton.setOnAction(ev -> undo(1));
 		Button redoButton = new Button(null, new FontIcon("mdi2r-redo:24"));
-		redoButton.setOnAction(_ -> redo(1));
+		redoButton.setOnAction(ev -> redo(1));
 		Button redo10Button = new Button(null, new FontIcon("mdi2f-fast-forward-10:24"));
-		redo10Button.setOnAction(_ -> redo(10));
+		redo10Button.setOnAction(ev -> redo(10));
 		Button redoAllButton = new Button(null, new FontIcon("mdi2a-arrow-collapse-right:24"));
-		redoAllButton.setOnAction(_ -> redo(-1));
+		redoAllButton.setOnAction(ev -> redo(-1));
 		undoButtons = List.of(undoAllButton, undo10Button, undoButton, redoButton, redo10Button, redoAllButton);
 
 		var pane = new HBox(undoButtons.toArray(new Node[undoButtons.size()]));

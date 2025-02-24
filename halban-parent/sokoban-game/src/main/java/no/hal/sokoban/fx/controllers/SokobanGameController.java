@@ -160,7 +160,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		updateGridView();
 
 		Button closeButton = new Button(null, new FontIcon("mdi2c-close:24"));
-		closeButton.setOnAction(_ -> closer.accept(getSokobanGame()));
+		closeButton.setOnAction(ev -> closer.accept(getSokobanGame()));
 		this.movementController = new DirectionMovementsController(shortcutHandler);
 		this.movementController.xyTransformerProperty().bind(this.sokobanGridView.xyTransformerProperty());
 		var movementPane = movementController.getContent();
@@ -173,7 +173,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 
     this.mouseMovementsController.setMovementNode(mouseMovementNode, false);
 
-		MouseMovementsController extraMouseMovementsController = new MouseMovementsController(_ -> sokobanGame.getPlayerLocation());
+		MouseMovementsController extraMouseMovementsController = new MouseMovementsController(ev -> sokobanGame.getPlayerLocation());
 		extraMouseMovementsController.setSpeedFactor(2.0);
 		extraMouseMovementsController.setMovementNode(mouseMovementNode, true);
 
@@ -251,7 +251,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 			fontIcon.setRotate(rotate);
 		}
 		Button button = new Button(null, fontIcon);
-		button.setOnAction(_ -> {
+		button.setOnAction(ev -> {
 			sokobanGridView.setXYTransform(transformOp.apply(sokobanGridView.getXYTransform()));
 		});
 		return button;

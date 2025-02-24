@@ -51,7 +51,7 @@ public class MoveRecorderController implements SokobanGameSubController {
 
     this.sokobanGameController.addGameListener(sokobanGameListener);
 
-    this.xyTransformerProperty.addListener((_, _, newValue) -> {
+    this.xyTransformerProperty.addListener((prop, oldValue, newValue) -> {
       startLocationGridCellFactory.setXYTransformer(newValue);
       stepLocationsGridCellFactory.setXYTransformer(newValue);
     });
@@ -73,9 +73,9 @@ public class MoveRecorderController implements SokobanGameSubController {
     this.playFontIcon = new FontIcon("mdi2p-play-circle:26:green");
 
     this.recordButton = new Button(null, startFontIcon);
-    this.recordButton.setOnAction(_ -> handleRecording());
+    this.recordButton.setOnAction(ev -> handleRecording());
     this.playButton = new Button(null, playFontIcon);
-    this.playButton.setOnAction(_ -> playRecording());
+    this.playButton.setOnAction(ev -> playRecording());
 
     updateButtons();
 

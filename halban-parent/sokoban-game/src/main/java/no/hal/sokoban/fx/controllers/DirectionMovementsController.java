@@ -148,7 +148,7 @@ public class DirectionMovementsController implements SokobanGameSubController {
   }
 
   private Button createMovementButton(Node graphic, Direction direction, boolean moveAlong, int col, int row) {
-    return createGridButton(graphic, col, row, _ -> movePlayer(direction, moveAlong));
+    return createGridButton(graphic, col, row, ev -> movePlayer(direction, moveAlong));
   }
 
   private Button createGridButton(Node graphic, int col, int row, EventHandler<ActionEvent> eventHandler) {

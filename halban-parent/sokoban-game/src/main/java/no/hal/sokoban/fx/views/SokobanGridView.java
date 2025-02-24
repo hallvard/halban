@@ -25,12 +25,12 @@ public class SokobanGridView {
 	public SokobanGridView(Configuration config) {
 		this.gridView = new GridView<>();
 		setCellFactory(new SokobanGridCellFactory(config));
-		xyTransformerProperty.addListener((_, _, _) -> {
+		xyTransformerProperty.addListener((prop, oldValue, newValue) -> {
 			var grid = new XYTransformedGrid<CellKind, SokobanGrid>(getSokobanGrid());
 			grid.setXYTransform(getXYTransform());
 			gridView.setGrid(grid);
 		});
-		sokobanGridProperty.addListener((_, _, _) -> {
+		sokobanGridProperty.addListener((prop, oldValue, newValue) -> {
 			if (xyTransformStrategy != null) {
 				xyTransformerProperty().setValue(xyTransformStrategy.apply(getSokobanGrid()));
 			} else {

@@ -20,7 +20,7 @@ public abstract class AbstractItemSelector<T> implements ItemSelector<T> {
                 openAction();
             }
         });
-        node.setOnTouchStationary(_ -> {
+        node.setOnTouchStationary(ev -> {
             openAction();
         });
     }

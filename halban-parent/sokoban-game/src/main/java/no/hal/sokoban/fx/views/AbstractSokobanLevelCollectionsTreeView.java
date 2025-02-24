@@ -31,7 +31,7 @@ abstract class AbstractSokobanLevelCollectionsTreeView<T> extends AbstractItemSe
   public AbstractSokobanLevelCollectionsTreeView(ExtConfiguration config, LabelAdapter labelAdapter) {
     this.sokobanLevelCollectionProviders = config.getAllInstances(SokobanLevel.CollectionProvider.class);
     this.sokobanLevelCollectionsProviders = config.getAllInstances(SokobanLevel.CollectionsProvider.class);
-    this.treeCellFactory = _ -> new LabelAdapterTreeCell<Object>(
+    this.treeCellFactory = tv -> new LabelAdapterTreeCell<Object>(
         new SokobanLevelCellHelper<Object>(config, labelAdapter));
   }
 

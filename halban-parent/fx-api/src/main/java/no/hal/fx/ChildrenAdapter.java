@@ -21,6 +21,6 @@ public interface ChildrenAdapter extends Adapter<Object> {
         return new SimpleChildrenAdapter<T, CT>((Class<T>) t.getClass(), t, childrenFun);
     }
     public static <T, CT> ChildrenAdapter forInstance(T t, List<CT> children) {
-        return forInstance(t, _ -> children);
+        return forInstance(t, t2 -> children);
     }
 }

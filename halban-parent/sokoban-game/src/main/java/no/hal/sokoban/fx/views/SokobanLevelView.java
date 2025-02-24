@@ -43,7 +43,7 @@ public class SokobanLevelView {
         gridView.setMaxWidth(400);
         gridView.setMaxHeight(400);
 
-        sokobanGridView.getGridView().setOnMouseClicked(_ -> {
+        sokobanGridView.getGridView().setOnMouseClicked(ev -> {
             if (onSokobanLevelSelected != null) {
                 onSokobanLevelSelected.accept(this.sokobanLevel);
             }

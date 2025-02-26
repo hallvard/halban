@@ -4,13 +4,16 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
 
-    <!-- accelerometer -->
+    <!-- accelerometer
     <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
-    <uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
+    -->
 
     <!-- position -->
     <uses-permission android:name="android.permission.ACCESS_COURSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+    <!-- compass -->
+    <uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
     
     <application android:label='halban' android:icon="@mipmap/ic_launcher">
         <activity android:name='com.gluonhq.helloandroid.MainActivity'

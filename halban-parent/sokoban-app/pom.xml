@@ -300,8 +300,11 @@
                             <target>android</target>
                             <mainClass>sokoban.app/no.hal.sokoban.app.SokobanApp</mainClass>
                             <attachList>
+                                <!--
                                 <list>accelerometer</list>
+                                -->
                                 <list>position</list>
+                                <list>compass</list>
                             </attachList>
                             <releaseConfiguration>
                                 <!-- all targets

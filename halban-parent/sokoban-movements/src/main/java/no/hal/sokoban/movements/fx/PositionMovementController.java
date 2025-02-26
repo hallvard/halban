@@ -73,10 +73,12 @@ public class PositionMovementController implements SokobanGameSubController {
       if (startPosition == null) {
         startPosition = pos;
       }
+      double dLat = pos.getLatitude() - startPosition.getLatitude();
+      double dLon = pos.getLongitude() - startPosition.getLongitude();
       double distance = distance(startPosition, pos);
       double heading = heading(startPosition, pos);
       double compass = compassService != null ? compassService.getHeading() : -2;
-      this.posText.setText("%.5f,%.5f; %.1f -> %.0f | %.0f".formatted(pos.getLatitude(), pos.getLongitude(),
+      this.posText.setText("%.2f,%.2f; %.1f -> %.0f | %.0f".formatted(dLat * 1000, dLon * 1000,
           distance, heading, compass));
     } catch (Exception e) {
       this.posText.setText(e.getMessage());

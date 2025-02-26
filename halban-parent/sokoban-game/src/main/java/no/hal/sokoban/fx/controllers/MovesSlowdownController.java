@@ -43,7 +43,7 @@ class MovesSlowdownController {
     if (!active) {
       game.addGameListener(sokobanGameListener);
       active = true;
-      Thread.ofVirtual().start(() -> {
+      new Thread(() -> {
         try {
           Moves moves = movements.get();
           if (moves != null) {
@@ -53,7 +53,7 @@ class MovesSlowdownController {
           game.removeGameListener(sokobanGameListener);
           active = false;
         }
-      });
+      }).start();
     }
   }
 }

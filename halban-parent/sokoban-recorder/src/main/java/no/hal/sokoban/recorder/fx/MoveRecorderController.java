@@ -128,7 +128,7 @@ public class MoveRecorderController implements SokobanGameSubController {
   protected void playRecording() {
     var recording = recordings.get(sokobanGameController.getSokobanGameState().getPlayerLocation());
     if (recording != null) {
-      sokobanGameController.performMoves(recording);
+      sokobanGameController.getSokobanGame().movePlayer(recording);
     }
   }
 

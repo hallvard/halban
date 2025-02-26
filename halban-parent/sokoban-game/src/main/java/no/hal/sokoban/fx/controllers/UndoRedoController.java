@@ -13,7 +13,7 @@ import no.hal.sokoban.fx.ShortcutHandler;
 import no.hal.sokoban.fx.SokobanGameSubController;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-class UndoRedoController implements SokobanGameSubController {
+public class UndoRedoController implements SokobanGameSubController {
 	
 	private final ShortcutHandler shortcutHandler;
 

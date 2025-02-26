@@ -9,51 +9,51 @@ import no.hal.sokoban.SokobanGameState;
 
 class MovesSlowdownController {
 
-    private final SokobanGame.Provider sokobanGameProvider;
-    private int slowdown;
+  private final SokobanGame.Provider sokobanGameProvider;
+  private int slowdown;
 
-    public MovesSlowdownController(SokobanGame.Provider sokobanGameProvider, int defaultMoveSlowdown) {
-        this.sokobanGameProvider = sokobanGameProvider;
-        this.slowdown = defaultMoveSlowdown;
-    }
+  public MovesSlowdownController(SokobanGame.Provider sokobanGameProvider, int defaultMoveSlowdown) {
+    this.sokobanGameProvider = sokobanGameProvider;
+    this.slowdown = defaultMoveSlowdown;
+  }
 
-    public void setSlowdown(int slowdown) {
-        this.slowdown = slowdown;
-    }
+  public void setSlowdown(int slowdown) {
+    this.slowdown = slowdown;
+  }
 
-    private boolean active = false;
+  private boolean active = false;
 
-    private SokobanGameState.Listener sokobanGameListener = new SokobanGameState.Listener.Impl() {
-        @Override
-        protected void moveDone(SokobanGameState game, Move move, boolean isUndo) {
-            if (active) {
-                try {
-                    Thread.sleep(slowdown);
-                } catch (InterruptedException e) {
-                }
-            }
+  private SokobanGameState.Listener sokobanGameListener = new SokobanGameState.Listener.Impl() {
+    @Override
+    protected void moveDone(SokobanGameState game, Move move, boolean isUndo) {
+      if (active) {
+        try {
+          Thread.sleep(slowdown);
+        } catch (InterruptedException e) {
         }
-    };
-
-    public void withSlowMoves(Supplier<Moves> moves) {
-        withSlowMoves(sokobanGameProvider.getSokobanGame(), slowdown, moves);
+      }
     }
+  };
 
-    private void withSlowMoves(SokobanGame game, int slowdown, Supplier<Moves> movements) {
-		if (! active) {
-            game.addGameListener(sokobanGameListener);
-			active = true;
-			new Thread(() -> {
-				try {
-                    Moves moves = movements.get();
-                    if (moves != null) {
-                        game.movePlayer(moves);
-                    }
-				} finally {
-                    game.removeGameListener(sokobanGameListener);
-					active = false;
-				}
-			}).start();
-		}
-	}
+  public void withSlowMoves(Supplier<Moves> moves) {
+    withSlowMoves(sokobanGameProvider.getSokobanGame(), slowdown, moves);
+  }
+
+  private void withSlowMoves(SokobanGame game, int slowdown, Supplier<Moves> movements) {
+    if (!active) {
+      game.addGameListener(sokobanGameListener);
+      active = true;
+      Thread.ofVirtual().start(() -> {
+        try {
+          Moves moves = movements.get();
+          if (moves != null) {
+            game.movePlayer(moves);
+          }
+        } finally {
+          game.removeGameListener(sokobanGameListener);
+          active = false;
+        }
+      });
+    }
+  }
 }

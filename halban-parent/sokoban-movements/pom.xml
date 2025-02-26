@@ -52,6 +52,11 @@
             <artifactId>position</artifactId>
             <version>4.0.22</version>
         </dependency>
+        <dependency>
+            <groupId>com.gluonhq.attach</groupId>
+            <artifactId>compass</artifactId>
+            <version>4.0.22</version>
+        </dependency>
 
         <!-- test -->
         <dependency>

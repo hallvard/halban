@@ -6,6 +6,7 @@ module sokoban.movements {
     requires sokoban.game;
 
     requires com.gluonhq.attach.position;
+    requires com.gluonhq.attach.compass;
 
     provides no.hal.config.ext.ExtConfigurationProvider with no.hal.sokoban.movements.fx.ext.PositionMovementExtConfigurationProvider;
 }

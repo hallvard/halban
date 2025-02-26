@@ -291,20 +291,20 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 
 	private MovesSlowdownController movesSlowdownController = new MovesSlowdownController(this, 10);
 
-    @Override
-    public void performMoves(Moves moves) {
-        movesSlowdownController.withSlowMoves(() -> moves);
-    }
+  // @Override
+  public void performMoves(Moves moves) {
+    movesSlowdownController.withSlowMoves(() -> moves);
+  }
 
-    @Override
-    public ReadOnlyProperty<XYTransformer> xyTransformerProperty() {
+  @Override
+  public ReadOnlyProperty<XYTransformer> xyTransformerProperty() {
 		return sokobanGridView.xyTransformerProperty();
-    }
+  }
 
-    @Override
-    public void updateMovement(Movement movement) {
+  @Override
+  public void updateMovement(Movement movement) {
 		mouseMovementsController.getMovementNodeController().updateMovementNodeTranslation(movement);
-    }
+  }
 
 	//
 

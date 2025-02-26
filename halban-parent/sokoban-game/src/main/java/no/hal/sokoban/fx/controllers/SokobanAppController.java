@@ -65,33 +65,33 @@ public class SokobanAppController implements ContentProvider.Container {
 				snapshotManager.registerSokobanGame(sokobanGame);
 			});
 		});
-    tabPane.getTabs().add(createFontTestTab());
+    // tabPane.getTabs().add(createFontTestTab());
     return tabPane;
   }
 
-  private Tab createFontTestTab() {
-    VBox pane = new VBox();
-    String fontResource = "/META-INF/resources/materialdesignicons2/5.8.55/fonts/materialdesignicons-webfont.ttf";
-    String fastForward = new String(Character.toChars(Integer.parseInt("F0211", 16)));
-    try {
-      Text textIcons = new Text();
-      Label labelIcons = new Label();
-      String ttfUrl = getClass().getResource(fontResource).toExternalForm();
-      Font font = Font.loadFont(ttfUrl, 16);
-      textIcons.setFont(font);
-      labelIcons.setFont(font);
-      textIcons.setText(fastForward);
-      labelIcons.setText(fastForward);
-      pane.getChildren().addAll(
-        new Text(ttfUrl.substring(ttfUrl.lastIndexOf("/"))),
-        new HBox(new Text("Text: "), textIcons),
-        new HBox(new Text("Label: "), labelIcons)
-      );
-    } catch (Exception e) {
-      pane.getChildren().add(new Text(e.getMessage()));
-    }
-    Tab iconTab = new Tab("Font icon test");
-    iconTab.setContent(pane);
-    return iconTab;
-  }
+  // private Tab createFontTestTab() {
+  //   VBox pane = new VBox();
+  //   String fontResource = "/META-INF/resources/materialdesignicons2/5.8.55/fonts/materialdesignicons-webfont.ttf";
+  //   String fastForward = new String(Character.toChars(Integer.parseInt("F0211", 16)));
+  //   try {
+  //     Text textIcons = new Text();
+  //     Label labelIcons = new Label();
+  //     String ttfUrl = getClass().getResource(fontResource).toExternalForm();
+  //     Font font = Font.loadFont(ttfUrl, 16);
+  //     textIcons.setFont(font);
+  //     labelIcons.setFont(font);
+  //     textIcons.setText(fastForward);
+  //     labelIcons.setText(fastForward);
+  //     pane.getChildren().addAll(
+  //       new Text(ttfUrl.substring(ttfUrl.lastIndexOf("/"))),
+  //       new HBox(new Text("Text: "), textIcons),
+  //       new HBox(new Text("Label: "), labelIcons)
+  //     );
+  //   } catch (Exception e) {
+  //     pane.getChildren().add(new Text(e.getMessage()));
+  //   }
+  //   Tab iconTab = new Tab("Font icon test");
+  //   iconTab.setContent(pane);
+  //   return iconTab;
+  // }
 }

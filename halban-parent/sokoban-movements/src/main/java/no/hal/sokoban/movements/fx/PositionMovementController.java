@@ -1,5 +1,6 @@
 package no.hal.sokoban.movements.fx;
 
+import com.gluonhq.attach.compass.CompassService;
 import com.gluonhq.attach.position.Parameters;
 import com.gluonhq.attach.position.Position;
 import com.gluonhq.attach.position.PositionService;
@@ -14,10 +15,16 @@ import no.hal.sokoban.fx.SokobanGameSubController;
 
 public class PositionMovementController implements SokobanGameSubController {
 
-  private final PositionService positionService;
+  private final SokobanGameController sokobanGameController;
 
-  public PositionMovementController(SokobanGameController sokobanGameController, PositionService positionService) {
+  private final PositionService positionService;
+  private final CompassService compassService;
+
+  public PositionMovementController(SokobanGameController sokobanGameController,
+      PositionService positionService, CompassService compassService) {
+        this.sokobanGameController = sokobanGameController;
     this.positionService = positionService;
+    this.compassService = compassService;
   }
 
   private Position startPosition = null;
@@ -66,8 +73,10 @@ public class PositionMovementController implements SokobanGameSubController {
       if (startPosition == null) {
         startPosition = pos;
       }
-      this.posText.setText(String.format("lat: %.5f, long: %.5f, distance: %.1f", pos.getLatitude(), pos.getLongitude(),
-          distance(startPosition, pos)));
+      double distance = distance(startPosition, pos);
+      double heading = compassService != null ? compassService.getHeading() : -1;
+      this.posText.setText(String.format("pos: %.5f,%.5f; %.1f -> %.0f",
+          pos.getLatitude(), pos.getLongitude(), distance, heading));
     } catch (Exception e) {
       this.posText.setText(e.getMessage());
     }

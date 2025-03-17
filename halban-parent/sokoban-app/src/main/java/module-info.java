@@ -12,4 +12,5 @@ module sokoban.app {
     exports no.hal.sokoban.app to javafx.graphics;
 
     uses no.hal.config.ConfigurationProvider;
+    uses no.hal.config.ext.ExtConfigurationProvider;
 }

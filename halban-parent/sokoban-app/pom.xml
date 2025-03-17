@@ -66,6 +66,10 @@
         </dependency>
     </dependencies>
     
+    <properties>
+      <exec.mainClass>no.hal.sokoban.app.SokobanApp</exec.mainClass>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -93,7 +97,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>sokoban.app/no.hal.sokoban.app.SokobanApp</mainClass>
+                    <mainClass>sokoban.app/${exec.mainClass}</mainClass>
                     <!-- <options>-enable-preview</options> -->
                 </configuration>
             </plugin>

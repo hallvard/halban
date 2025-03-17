@@ -12,6 +12,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Transform;
+import no.hal.sokoban.fx.Movement;
 import no.hal.sokoban.fx.SokobanGameController;
 import no.hal.sokoban.fx.SokobanGameSubController;
 
@@ -63,14 +64,14 @@ public class PositionMovementController implements SokobanGameSubController {
     posText = new Text(".dlat,.dlon");
     posText2 = new Text(".w,.h");
     posText3 = new Text("* -> .w,.h");
-    sensitivitySelector = new Slider(0, 10, 5);
+    sensitivitySelector = new Slider(0, 10, 1);
     sensitivitySelector.setShowTickLabels(true);
     sensitivitySelector.setMajorTickUnit(5);
     sensitivitySelector.setMinorTickCount(4);
     sensitivitySelector.setShowTickMarks(true);
     return new HBox(
         serviceToggle, sensitivitySelector,
-        new VBox(posText, posText2)
+        new VBox(posText, posText2, posText3)
     );
   }
 
@@ -94,6 +95,16 @@ public class PositionMovementController implements SokobanGameSubController {
       var transform = Transform.rotate(-compass, 0.0, 0.0);
       var gridStep = transform.transform(step);
       this.posText3.setText("%.0f -> %.2f,%.2f".formatted(compass, gridStep.getX(), gridStep.getY()));
+
+      var movement = Movement.fromStep(gridStep.getX(), gridStep.getY(),
+          sensitivitySelector.getValue(), 25, 25);
+      if (movement != null) {
+        sokobanGameController.updateMovement(movement);
+        if (movement.movementFactor() >= 1.0) {
+          sokobanGameController.getSokobanGame().movePlayer(movement.direction());
+          sokobanGameController.updateMovement(null);
+        }
+      }
     } catch (Exception e) {
       this.posText.setText(e.getMessage());
     }

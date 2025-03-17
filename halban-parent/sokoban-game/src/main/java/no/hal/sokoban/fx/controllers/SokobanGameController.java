@@ -415,15 +415,10 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 			return new Point2D(mx, my);
 		}
 
-		private Movement getDirection(Point2D mousePoint) {
-			double dx = (mousePoint.getX() - lastPoint.getX()) * speedFactor / cellSize.getWidth();
-			double dy = (mousePoint.getY() - lastPoint.getY()) * speedFactor / cellSize.getHeight();
-			if (Math.abs(dx) > Math.abs(dy)) {
-				return new Movement(Direction.valueOf((int) Math.signum(dx), 0), Math.abs(dx));
-			} else if (Math.abs(dy) > Math.abs(dx)) {
-				return new Movement(Direction.valueOf(0, (int) Math.signum(dy)), Math.abs(dy));
-			}
-			return null;
+		private Movement getDirection(Point2D mousePoint) {      
+      double dx = mousePoint.getX() - lastPoint.getX();
+			double dy = mousePoint.getY() - lastPoint.getY();
+      return Movement.fromStep(dx, dy, speedFactor, cellSize.getWidth(), cellSize.getHeight());
 		}
 
 		protected void mouseDragged(MouseEvent mouseEvent) {

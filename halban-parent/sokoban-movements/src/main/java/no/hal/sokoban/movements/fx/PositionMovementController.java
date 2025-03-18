@@ -91,18 +91,22 @@ public class PositionMovementController implements SokobanGameSubController {
       var step = GeometryUtil.stepDimension(startPosition, pos);
       this.posText2.setText("%.2f,%.2f".formatted(step.getX(), step.getY()));
 
-      double compass = compassService != null ? compassService.getHeading() : -2;
-      var transform = Transform.rotate(-compass, 0.0, 0.0);
-      var gridStep = transform.transform(step);
-      this.posText3.setText("%.0f -> %.2f,%.2f".formatted(compass, gridStep.getX(), gridStep.getY()));
+      var gridStep = step;
+      double compass = compassService != null ? compassService.getHeading() : -2.0;
+      if (compass >= 0.0) {
+        var transform = Transform.rotate(-compass, 0.0, 0.0);
+        gridStep = transform.transform(step);
+      }
+      this.posText3.setText("%s -> %.2f,%.2f".formatted(compass, gridStep.getX(), gridStep.getY()));
 
-      var movement = Movement.fromStep(gridStep.getX(), gridStep.getY(),
-          sensitivitySelector.getValue(), 25, 25);
+      var movement = Movement.fromStep(gridStep.getX(), -gridStep.getY(),
+          sensitivitySelector.getValue(), 20, 20);
       if (movement != null) {
         sokobanGameController.updateMovement(movement);
         if (movement.movementFactor() >= 1.0) {
           sokobanGameController.getSokobanGame().movePlayer(movement.direction());
           sokobanGameController.updateMovement(null);
+          startPosition = pos;
         }
       }
     } catch (Exception e) {

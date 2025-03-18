@@ -309,6 +309,7 @@
                                 -->
                                 <list>position</list>
                                 <list>compass</list>
+                                <list>magnetometer</list>
                             </attachList>
                             <releaseConfiguration>
                                 <!-- all targets

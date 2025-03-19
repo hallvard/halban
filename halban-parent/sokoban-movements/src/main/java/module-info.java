@@ -5,6 +5,10 @@ module sokoban.movements {
     requires grid.fx;
     requires sokoban.game;
 
+    requires org.kordamp.ikonli.core;
+    requires org.kordamp.ikonli.javafx;
+    requires org.kordamp.ikonli.materialdesign2;
+
     requires com.gluonhq.attach.position;
     requires com.gluonhq.attach.compass;
 

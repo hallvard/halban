@@ -6,6 +6,7 @@ import com.gluonhq.attach.position.Position;
 import com.gluonhq.attach.position.PositionService;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.geometry.Point2D;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
@@ -15,6 +16,7 @@ import javafx.scene.transform.Transform;
 import no.hal.sokoban.fx.Movement;
 import no.hal.sokoban.fx.SokobanGameController;
 import no.hal.sokoban.fx.SokobanGameSubController;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class PositionMovementController implements SokobanGameSubController {
 
@@ -42,20 +44,35 @@ public class PositionMovementController implements SokobanGameSubController {
     Platform.runLater(this::updatePosition);
   };
 
+  private FontIcon compassOffIcon = new FontIcon("mdi2c-compass-off-outline:30");
+  private FontIcon compassOnIcon = new FontIcon("mdi2c-compass-outline:30");
+
   @Override
   public HBox getContent() {
-    serviceToggle = new ToggleButton("On/off");
+    serviceToggle = new ToggleButton(null, compassOffIcon);
+    // mdi2c-compass-outline
     serviceToggle.selectedProperty().addListener((prop, oldValue, newValue) -> {
+      serviceToggle.setGraphic(newValue ? compassOnIcon : compassOffIcon);
       if (newValue) {
-        positionService.start(new Parameters(Parameters.Accuracy.HIGHEST, false));
+        if (positionService != null) {
+          positionService.start(new Parameters(Parameters.Accuracy.HIGHEST, false));
+        }
         startPosition = null;
-        compassService.start();
+        if (compassService != null) {
+          compassService.start();
+        }
         updatePosition();
-        positionService.positionProperty().addListener(positionListener);
+        if (positionService != null) {
+          positionService.positionProperty().addListener(positionListener);
+        }
       } else {
-        positionService.positionProperty().removeListener(positionListener);
-        positionService.stop();
-        compassService.stop();
+        if (positionService != null) {
+          positionService.positionProperty().removeListener(positionListener);
+          positionService.stop();
+        }
+        if (compassService != null) {
+          compassService.stop();
+        }
         posText.setText(".dlat,.dlon");
         posText2.setText(".w,.h");
         posText3.setText("* -> .w,.h");
@@ -71,42 +88,44 @@ public class PositionMovementController implements SokobanGameSubController {
     sensitivitySelector.setShowTickMarks(true);
     return new HBox(
         serviceToggle, sensitivitySelector,
-        new VBox(posText, posText2, posText3)
+        new VBox(posText2, posText3)
     );
   }
 
   private void updatePosition() {
-    if (positionService == null) {
-      return;
-    }
     try {
-      Position pos = positionService.getPosition();
-      if (startPosition == null) {
-        startPosition = pos;
+      Position pos = null;
+      Point2D step = null;
+      if (positionService != null) {
+        pos = positionService.getPosition();
+        if (startPosition == null) {
+          startPosition = pos;
+        }
+        double dLat = pos.getLatitude() - startPosition.getLatitude();
+        double dLon = pos.getLongitude() - startPosition.getLongitude();
+        this.posText.setText("%.2f,%.2f".formatted(dLat * 1000, dLon * 1000));        
+        step = GeometryUtil.stepDimension(startPosition, pos);
+        this.posText2.setText("%.2f,%.2f".formatted(step.getX(), step.getY()));
       }
-      double dLat = pos.getLatitude() - startPosition.getLatitude();
-      double dLon = pos.getLongitude() - startPosition.getLongitude();
-      this.posText.setText("%.2f,%.2f".formatted(dLat * 1000, dLon * 1000));
 
-      var step = GeometryUtil.stepDimension(startPosition, pos);
-      this.posText2.setText("%.2f,%.2f".formatted(step.getX(), step.getY()));
+      double compass = compassService != null ? compassService.getHeading() : -2.0;
+      compassOnIcon.setRotate((compass >= 0.0 ? compass : 0.0) - 45.0);
 
       var gridStep = step;
-      double compass = compassService != null ? compassService.getHeading() : -2.0;
-      if (compass >= 0.0) {
+      if (compass >= 0.0 && step != null) {
         var transform = Transform.rotate(-compass, 0.0, 0.0);
         gridStep = transform.transform(step);
-      }
-      this.posText3.setText("%s -> %.2f,%.2f".formatted(compass, gridStep.getX(), gridStep.getY()));
+        this.posText3.setText("%.0f -> %.2f,%.2f".formatted(compass, gridStep.getX(), gridStep.getY()));
 
-      var movement = Movement.fromStep(gridStep.getX(), -gridStep.getY(),
-          sensitivitySelector.getValue(), 20, 20);
-      if (movement != null) {
-        sokobanGameController.updateMovement(movement);
-        if (movement.movementFactor() >= 1.0) {
-          sokobanGameController.getSokobanGame().movePlayer(movement.direction());
-          sokobanGameController.updateMovement(null);
-          startPosition = pos;
+        var movement = Movement.fromStep(gridStep.getX(), -gridStep.getY(),
+            sensitivitySelector.getValue(), 20, 20);
+        if (movement != null) {
+          sokobanGameController.updateMovement(movement);
+          if (movement.movementFactor() >= 1.0) {
+            sokobanGameController.getSokobanGame().movePlayer(movement.direction());
+            sokobanGameController.updateMovement(null);
+            startPosition = pos;
+          }
         }
       }
     } catch (Exception e) {

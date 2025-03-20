@@ -12,15 +12,16 @@ public class PositionMovementExtConfigurationProvider implements ExtConfiguratio
 
   @Override
   public void registerInstances(ExtConfiguration config) {
-    var positionService = PositionService.create().orElse(null);
-    var compassService = CompassService.create().orElse(null);
-    config.registerInstance(new SokobanGameSubController.Provider() {
-      @Override
-      public SokobanGameSubController createSokobanGameSubController(SokobanGameController sokobanGameController) {
-        return new PositionMovementController(sokobanGameController,
-            positionService, compassService);
-      }
-    }, SokobanGameSubController.Provider.class);
-    // config.registerInstance(positionService, PositionService.class);
+    PositionService.create().ifPresent(positionService -> {
+      var compassService = CompassService.create().orElse(null);
+      config.registerInstance(new SokobanGameSubController.Provider() {
+        @Override
+        public SokobanGameSubController createSokobanGameSubController(SokobanGameController sokobanGameController) {
+          return new PositionMovementController(sokobanGameController,
+              positionService, compassService);
+        }
+      }, SokobanGameSubController.Provider.class);
+      config.registerInstance(positionService, PositionService.class);
+    });
   }
 }

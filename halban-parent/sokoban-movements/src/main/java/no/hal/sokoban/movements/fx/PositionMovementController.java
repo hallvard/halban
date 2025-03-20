@@ -12,7 +12,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import javafx.scene.transform.Transform;
 import no.hal.sokoban.fx.Movement;
 import no.hal.sokoban.fx.SokobanGameController;
 import no.hal.sokoban.fx.SokobanGameSubController;
@@ -45,7 +44,7 @@ public class PositionMovementController implements SokobanGameSubController {
   };
 
   private FontIcon compassOffIcon = new FontIcon("mdi2c-compass-off-outline:30");
-  private FontIcon compassOnIcon = new FontIcon("mdi2c-compass-outline:30");
+  private FontIcon compassOnIcon = new FontIcon("mdi2a-arrow-up-bold:30");
 
   @Override
   public HBox getContent() {
@@ -54,22 +53,16 @@ public class PositionMovementController implements SokobanGameSubController {
     serviceToggle.selectedProperty().addListener((prop, oldValue, newValue) -> {
       serviceToggle.setGraphic(newValue ? compassOnIcon : compassOffIcon);
       if (newValue) {
-        if (positionService != null) {
-          positionService.start(new Parameters(Parameters.Accuracy.HIGHEST, false));
-        }
+        positionService.start(new Parameters(Parameters.Accuracy.HIGHEST, false));
         startPosition = null;
         if (compassService != null) {
           compassService.start();
         }
         updatePosition();
-        if (positionService != null) {
-          positionService.positionProperty().addListener(positionListener);
-        }
+        positionService.positionProperty().addListener(positionListener);
       } else {
-        if (positionService != null) {
-          positionService.positionProperty().removeListener(positionListener);
-          positionService.stop();
-        }
+        positionService.positionProperty().removeListener(positionListener);
+        positionService.stop();
         if (compassService != null) {
           compassService.stop();
         }
@@ -93,43 +86,37 @@ public class PositionMovementController implements SokobanGameSubController {
   }
 
   private void updatePosition() {
-    try {
-      Position pos = null;
-      Point2D step = null;
-      if (positionService != null) {
-        pos = positionService.getPosition();
-        if (startPosition == null) {
-          startPosition = pos;
-        }
-        double dLat = pos.getLatitude() - startPosition.getLatitude();
-        double dLon = pos.getLongitude() - startPosition.getLongitude();
-        this.posText.setText("%.2f,%.2f".formatted(dLat * 1000, dLon * 1000));        
-        step = GeometryUtil.stepDimension(startPosition, pos);
-        this.posText2.setText("%.2f,%.2f".formatted(step.getX(), step.getY()));
-      }
-
-      double compass = compassService != null ? compassService.getHeading() : -2.0;
-      compassOnIcon.setRotate((compass >= 0.0 ? compass : 0.0) - 45.0);
-
-      var gridStep = step;
-      if (compass >= 0.0 && step != null) {
-        var transform = Transform.rotate(-compass, 0.0, 0.0);
-        gridStep = transform.transform(step);
-        this.posText3.setText("%.0f -> %.2f,%.2f".formatted(compass, gridStep.getX(), gridStep.getY()));
-
-        var movement = Movement.fromStep(gridStep.getX(), -gridStep.getY(),
-            sensitivitySelector.getValue(), 20, 20);
-        if (movement != null) {
-          sokobanGameController.updateMovement(movement);
-          if (movement.movementFactor() >= 1.0) {
-            sokobanGameController.getSokobanGame().movePlayer(movement.direction());
-            sokobanGameController.updateMovement(null);
-            startPosition = pos;
-          }
-        }
-      }
-    } catch (Exception e) {
-      this.posText.setText(e.getMessage());
+    Position pos = positionService.getPosition();
+    if (startPosition == null) {
+      startPosition = pos;
     }
+    Point2D step = GeometryUtil.stepDimension(startPosition, pos);
+    
+    double compass = compassService != null ? compassService.getHeading() : -2.0;
+    compassOnIcon.setRotate(compass >= 0.0 ? compass : 0.0);
+
+    double dLat = pos.getLatitude() - startPosition.getLatitude();
+    double dLon = pos.getLongitude() - startPosition.getLongitude();
+    this.posText.setText("%.2f,%.2f".formatted(dLat * 1000, dLon * 1000));        
+    this.posText2.setText("%.2f,%.2f".formatted(step.getX(), step.getY()));
+    this.posText3.setText("%.0f -> %.2f,%.2f".formatted(compass, step.getX(), step.getY()));
+
+    if (handleStep(step)) {
+      startPosition = pos;
+    }
+  }
+
+  private boolean handleStep(Point2D step) {
+    var movement = Movement.fromStep(step.getX(), -step.getY(),
+        sensitivitySelector.getValue(), 20, 20);
+    if (movement != null) {
+      sokobanGameController.updateMovement(movement);
+      if (movement.movementFactor() >= 1.0) {
+        sokobanGameController.getSokobanGame().movePlayer(movement.direction());
+        sokobanGameController.updateMovement(null);
+        return true;
+      }
+    }
+    return false;
   }
 }

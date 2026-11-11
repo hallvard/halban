@@ -24,7 +24,7 @@ public class SokobanGameImpl extends AbstractSokobanGameProvider implements Soko
 		undoPos = 0;
 		if (moves != null) {
 			for (int i = 0; i < moves.length(); i++) {
-				this.moves.add(new Move(moves.charAt(i)));
+				this.moves.add(Move.valueOf(moves.charAt(i)));
 			}
 			undoPos = moves.length();
 		}

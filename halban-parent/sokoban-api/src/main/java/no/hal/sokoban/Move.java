@@ -15,9 +15,9 @@ public record Move(Direction direction, Kind moveKind) implements Moves {
 		this(direction, Kind.MOVE);
 	}
 
-	public Move(char c) {
-		this(Direction.valueOf(c), moveKind(c));
-	}
+  public static Move valueOf(char c) {
+    return new Move(Direction.valueOf(c), Move.moveKind(c));
+  }
 
 	public static Kind moveKind(char c) {
 		return Character.isUpperCase(c) ? Kind.PUSH : Kind.MOVE;
@@ -25,7 +25,7 @@ public record Move(Direction direction, Kind moveKind) implements Moves {
 
 	public char toChar() {
 		char c = direction.toChar();
-		return moveKind(c) == Kind.PUSH ? Character.toUpperCase(c) : c;
+		return moveKind() == Kind.PUSH ? Character.toUpperCase(c) : c;
 	}
 	
 	@Override

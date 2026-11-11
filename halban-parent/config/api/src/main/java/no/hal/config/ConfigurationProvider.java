@@ -24,12 +24,4 @@ public interface ConfigurationProvider {
     }
     return null;
   }
-
-  public static Function<String, InputStream> configurationResource(String baseName, Class<?> context) {
-    return fileExtension -> context.getResourceAsStream(baseName + "." + fileExtension);
-  }
-
-  public static Setting.Object loadSettings(Iterable<ConfigurationProvider> configurationProviders, String baseName, Class<?> context) {
-    return loadSettings(configurationProviders, configurationResource(baseName, context));
-  }
 }

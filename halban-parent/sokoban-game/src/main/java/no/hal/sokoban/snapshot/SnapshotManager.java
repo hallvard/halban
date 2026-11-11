@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import no.hal.config.Configuration;
 import no.hal.sokoban.Move;
 import no.hal.sokoban.SokobanGame;
@@ -35,8 +36,8 @@ public class SnapshotManager implements SokobanLevel.Collection {
   private String fileNameEnding;
 
   public SnapshotManager(Configuration config) {
-    this.folderName = config.getString("snapshots.folderName", null);
-    this.fileNameEnding = config.getString("snapshots.fileNameEnding", null);
+    this.folderName = Objects.requireNonNull(config.getString("snapshots.folderName", null), "snapshots.folderName is not configured");
+    this.fileNameEnding = Objects.requireNonNull(config.getString("snapshots.fileNameEnding", null), "snapshots.fileNameEnding is not configured");
     // try {
     // watchService = FileSystems.getDefault().newWatchService();
     // getSnapshotsFolderPath().register(watchService,
@@ -70,7 +71,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
   private final static String USER_HOME = System.getProperty("user.home", System.getenv("HOME"));
 
   private Path getSnapshotsFolderPath() {
-    return Path.of(USER_HOME, ".halban", folderName);
+    return Path.of(Objects.requireNonNull(USER_HOME, "user.home is not set"), ".halban", folderName);
   }
 
   private String getSnapshotFilename(SokobanGameState game) {

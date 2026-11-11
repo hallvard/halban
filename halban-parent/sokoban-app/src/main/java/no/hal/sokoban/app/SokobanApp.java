@@ -1,11 +1,6 @@
 package no.hal.sokoban.app;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ServiceLoader;
-import java.util.function.Function;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -31,9 +26,9 @@ public class SokobanApp extends Application {
 
     // then load the application configurations
     var configs = Configuration.of(
-        ConfigurationProvider.loadSettings(configProviders, userSettingsOf("preferences")),
-        ConfigurationProvider.loadSettings(configProviders, userSettingsOf("settings")),
-        ConfigurationProvider.loadSettings(configProviders, "application", SokobanApp.class)
+        ConfigurationProvider.loadSettings(configProviders, new UserSettingsProvider("preferences")),
+        ConfigurationProvider.loadSettings(configProviders, new UserSettingsProvider("settings")),
+        ConfigurationProvider.loadSettings(configProviders, new ConfigurationResourceProvider("application", SokobanApp.class))
     );
     configs.registerInstance(scene, Scene.class);
 
@@ -65,22 +60,6 @@ public class SokobanApp extends Application {
 
     primaryStage.setScene(scene);
     primaryStage.show();
-  }
-
-  private final static String USER_HOME = System.getProperty("user.home", System.getenv("HOME"));
-
-  private Function<String, InputStream> userSettingsOf(String baseName) {
-    return fileExtension -> {
-      var settingsFile = new File(USER_HOME, baseName + "." + fileExtension);
-      try {
-        if (settingsFile.exists()) {
-          return new FileInputStream(settingsFile);
-        }
-      } catch (IOException ioex) {
-        // ignore
-      }
-      return null;
-    };
   }
 
   public static void main(String[] args) {

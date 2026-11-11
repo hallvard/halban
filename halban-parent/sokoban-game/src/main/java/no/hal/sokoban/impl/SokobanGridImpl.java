@@ -62,9 +62,7 @@ public class SokobanGridImpl extends GridImpl<SokobanGrid.CellKind> implements S
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		sokobanSerializer.toString(this, null, builder);
-		return builder.toString();
+		return sokobanSerializer.toString(this, null);
 	}
 
 	@Override

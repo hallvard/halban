@@ -14,6 +14,7 @@ import no.hal.config.Configuration;
 import no.hal.config.ConfigurationProvider;
 import no.hal.config.ext.ExtConfigurationProvider;
 import no.hal.fx.IconFonts;
+import no.hal.fx.TouchLog;
 import no.hal.sokoban.fx.controllers.SokobanAppController;
 
 public class SokobanApp extends Application {
@@ -53,6 +54,8 @@ public class SokobanApp extends Application {
     SokobanAppController appController = new SokobanAppController(configs);
     scene.setRoot(appController.getContent());
 
+    // temporary, for finding out why a tap often doesn't select an item on a phone
+    TouchLog.install(scene);
     // ChangeListener<? super Number> sizeListener = (prop, oldValue, newValue) -> {
     //   System.out.println("scene size: " + scene.getWidth() + " x " +
     //       scene.getHeight());

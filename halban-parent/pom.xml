@@ -28,7 +28,12 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>23</java.version>
-        <javafx.version>24-ea+27</javafx.version>
+        <javafx.version>24.0.2</javafx.version>
+        <!--
+          Plugin 1.0.25 uses Substrate 0.0.65, which is what the newest GraalVM that Gluon publishes (23+25.1-dev, 2024-09-08) is for,
+          and it is used for the Android build too. Substrate 0.0.66 and later (plugins 1.0.26 to 1.0.29) pass the option
+          ForceNoROSectionRelocations to the Android build, which that GraalVM doesn't have.
+        -->
         <gluonfx-maven-plugin.version>1.0.25</gluonfx-maven-plugin.version>
     </properties>
     
@@ -50,7 +55,6 @@
                 <artifactId>ikonli-javafx</artifactId>
                 <version>12.3.1</version>
             </dependency>
-
             <dependency>
                 <groupId>org.kordamp.ikonli</groupId>
                 <artifactId>ikonli-materialdesign2-pack</artifactId>
@@ -99,15 +103,4 @@
             </plugins>
         </pluginManagement>
     </build>
-
-    <profiles>
-        <profile>
-            <id>android</id>
-            <properties>              
-              <java.version>17</java.version>
-              <javafx.version>21.0.6</javafx.version>
-              <gluonfx-maven-plugin.version>1.0.23</gluonfx-maven-plugin.version>
-            </properties>
-        </profile>
-    </profiles>
 </project>

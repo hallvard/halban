@@ -13,12 +13,15 @@ import javafx.stage.Stage;
 import no.hal.config.Configuration;
 import no.hal.config.ConfigurationProvider;
 import no.hal.config.ext.ExtConfigurationProvider;
+import no.hal.fx.IconFonts;
 import no.hal.sokoban.fx.controllers.SokobanAppController;
 
 public class SokobanApp extends Application {
 
   @Override
   public void start(Stage primaryStage) throws Exception {
+    // before the first icon is made
+    IconFonts.load();
     Scene scene = new Scene(new Pane(), 800, 800);
     scene.getStylesheets().add(getClass().getResource("app.css").toExternalForm());
 

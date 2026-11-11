@@ -15,6 +15,7 @@ import no.hal.config.ConfigurationProvider;
 import no.hal.config.ext.ExtConfigurationProvider;
 import no.hal.fx.IconFonts;
 import no.hal.fx.TouchLog;
+import no.hal.fx.TouchSlop;
 import no.hal.sokoban.fx.controllers.SokobanAppController;
 
 public class SokobanApp extends Application {
@@ -53,10 +54,12 @@ public class SokobanApp extends Application {
   
     SokobanAppController appController = new SokobanAppController(configs);
     scene.setRoot(appController.getContent());
-
-    // temporary, for finding out why a tap often doesn't select an item on a phone
+    // a tap on a list item selects it on a touch screen, even if the finger moves a little
+    TouchSlop.install(scene);
+    // temporary, to see that it works: a tap that moves a little has drags, and they are swallowed
     TouchLog.install(scene);
     // ChangeListener<? super Number> sizeListener = (prop, oldValue, newValue) -> {
+
     //   System.out.println("scene size: " + scene.getWidth() + " x " +
     //       scene.getHeight());
     // };

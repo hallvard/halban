@@ -34,7 +34,7 @@ public final class TouchLog {
   private boolean synthesized;
   private String target;
   private IndexedCell<?> cell;
-  private int drags;
+  private int drags, swallowed;
   private double firstDragMillis, firstDx, firstDy, maxDistance;
 
   private TouchLog() {
@@ -84,6 +84,7 @@ public final class TouchLog {
     target = nameOf(event.getTarget().getClass());
     cell = cellOf(event.getTarget());
     drags = 0;
+    swallowed = 0;
     maxDistance = 0;
   }
 
@@ -93,6 +94,10 @@ public final class TouchLog {
 
   private void dragged(MouseEvent event) {
     double dx = event.getSceneX() - pressX, dy = event.getSceneY() - pressY;
+    if (event.isConsumed()) {
+      // by TouchSlop, which has a filter before this one
+      swallowed++;
+    }
     if (drags++ == 0) {
       firstDragMillis = millis();
       firstDx = dx;
@@ -104,7 +109,7 @@ public final class TouchLog {
   private void released(MouseEvent event) {
     double dt = millis(), dx = event.getSceneX() - pressX, dy = event.getSceneY() - pressY;
     var movement = drags == 0 ? "no drags"
-        : String.format(Locale.ROOT, "%d drags, first at %.0f ms (%.1f, %.1f), max %.1f", drags, firstDragMillis, firstDx, firstDy, maxDistance);
+        : String.format(Locale.ROOT, "%d drags (%d swallowed), first at %.0f ms (%.1f, %.1f), max %.1f", drags, swallowed, firstDragMillis, firstDx, firstDy, maxDistance);
     var description = String.format(Locale.ROOT, "%s%s dt %.0f ms d (%.1f, %.1f), %s", synthesized ? "touch " : "mouse ", target, dt, dx, dy, movement);
     var tapped = cell;
     // the cell selects its item when the event has been handled

@@ -1,1 +1,4 @@
 */.DS_Store
+
+# editor lock files
+.LCK*

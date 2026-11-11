@@ -94,8 +94,8 @@ public class BorgarNetLevelCollectionsProvider extends DownloadableLevelCollecti
     protected SokobanLevel.Collection loadSokobanLevelsCollection() throws IOException {
       try (var input = downloadHref.toURL().openStream()) {
         Map<String, String> collectionProperties = Map.of(
-            "id", getMetaData().get("id"),
-            "uri", getMetaData().get("uri"),
+            "id", getMetaData("id"),
+            "uri", getMetaData("uri"),
             "downloadUri", downloadHref.toString());
         return BorgarNetLevelCollectionsProvider.sokobanParser.parse(input, collectionProperties);
       } catch (RuntimeException re) {

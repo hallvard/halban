@@ -84,8 +84,8 @@ public class OmerkelSokoban3rdpartyCollectionsProvider extends ResourceLevelColl
         }
         var levels = new OmerkelSokoban3rdpartyLevelCollection("/no/hal/sokoban/levels/omerkelsokoban3rdparty/Original.xsb").getSokobanLevels();
         for (var level : levels) {
-            System.out.println("Title:" + level.getMetaData().get("Title"));
-            System.out.println("Description:" + level.getMetaData().get("Description"));
+            System.out.println("Title:" + level.getMetaData("Title"));
+            System.out.println("Description:" + level.getMetaData("Description"));
         }
 //         var collections = new OmerkelSokoban3rdpartyCollectionsProvider().getSokobanLevelCollections();
 //         for (var collection : collections) {

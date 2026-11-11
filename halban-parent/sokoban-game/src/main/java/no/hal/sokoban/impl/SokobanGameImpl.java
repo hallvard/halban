@@ -39,7 +39,7 @@ public class SokobanGameImpl extends AbstractSokobanGameProvider implements Soko
 	}
 
 	public SokobanGameImpl(SokobanLevel sokobanLevel) {
-		this(sokobanLevel, new SokobanGridImpl(sokobanLevel.getSokobanGrid()), sokobanLevel.getMetaData().get("moves"));
+		this(sokobanLevel, new SokobanGridImpl(sokobanLevel.getSokobanGrid()), sokobanLevel.getMetaData("moves"));
 	}
 
 	private final SokobanSerializer sokobanSerializer = new SokobanSerializer();

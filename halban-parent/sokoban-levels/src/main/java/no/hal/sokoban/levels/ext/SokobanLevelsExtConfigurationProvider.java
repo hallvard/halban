@@ -23,12 +23,12 @@ public class SokobanLevelsExtConfigurationProvider implements ExtConfigurationPr
         SokobanLevel.CollectionsProvider.class);
 
     config.registerInstance(
-        LabelAdapter.forClass(SokobanLevel.class, level -> level.getMetaData().get("Title")),
+        LabelAdapter.forClass(SokobanLevel.class, level -> level.getMetaData("Title")),
         LabelAdapter.class, SokobanLevel.class
     );
     config.registerInstance(
         LabelAdapter.forClass(SokobanLevel.Collection.class,
-            levelCollection -> levelCollection.getMetaData().get("Title")),
+            levelCollection -> levelCollection.getMetaData("Title")),
         LabelAdapter.class, SokobanLevel.class
     );
     config.registerInstance(

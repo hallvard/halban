@@ -64,8 +64,8 @@ public abstract class ResourceLevelCollection extends LoadableLevelCollection {
     protected SokobanLevel.Collection extractSokobanLevelsCollection(URL resourceUrl) throws IOException {
         try (var input = resourceUrl.openStream()) {
             Map<String, String> collectionProperties = Map.of(
-//                "id", getMetaData().get("id"),
-//                "uri", getMetaData().get("uri")
+//                "id", getMetaData("id"),
+//                "uri", getMetaData("uri")
             );
             return getSokobanParser().parse(input, collectionProperties);
         } catch (RuntimeException re) {

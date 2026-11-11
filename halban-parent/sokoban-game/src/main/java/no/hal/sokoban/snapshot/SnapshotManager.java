@@ -78,9 +78,9 @@ public class SnapshotManager implements SokobanLevel.Collection {
     if (sokobanLevel == null) {
       return null;
     }
-    var filenameBase = sokobanLevel.getMetaData().get("uri");
+    var filenameBase = sokobanLevel.getMetaData("uri");
     if (filenameBase == null) {
-      filenameBase = sokobanLevel.getMetaData().get("Title");
+      filenameBase = sokobanLevel.getMetaData("Title");
     }
     return filenameBase.replaceAll("\\W", "_") + fileNameEnding;
   }
@@ -137,7 +137,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
 
   private SokobanLevel getSnapshot(String property, String value) {
     for (var snapshot : allSokobanSnapshots.keySet()) {
-      if (value != null && value.equals(snapshot.getMetaData().get(property))) {
+      if (value != null && value.equals(snapshot.getMetaData(property))) {
         return snapshot;
       }
     }
@@ -150,7 +150,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
   }
 
   private SokobanLevel getSnapshot(SokobanLevel sokobanLevel, String property) {
-    return getSnapshot(property, sokobanLevel.getMetaData().get(property));
+    return getSnapshot(property, sokobanLevel.getMetaData(property));
   }
 
   public SnapshotState getSokobanLevelSnapshotState(SokobanLevel sokobanLevel) {

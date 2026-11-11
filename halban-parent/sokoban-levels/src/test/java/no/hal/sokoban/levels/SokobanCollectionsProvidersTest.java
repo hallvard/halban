@@ -21,9 +21,9 @@ public class SokobanCollectionsProvidersTest {
     for (var collection : collections) {
       try {
         var levels = collection.getSokobanLevels();
-        assertTrue(! levels.isEmpty(), "Collection #" + num + " " + collection.getMetaData().get("Title") + " is empty");
+        assertTrue(! levels.isEmpty(), "Collection #" + num + " " + collection.getMetaData("Title") + " is empty");
       } catch (Exception e) {
-        fail("Exception when loading collection #" + num + " " + collection.getMetaData().get("Title") + " failed: " + e.getMessage());
+        fail("Exception when loading collection #" + num + " " + collection.getMetaData("Title") + " failed: " + e.getMessage());
       }
       num++;
     }

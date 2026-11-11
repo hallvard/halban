@@ -4,13 +4,8 @@ import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import no.hal.config.ext.ExtConfiguration;
 import no.hal.fx.ContentProvider;
 import no.hal.fx.LabelAdapter;
@@ -52,7 +47,7 @@ public class SokobanAppController implements ContentProvider.Container {
 		tabPane.getTabs().add(sokobanLevelCollectionsTab);
 
 		sokobanCollectionsBrowser.setOnOpenAction(sokobanLevel -> {
-      Tab gameTab = new Tab(sokobanLevel.getMetaData().get("Title"));
+      Tab gameTab = new Tab(sokobanLevel.getMetaData("Title"));
       tabPane.getTabs().add(gameTab);
       tabPane.getSelectionModel().select(gameTab);
 			SokobanGameController sokobanGameController = new SokobanGameController(config, sokobanLevel, (sokobanGame) -> {

@@ -17,6 +17,11 @@ public interface SokobanLevel {
     MetaData getMetaData();
     SokobanGrid getSokobanGrid(); 
 
+    public default String getMetaData(String property) {
+        var metaData = getMetaData();
+        return metaData != null ? metaData.get(property) : null;
+    }
+
     public interface Provider {
         SokobanLevel getSokobanLevel();
     }
@@ -24,6 +29,11 @@ public interface SokobanLevel {
     public interface Collection {
         MetaData getMetaData();
         List<SokobanLevel> getSokobanLevels();
+
+      public default String getMetaData(String property) {
+          var metaData = getMetaData();
+          return metaData != null ? metaData.get(property) : null;
+      }
     }
 
     public interface CollectionProvider {

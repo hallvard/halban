@@ -2,7 +2,8 @@
   snapshots: {
     folderName: "snapshots",
     fileNameEnding: "-snapshot.txt",
-    label: "Ongoing"
+    label: "Ongoing",
+    maxAgeDays: 7
   },
   solved: {
     folderName: "solved",

@@ -9,9 +9,11 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import no.hal.config.Configuration;
@@ -30,8 +32,11 @@ import no.hal.sokoban.parser.SokobanSerializer;
  * <ul>
  * <li>An ongoing game is a <em>snapshot</em>, a file that is written after each move, as soon as a box has been pushed.
  * Only one snapshot is kept per level, and it follows the game, also when moves are undone.</li>
- * <li>When the level is solved, the game is also saved in the <em>solved</em> folder. That file is not changed by the snapshot,
- * so a level stays solved when the player goes back (undo, restart) to improve the solution.</li>
+ * <li>When the level is solved, the game is saved in the <em>solved</em> folder, and the snapshot is removed, since the game is
+ * no longer going on. The solved file is not changed by the snapshot that is made if the player goes back (undo, restart) to improve
+ * the solution, so the level stays solved.</li>
+ * <li>Snapshots that have not been changed for some days ({@code snapshots.maxAgeDays}, a week unless set, 0 for never) are removed
+ * when the states are read, which is when the application is started.</li>
  * </ul>
  * The levels are identified by their hash (see {@link SokobanHasher}), so the state is the same for a level in a collection and
  * the snapshot of it. Listeners are notified when the state of a level changes.
@@ -50,18 +55,24 @@ public class SnapshotManager implements SokobanLevel.Collection {
   /** Notified when the state of the level with the hash has changed. */
   public interface Listener {
     void snapshotStateChanged(String hash, SnapshotState state);
+
+    /** Notified when a game is added to or removed from the ongoing or the solved games, so the counts and the lists have changed. */
+    default void collectionsChanged() {
+    }
   }
 
   private final String folderName;
   private final String fileNameEnding;
   private final String solvedFolderName;
   private final String solvedFileNameEnding;
+  private final int maxAgeDays;
 
   public SnapshotManager(Configuration config) {
     this.folderName = Objects.requireNonNull(config.getString("snapshots.folderName", null), "snapshots.folderName is not configured");
     this.fileNameEnding = Objects.requireNonNull(config.getString("snapshots.fileNameEnding", null), "snapshots.fileNameEnding is not configured");
     this.solvedFolderName = config.getString("solved.folderName", "solved");
     this.solvedFileNameEnding = config.getString("solved.fileNameEnding", "-solved.txt");
+    this.maxAgeDays = config.getInt("snapshots.maxAgeDays", 7);
   }
 
   //
@@ -74,6 +85,28 @@ public class SnapshotManager implements SokobanLevel.Collection {
 
   public void removeListener(Listener listener) {
     listeners.remove(listener);
+  }
+
+  //
+
+  /** The names of the files of the ongoing and the solved games, which are counted. */
+  private final Set<String> ongoingFiles = ConcurrentHashMap.newKeySet();
+  private final Set<String> solvedFiles = ConcurrentHashMap.newKeySet();
+
+  /** The number of ongoing games, i.e. levels in the ongoing collection. */
+  public int getOngoingCount() {
+    ensureStatesLoaded();
+    return ongoingFiles.size();
+  }
+
+  /** The number of solved games, i.e. levels in the solved collection. */
+  public int getSolvedCount() {
+    ensureStatesLoaded();
+    return solvedFiles.size();
+  }
+
+  private void collectionsChanged() {
+    listeners.forEach(Listener::collectionsChanged);
   }
 
   //
@@ -104,11 +137,14 @@ public class SnapshotManager implements SokobanLevel.Collection {
     boolean pushed = game.getMoves().stream().anyMatch(move -> move.moveKind() == Move.Kind.PUSH);
     // a level that is solved stays so, and a started one stays started when all pushes are undone (the moves of a resumed game include the old ones)
     var after = before == SnapshotState.SOLVED || solvedNow ? SnapshotState.SOLVED : pushed ? SnapshotState.STARTED : before;
-    if (after != SnapshotState.NONE) {
-      write(game, snapshotsFolderPath(), fileNameEnding);
-    }
-    if (solvedNow && before != SnapshotState.SOLVED) {
-      write(game, solvedFolderPath(), solvedFileNameEnding);
+    if (solvedNow) {
+      if (before != SnapshotState.SOLVED) {
+        write(game, solvedFolderPath(), solvedFileNameEnding, solvedFiles);
+      }
+      // the game is no longer going on, and the solved file has it
+      delete(game, snapshotsFolderPath(), fileNameEnding, ongoingFiles);
+    } else if (after != SnapshotState.NONE) {
+      write(game, snapshotsFolderPath(), fileNameEnding, ongoingFiles);
     }
     setState(hash, after);
   }
@@ -151,8 +187,8 @@ public class SnapshotManager implements SokobanLevel.Collection {
   }
 
   /**
-   * Reads the states from the files, once. Snapshots of games that were solved before solved games were saved separately
-   * (a snapshot that has no empty targets) are copied to the solved folder, so they stay solved.
+   * Reads the states from the files, once, and tidies the snapshots: one of a game that is solved (as the snapshots were before solved games
+   * were saved separately) is moved to the solved folder, and one that is too old is removed.
    */
   private synchronized void ensureStatesLoaded() {
     if (statesLoaded) {
@@ -161,12 +197,23 @@ public class SnapshotManager implements SokobanLevel.Collection {
     statesLoaded = true;
     for (var solved : readLevels(solvedFolderPath(), solvedFileNameEnding)) {
       mergeState(hashOf(solved.level()), SnapshotState.SOLVED);
+      solvedFiles.add(solved.file().getName());
     }
+    var maxAgeMillis = maxAgeDays * 24L * 60 * 60 * 1000;
+    var files = new HashSet<File>();
     for (var snapshot : readLevels(snapshotsFolderPath(), fileNameEnding)) {
-      boolean solved = snapshot.level().getSokobanGrid().countTargets()[1] == 0;
-      mergeState(hashOf(snapshot.level()), solved ? SnapshotState.SOLVED : SnapshotState.STARTED);
-      if (solved) {
-        copyToSolved(snapshot.file());
+      var file = snapshot.file();
+      if (! files.add(file)) {
+        continue;
+      }
+      if (snapshot.level().getSokobanGrid().countTargets()[1] == 0) {
+        mergeState(hashOf(snapshot.level()), SnapshotState.SOLVED);
+        moveToSolved(file);
+      } else if (maxAgeDays > 0 && System.currentTimeMillis() - file.lastModified() > maxAgeMillis) {
+        deleteFile(file);
+      } else {
+        mergeState(hashOf(snapshot.level()), SnapshotState.STARTED);
+        ongoingFiles.add(file.getName());
       }
     }
   }
@@ -177,16 +224,27 @@ public class SnapshotManager implements SokobanLevel.Collection {
     }
   }
 
-  private void copyToSolved(File snapshotFile) {
+  private void moveToSolved(File snapshotFile) {
     try {
       var name = snapshotFile.getName();
       var solvedFile = solvedFolderPath().resolve(name.substring(0, name.length() - fileNameEnding.length()) + solvedFileNameEnding);
       if (! Files.exists(solvedFile)) {
         Files.createDirectories(solvedFolderPath());
         Files.copy(snapshotFile.toPath(), solvedFile, StandardCopyOption.COPY_ATTRIBUTES);
+        solvedFiles.add(solvedFile.getFileName().toString());
       }
     } catch (IOException ioex) {
       System.err.println("Couldn't save solved game " + snapshotFile);
+      return;
+    }
+    deleteFile(snapshotFile);
+  }
+
+  private void deleteFile(File file) {
+    try {
+      Files.deleteIfExists(file.toPath());
+    } catch (IOException ioex) {
+      System.err.println("Couldn't remove " + file);
     }
   }
 
@@ -220,7 +278,8 @@ public class SnapshotManager implements SokobanLevel.Collection {
 
   private final SokobanSerializer sokobanSerializer = new SokobanSerializer();
 
-  private void write(SokobanGameState game, Path folderPath, String fileNameEnding) {
+  /** Saves the game as a file in the folder, and counts it in the files. */
+  private void write(SokobanGameState game, Path folderPath, String fileNameEnding, Set<String> files) {
     if (!folderPath.toFile().exists()) {
       try {
         Files.createDirectories(folderPath);
@@ -235,8 +294,21 @@ public class SnapshotManager implements SokobanLevel.Collection {
     }
     try {
       Files.write(folderPath.resolve(fileName), sokobanSerializer.toString(game).getBytes());
+      if (files.add(fileName)) {
+        collectionsChanged();
+      }
     } catch (IOException ioex) {
       System.err.println("Couldn't write game " + fileName);
+    }
+  }
+
+  private void delete(SokobanGameState game, Path folderPath, String fileNameEnding, Set<String> files) {
+    String fileName = fileName(game, fileNameEnding);
+    if (fileName != null) {
+      deleteFile(folderPath.resolve(fileName).toFile());
+      if (files.remove(fileName)) {
+        collectionsChanged();
+      }
     }
   }
 
@@ -250,6 +322,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
   /** The levels of the games that are ongoing, the latest first. */
   @Override
   public List<SokobanLevel> getSokobanLevels() {
+    ensureStatesLoaded();
     return readLevels(snapshotsFolderPath(), fileNameEnding).stream().map(LevelFile::level).toList();
   }
 
@@ -261,6 +334,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
 
     @Override
     public List<SokobanLevel> getSokobanLevels() {
+      ensureStatesLoaded();
       return readLevels(solvedFolderPath(), solvedFileNameEnding).stream().map(LevelFile::level).toList();
     }
   };

@@ -26,16 +26,17 @@ public class SokobanAppController implements ContentProvider.Container {
     this.snapshotsLabel = config.getString("snapshots.label", "Ongoing");
 
     config.registerInstance(snapshotManager, SnapshotManager.class);
-    config.registerInstance(LabelAdapter.forInstance(snapshotManager, snapshotsLabel), LabelAdapter.class);
+    // the instances are registered by class, and the adapters are all of the same class, so each is given a qualifier or the last one replaces the others
+    config.registerInstance(LabelAdapter.forInstance(snapshotManager, s -> snapshotsLabel + " (" + snapshotManager.getOngoingCount() + ")"), LabelAdapter.class, snapshotManager);
     
     SokobanLevel.CollectionProvider snapshotManagerSupplier = () -> snapshotManager;
     config.registerInstance(snapshotManagerSupplier, SokobanLevel.CollectionProvider.class);
-    config.registerInstance(LabelAdapter.forInstance(snapshotManagerSupplier, snapshotsLabel), LabelAdapter.class);
+    config.registerInstance(LabelAdapter.forInstance(snapshotManagerSupplier, s -> snapshotsLabel + " (" + snapshotManager.getOngoingCount() + ")"), LabelAdapter.class, snapshotManagerSupplier);
 
     var solvedLabel = config.getString("solved.label", "Solved");
     SokobanLevel.CollectionProvider solvedSupplier = snapshotManager::getSolvedCollection;
     config.registerInstance(solvedSupplier, SokobanLevel.CollectionProvider.class);
-    config.registerInstance(LabelAdapter.forInstance(solvedSupplier, solvedLabel), LabelAdapter.class);
+    config.registerInstance(LabelAdapter.forInstance(solvedSupplier, s -> solvedLabel + " (" + snapshotManager.getSolvedCount() + ")"), LabelAdapter.class, solvedSupplier);
 
     config.registerInstance(new ShortcutHandler(() -> config.getInstance(Scene.class)), ShortcutHandler.class);
   }

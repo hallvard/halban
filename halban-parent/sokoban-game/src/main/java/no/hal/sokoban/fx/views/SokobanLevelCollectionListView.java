@@ -15,6 +15,7 @@ import no.hal.fx.LabelAdapterListCell;
 import no.hal.sokoban.fx.util.AbstractItemSelector;
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.snapshot.SnapshotManager;
+import no.hal.sokoban.snapshot.SnapshotManager.SnapshotState;
 
 class SokobanLevelCollectionListView extends AbstractItemSelector<SokobanLevel> implements ContentProvider.Child {
 
@@ -50,7 +51,16 @@ class SokobanLevelCollectionListView extends AbstractItemSelector<SokobanLevel> 
         });
         updateList();
         // the colors of the levels show how far the player has come, so the cells are redrawn when that changes
-        snapshotManager.addListener((hash, state) -> Platform.runLater(this::snapshotsChanged));
+        snapshotManager.addListener(new SnapshotManager.Listener() {
+      @Override
+      public void snapshotStateChanged(String hash, SnapshotState state) {
+        Platform.runLater(() -> snapshotsChanged());
+      }
+      @Override
+      public void collectionsChanged() {
+        Platform.runLater(() -> snapshotsChanged());
+      }
+    });
         return listView;
     }
 

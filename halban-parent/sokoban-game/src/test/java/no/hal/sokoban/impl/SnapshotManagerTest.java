@@ -96,13 +96,17 @@ public class SnapshotManagerTest {
     var solvedFile = home.resolve(".halban/solved-solved").resolve("One_box-solved.txt");
     var snapshotFile = home.resolve(".halban/solved-snapshots").resolve("One_box-snapshot.txt");
     assertTrue(Files.readString(solvedFile).contains("# @*#"));
-    assertTrue(Files.readString(snapshotFile).contains("# @*#"));
+    assertFalse(Files.exists(snapshotFile), "a solved game is no longer going on");
+    assertEquals(0, manager.getOngoingCount());
+    assertEquals(1, manager.getSolvedCount());
 
     game.undo();
     assertEquals(SnapshotState.SOLVED, manager.getSokobanLevelSnapshotState(level));
     assertTrue(Files.readString(solvedFile).contains("# @*#"), "the solved game is not changed");
     assertTrue(Files.readString(snapshotFile).contains("#@$.#"), "the snapshot follows the game");
     assertEquals(List.of(SnapshotState.SOLVED), events.stream().map(Event::state).toList());
+    assertEquals(1, manager.getOngoingCount());
+    assertEquals(1, manager.getSolvedCount());
 
     // a new manager reads the states from the files
     var other = new SnapshotManager(config("solved"));
@@ -120,5 +124,52 @@ public class SnapshotManagerTest {
     manager.registerSokobanGame(game);
     game.movePlayer(Direction.RIGHT);
     assertEquals(SnapshotState.STARTED, new SnapshotManager(config("ongoing")).getSokobanLevelSnapshotState(level));
+  }
+
+  @Test
+  void tidiesOldAndSolvedSnapshots() throws IOException {
+    var snapshots = Files.createDirectories(home.resolve(".halban/tidy-snapshots"));
+    var open = "#######\n#@$ . #\n# $ . #\n#######\n";
+    Files.writeString(snapshots.resolve("Old-snapshot.txt"), "Title: Old\n" + open);
+    Files.writeString(snapshots.resolve("Fresh-snapshot.txt"), "Title: Fresh\n" + open);
+    Files.writeString(snapshots.resolve("Done-snapshot.txt"), "Title: Done\n#####\n# @*#\n#####\n");
+    snapshots.resolve("Old-snapshot.txt").toFile().setLastModified(System.currentTimeMillis() - 10L * 24 * 60 * 60 * 1000);
+
+    var manager = new SnapshotManager(config("tidy"));
+    assertEquals(1, manager.getOngoingCount());
+    assertEquals(1, manager.getSolvedCount());
+    assertFalse(Files.exists(snapshots.resolve("Old-snapshot.txt")), "too old");
+    assertFalse(Files.exists(snapshots.resolve("Done-snapshot.txt")), "solved, so moved");
+    assertTrue(Files.exists(snapshots.resolve("Fresh-snapshot.txt")));
+    assertTrue(Files.exists(home.resolve(".halban/tidy-solved/Done-solved.txt")));
+    assertEquals(List.of("Fresh"), manager.getSokobanLevels().stream().map(level -> level.getMetaData("Title")).toList());
+    assertEquals(List.of("Done"), manager.getSolvedCollection().getSokobanLevels().stream().map(level -> level.getMetaData("Title")).toList());
+  }
+
+  @Test
+  void notifiesWhenGamesAreAddedAndRemoved() throws IOException {
+    var manager = new SnapshotManager(config("counts"));
+    var level = level("Counted", "#####", "#@$.#", "#####");
+    var changes = new int[1];
+    manager.addListener(new SnapshotManager.Listener() {
+      @Override
+      public void snapshotStateChanged(String hash, SnapshotState state) {
+      }
+      @Override
+      public void collectionsChanged() {
+        changes[0]++;
+      }
+    });
+    var game = new SokobanGameImpl(level);
+    manager.registerSokobanGame(game);
+    game.movePlayer(Direction.RIGHT);
+    // the solved game is added to solved, and the snapshot that was never made is not removed
+    assertEquals(1, changes[0]);
+    game.undo();
+    // the snapshot of the game that is going on again
+    assertEquals(2, changes[0]);
+    game.movePlayer(Direction.RIGHT);
+    // solved again: the snapshot is removed
+    assertEquals(3, changes[0]);
   }
 }

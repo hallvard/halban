@@ -19,6 +19,7 @@ import no.hal.sokoban.fx.util.AbstractItemSelector;
 import no.hal.sokoban.fx.util.ItemSelector;
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.snapshot.SnapshotManager;
+import no.hal.sokoban.snapshot.SnapshotManager.SnapshotState;
 
 abstract class AbstractSokobanLevelCollectionsTreeView<T> extends AbstractItemSelector<T> {
 
@@ -72,7 +73,16 @@ abstract class AbstractSokobanLevelCollectionsTreeView<T> extends AbstractItemSe
     selectedItemProperty = createSelectedItemProperty(selectedTreeItemProperty);
     updateTreeRoot();
     // the colors of the levels show how far the player has come, so the cells are redrawn when that changes
-    snapshotManager.addListener((hash, state) -> Platform.runLater(this::snapshotsChanged));
+    snapshotManager.addListener(new SnapshotManager.Listener() {
+      @Override
+      public void snapshotStateChanged(String hash, SnapshotState state) {
+        Platform.runLater(() -> snapshotsChanged());
+      }
+      @Override
+      public void collectionsChanged() {
+        Platform.runLater(() -> snapshotsChanged());
+      }
+    });
 
     return treeView;
   }

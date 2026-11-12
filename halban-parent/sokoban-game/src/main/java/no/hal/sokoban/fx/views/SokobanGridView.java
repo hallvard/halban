@@ -3,6 +3,7 @@ package no.hal.sokoban.fx.views;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import no.hal.config.Configuration;
+import no.hal.config.ext.InstanceRegistry;
 import no.hal.grid.fx.GridCellFactory;
 import no.hal.grid.fx.GridView;
 import no.hal.grid.util.XYTransform;
@@ -24,7 +25,9 @@ public class SokobanGridView {
 
 	public SokobanGridView(Configuration config) {
 		this.gridView = new GridView<>();
-		setCellFactory(new SokobanGridCellFactory(config));
+		// the characters of the settings, if there are any, may be used instead of the images
+		var characters = config instanceof InstanceRegistry registry ? registry.getInstance(CellCharacters.class) : null;
+		setCellFactory(new SokobanCellFactory(config, characters));
 		xyTransformerProperty.addListener((prop, oldValue, newValue) -> {
 			var grid = new XYTransformedGrid<CellKind, SokobanGrid>(getSokobanGrid());
 			grid.setXYTransform(getXYTransform());

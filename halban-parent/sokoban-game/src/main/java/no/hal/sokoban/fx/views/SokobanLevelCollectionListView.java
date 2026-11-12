@@ -14,14 +14,17 @@ import no.hal.fx.LabelAdapter;
 import no.hal.fx.LabelAdapterListCell;
 import no.hal.sokoban.fx.util.AbstractItemSelector;
 import no.hal.sokoban.level.SokobanLevel;
+import no.hal.sokoban.snapshot.SnapshotManager;
 
 class SokobanLevelCollectionListView extends AbstractItemSelector<SokobanLevel> implements ContentProvider.Child {
 
     private ListView<SokobanLevel> listView;
   
     private final Callback<ListView<SokobanLevel>, ListCell<SokobanLevel>> listCellFactory;
-    
+    private final SnapshotManager snapshotManager;
+
     public SokobanLevelCollectionListView(ExtConfiguration config, LabelAdapter labelAdapter) {
+        this.snapshotManager = config.getInstance(SnapshotManager.class);
         this.listCellFactory = lv_ -> new LabelAdapterListCell<SokobanLevel>(new SokobanLevelCellHelper<SokobanLevel>(config, labelAdapter));
     }
 
@@ -46,7 +49,19 @@ class SokobanLevelCollectionListView extends AbstractItemSelector<SokobanLevel> 
             updateList();
         });
         updateList();
+        // the colors of the levels show how far the player has come, so the cells are redrawn when that changes
+        snapshotManager.addListener((hash, state) -> Platform.runLater(this::snapshotsChanged));
         return listView;
+    }
+
+    private void snapshotsChanged() {
+        var provider = sokobanCollectionProviderProperty().getValue();
+        if (provider != null && snapshotManager.isGamesCollection(provider.getSokobanLevelCollection())) {
+            // the list is the ongoing or the solved games, which has changed too
+            updateList();
+        } else {
+            listView.refresh();
+        }
     }
 
     private void updateList() {

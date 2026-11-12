@@ -72,12 +72,30 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 
 	LocationMovesCounters counters = new LocationMovesCounters();
 
+	private Consumer<SokobanGame> onGameStarted;
+	private Consumer<SokobanGame> onGameEnded;
+
+	/**
+	 * Sets what is done with each game that is started (a restart makes a new game) and with the game that it replaces,
+	 * e.g. to register and unregister the game with something that follows it.
+	 */
+	public void setOnGameStartedEnded(Consumer<SokobanGame> onGameStarted, Consumer<SokobanGame> onGameEnded) {
+		this.onGameStarted = onGameStarted;
+		this.onGameEnded = onGameEnded;
+	}
+
 	public SokobanGame startSokobanGame() {
 		if (this.sokobanGame != null) {
 			this.sokobanGame.removeGameListener(sokobanGameListener);
+			if (onGameEnded != null) {
+				onGameEnded.accept(this.sokobanGame);
+			}
 		}
 		this.sokobanGame = new SokobanGameImpl(sokobanLevel);
 		this.sokobanGame.addGameListener(sokobanGameListener);
+		if (onGameStarted != null) {
+			onGameStarted.accept(this.sokobanGame);
+		}
 		updateGridView();
 		return this.sokobanGame;
 	}

@@ -23,7 +23,7 @@ public class SokobanAppController implements ContentProvider.Container {
   public SokobanAppController(ExtConfiguration config) {
     this.config = config;
     this.snapshotManager = new SnapshotManager(config);
-    this.snapshotsLabel = config.getString("snapshots.label", "Snapshots");
+    this.snapshotsLabel = config.getString("snapshots.label", "Ongoing");
 
     config.registerInstance(snapshotManager, SnapshotManager.class);
     config.registerInstance(LabelAdapter.forInstance(snapshotManager, snapshotsLabel), LabelAdapter.class);
@@ -31,6 +31,11 @@ public class SokobanAppController implements ContentProvider.Container {
     SokobanLevel.CollectionProvider snapshotManagerSupplier = () -> snapshotManager;
     config.registerInstance(snapshotManagerSupplier, SokobanLevel.CollectionProvider.class);
     config.registerInstance(LabelAdapter.forInstance(snapshotManagerSupplier, snapshotsLabel), LabelAdapter.class);
+
+    var solvedLabel = config.getString("solved.label", "Solved");
+    SokobanLevel.CollectionProvider solvedSupplier = snapshotManager::getSolvedCollection;
+    config.registerInstance(solvedSupplier, SokobanLevel.CollectionProvider.class);
+    config.registerInstance(LabelAdapter.forInstance(solvedSupplier, solvedLabel), LabelAdapter.class);
 
     config.registerInstance(new ShortcutHandler(() -> config.getInstance(Scene.class)), ShortcutHandler.class);
   }
@@ -55,10 +60,8 @@ public class SokobanAppController implements ContentProvider.Container {
         tabPane.getTabs().remove(gameTab);
       });
       gameTab.setContent(sokobanGameController.createLayout());
-			Platform.runLater(() -> {
-				var sokobanGame = sokobanGameController.startSokobanGame();
-				snapshotManager.registerSokobanGame(sokobanGame);
-			});
+			sokobanGameController.setOnGameStartedEnded(snapshotManager::registerSokobanGame, snapshotManager::unregisterSokobanGame);
+			Platform.runLater(sokobanGameController::startSokobanGame);
 		});
     // tabPane.getTabs().add(createFontTestTab());
     return tabPane;

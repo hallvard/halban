@@ -72,7 +72,7 @@ public class SokobanLevelView {
         Paint paint = null;
         if (snapshotState != null) {
             paint = switch (snapshotState) {
-                case FINISHED -> Color.GREEN;
+                case SOLVED -> Color.GREEN;
                 case STARTED -> Color.ORANGE;
                 default -> null;
             };

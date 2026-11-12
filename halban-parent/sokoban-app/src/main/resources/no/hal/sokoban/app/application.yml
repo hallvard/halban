@@ -2,6 +2,11 @@
   snapshots: {
     folderName: "snapshots",
     fileNameEnding: "-snapshot.txt",
-    label: "Your sokoban levels"
+    label: "Ongoing"
+  },
+  solved: {
+    folderName: "solved",
+    fileNameEnding: "-solved.txt",
+    label: "Solved"
   }
 }

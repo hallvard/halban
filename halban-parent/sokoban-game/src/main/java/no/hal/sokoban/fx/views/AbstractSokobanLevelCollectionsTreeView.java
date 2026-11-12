@@ -18,10 +18,12 @@ import no.hal.fx.LabelAdapterTreeCell;
 import no.hal.sokoban.fx.util.AbstractItemSelector;
 import no.hal.sokoban.fx.util.ItemSelector;
 import no.hal.sokoban.level.SokobanLevel;
+import no.hal.sokoban.snapshot.SnapshotManager;
 
 abstract class AbstractSokobanLevelCollectionsTreeView<T> extends AbstractItemSelector<T> {
 
   private final Callback<TreeView<Object>, TreeCell<Object>> treeCellFactory;
+  private final SnapshotManager snapshotManager;
 
   private Collection<SokobanLevel.CollectionProvider> sokobanLevelCollectionProviders;
   private Collection<SokobanLevel.CollectionsProvider> sokobanLevelCollectionsProviders;
@@ -31,6 +33,7 @@ abstract class AbstractSokobanLevelCollectionsTreeView<T> extends AbstractItemSe
   public AbstractSokobanLevelCollectionsTreeView(ExtConfiguration config, LabelAdapter labelAdapter) {
     this.sokobanLevelCollectionProviders = config.getAllInstances(SokobanLevel.CollectionProvider.class);
     this.sokobanLevelCollectionsProviders = config.getAllInstances(SokobanLevel.CollectionsProvider.class);
+    this.snapshotManager = config.getInstance(SnapshotManager.class);
     this.treeCellFactory = tv -> new LabelAdapterTreeCell<Object>(
         new SokobanLevelCellHelper<Object>(config, labelAdapter));
   }
@@ -68,8 +71,21 @@ abstract class AbstractSokobanLevelCollectionsTreeView<T> extends AbstractItemSe
     var selectedTreeItemProperty = treeView.getSelectionModel().selectedItemProperty();
     selectedItemProperty = createSelectedItemProperty(selectedTreeItemProperty);
     updateTreeRoot();
+    // the colors of the levels show how far the player has come, so the cells are redrawn when that changes
+    snapshotManager.addListener((hash, state) -> Platform.runLater(this::snapshotsChanged));
 
     return treeView;
+  }
+
+  private void snapshotsChanged() {
+    // the ongoing and the solved games are collections, which have changed too
+    for (var treeItem : treeView.getRoot().getChildren()) {
+      if (treeItem.isExpanded() && treeItem.getValue() instanceof SokobanLevel.CollectionProvider collectionProvider
+          && snapshotManager.isGamesCollection(collectionProvider.getSokobanLevelCollection())) {
+        asyncAddTreeItems(treeItem, () -> collectionProvider.getSokobanLevelCollection().getSokobanLevels(), TreeItem<Object>::new);
+      }
+    }
+    treeView.refresh();
   }
 
   private void autoExpandOnClick(TreeView<?> treeView) {

@@ -18,6 +18,7 @@ import no.hal.config.Configuration;
 import no.hal.sokoban.Move;
 import no.hal.sokoban.SokobanGame;
 import no.hal.sokoban.SokobanGameState;
+import no.hal.sokoban.SokobanHasher;
 import no.hal.sokoban.impl.SokobanFactoryImpl;
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.level.SokobanLevel.MetaData;
@@ -150,12 +151,22 @@ public class SnapshotManager implements SokobanLevel.Collection {
     return targetCounters[1] == 0 ? SnapshotState.FINISHED : SnapshotState.STARTED;
   }
 
-  private SokobanLevel getSnapshot(SokobanLevel sokobanLevel, String property) {
-    return getSnapshot(property, sokobanLevel.getMetaData(property));
+  private final SokobanHasher legacyHasher = new SokobanHasher.Legacy();
+
+  /**
+   * The snapshot of the level, found by its hash. A snapshot that was saved before the hash got the name of its algorithm has the legacy
+   * hash of the level, so that is tried when there is no snapshot with the hash of the level. It gets the new hash when the game is saved again.
+   */
+  private SokobanLevel getSnapshot(SokobanLevel sokobanLevel) {
+    var snapshot = getSnapshot("hash", sokobanLevel.getMetaData("hash"));
+    if (snapshot == null && sokobanLevel.getSokobanGrid() != null) {
+      snapshot = getSnapshot("hash", legacyHasher.hash(sokobanLevel.getSokobanGrid()));
+    }
+    return snapshot;
   }
 
   public SnapshotState getSokobanLevelSnapshotState(SokobanLevel sokobanLevel) {
-    var snapshot = getSnapshot(sokobanLevel, "hash");
+    var snapshot = getSnapshot(sokobanLevel);
     return (snapshot != null ? getSnapshotState(snapshot) : null);
   }
 

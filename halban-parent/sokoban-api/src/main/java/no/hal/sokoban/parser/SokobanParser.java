@@ -107,7 +107,7 @@ public class SokobanParser {
       levelProperties = new HashMap<>();
     }
     putIfMissingAndNonNull(levelProperties, "dimensions", sokobanGrid.getWidth() + "x" + sokobanGrid.getHeight());
-    putIfMissingAndNonNull(levelProperties, "hash", Long.toHexString(hasher.hash(sokobanGrid)));
+    putIfMissingAndNonNull(levelProperties, "hash", hasher.hash(sokobanGrid));
     if (section.moves() != null) {
       levelProperties.put("moves", RunLengthEncoding.decode(section.moves()).toString());
     }

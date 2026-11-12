@@ -50,13 +50,6 @@ public class SokobanApp extends Application {
     scene.setRoot(appController.getContent());
     // a tap on a list item selects it on a touch screen, even if the finger moves a little
     TouchSlop.install(scene);
-    // ChangeListener<? super Number> sizeListener = (prop, oldValue, newValue) -> {
-
-    //   System.out.println("scene size: " + scene.getWidth() + " x " +
-    //       scene.getHeight());
-    // };
-    // scene.widthProperty().addListener(sizeListener);
-    // scene.heightProperty().addListener(sizeListener);
 
     primaryStage.setScene(scene);
     primaryStage.show();

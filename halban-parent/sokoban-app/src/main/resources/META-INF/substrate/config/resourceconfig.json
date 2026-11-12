@@ -1,7 +1,8 @@
 [
     {
         "resources": [
-            {"pattern": ".*\\.yml$"}
+            {"pattern": ".*\\.yml$"},
+            {"pattern": ".*\\.png$"}
         ]
     }
 ]

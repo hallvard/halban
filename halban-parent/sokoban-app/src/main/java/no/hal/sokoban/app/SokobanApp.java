@@ -3,6 +3,7 @@ package no.hal.sokoban.app;
 import java.util.ServiceLoader;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import no.hal.config.Configuration;
@@ -51,6 +52,7 @@ public class SokobanApp extends Application {
     // a tap on a list item selects it on a touch screen, even if the finger moves a little
     TouchSlop.install(scene);
 
+    primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("app-icon.png")));
     primaryStage.setScene(scene);
     primaryStage.show();
   }

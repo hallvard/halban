@@ -44,6 +44,7 @@ public class SnapshotManagerTest {
         return switch (path) {
           case "snapshots.folderName" -> name + "-snapshots";
           case "solved.folderName" -> name + "-solved";
+          case "archived.folderName" -> name + "-archived";
           case "snapshots.fileNameEnding" -> "-snapshot.txt";
           default -> defaultValue;
         };
@@ -127,7 +128,7 @@ public class SnapshotManagerTest {
   }
 
   @Test
-  void tidiesOldAndSolvedSnapshots() throws IOException {
+  void archivesOldAndMovesSolvedSnapshots() throws IOException {
     var snapshots = Files.createDirectories(home.resolve(".halban/tidy-snapshots"));
     var open = "#######\n#@$ . #\n# $ . #\n#######\n";
     Files.writeString(snapshots.resolve("Old-snapshot.txt"), "Title: Old\n" + open);
@@ -139,6 +140,7 @@ public class SnapshotManagerTest {
     assertEquals(1, manager.getOngoingCount());
     assertEquals(1, manager.getSolvedCount());
     assertFalse(Files.exists(snapshots.resolve("Old-snapshot.txt")), "too old");
+    assertTrue(Files.exists(home.resolve(".halban/tidy-archived/Old-snapshot.txt")), "moved, not removed");
     assertFalse(Files.exists(snapshots.resolve("Done-snapshot.txt")), "solved, so moved");
     assertTrue(Files.exists(snapshots.resolve("Fresh-snapshot.txt")));
     assertTrue(Files.exists(home.resolve(".halban/tidy-solved/Done-solved.txt")));

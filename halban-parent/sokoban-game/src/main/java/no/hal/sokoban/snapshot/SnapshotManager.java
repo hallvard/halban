@@ -35,8 +35,8 @@ import no.hal.sokoban.parser.SokobanSerializer;
  * <li>When the level is solved, the game is saved in the <em>solved</em> folder, and the snapshot is removed, since the game is
  * no longer going on. The solved file is not changed by the snapshot that is made if the player goes back (undo, restart) to improve
  * the solution, so the level stays solved.</li>
- * <li>Snapshots that have not been changed for some days ({@code snapshots.maxAgeDays}, a week unless set, 0 for never) are removed
- * when the states are read, which is when the application is started.</li>
+ * <li>Snapshots that have not been changed for some days ({@code snapshots.maxAgeDays}, a week unless set, 0 for never) are moved to
+ * the <em>archived</em> folder when the states are read, which is when the application is started. They can be moved back by hand.</li>
  * </ul>
  * The levels are identified by their hash (see {@link SokobanHasher}), so the state is the same for a level in a collection and
  * the snapshot of it. Listeners are notified when the state of a level changes.
@@ -66,6 +66,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
   private final String solvedFolderName;
   private final String solvedFileNameEnding;
   private final int maxAgeDays;
+  private final String archivedFolderName;
 
   public SnapshotManager(Configuration config) {
     this.folderName = Objects.requireNonNull(config.getString("snapshots.folderName", null), "snapshots.folderName is not configured");
@@ -73,6 +74,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
     this.solvedFolderName = config.getString("solved.folderName", "solved");
     this.solvedFileNameEnding = config.getString("solved.fileNameEnding", "-solved.txt");
     this.maxAgeDays = config.getInt("snapshots.maxAgeDays", 7);
+    this.archivedFolderName = config.getString("archived.folderName", "archived");
   }
 
   //
@@ -188,7 +190,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
 
   /**
    * Reads the states from the files, once, and tidies the snapshots: one of a game that is solved (as the snapshots were before solved games
-   * were saved separately) is moved to the solved folder, and one that is too old is removed.
+   * were saved separately) is moved to the solved folder, and one that is too old is moved to the archived folder.
    */
   private synchronized void ensureStatesLoaded() {
     if (statesLoaded) {
@@ -210,7 +212,7 @@ public class SnapshotManager implements SokobanLevel.Collection {
         mergeState(hashOf(snapshot.level()), SnapshotState.SOLVED);
         moveToSolved(file);
       } else if (maxAgeDays > 0 && System.currentTimeMillis() - file.lastModified() > maxAgeMillis) {
-        deleteFile(file);
+        archive(file);
       } else {
         mergeState(hashOf(snapshot.level()), SnapshotState.STARTED);
         ongoingFiles.add(file.getName());
@@ -240,6 +242,16 @@ public class SnapshotManager implements SokobanLevel.Collection {
     deleteFile(snapshotFile);
   }
 
+  /** Moves the file to the archived folder, where it replaces an older file of the same name. */
+  private void archive(File file) {
+    try {
+      Files.createDirectories(archivedFolderPath());
+      Files.move(file.toPath(), archivedFolderPath().resolve(file.getName()), StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException ioex) {
+      System.err.println("Couldn't archive " + file);
+    }
+  }
+
   private void deleteFile(File file) {
     try {
       Files.deleteIfExists(file.toPath());
@@ -262,6 +274,10 @@ public class SnapshotManager implements SokobanLevel.Collection {
 
   private Path solvedFolderPath() {
     return folderPath(solvedFolderName);
+  }
+
+  private Path archivedFolderPath() {
+    return folderPath(archivedFolderName);
   }
 
   private String fileName(SokobanGameState game, String ending) {

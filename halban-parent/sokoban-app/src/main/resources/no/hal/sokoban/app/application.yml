@@ -5,6 +5,9 @@
     label: "Ongoing",
     maxAgeDays: 7
   },
+  archived: {
+    folderName: "archived"
+  },
   solved: {
     folderName: "solved",
     fileNameEnding: "-solved.txt",

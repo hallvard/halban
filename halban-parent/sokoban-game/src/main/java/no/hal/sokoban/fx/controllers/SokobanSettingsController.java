@@ -11,6 +11,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import no.hal.config.ext.ExtConfiguration;
 import no.hal.fx.ContentProvider;
+import no.hal.fx.TouchSlop;
 import no.hal.grid.fx.GridView;
 import no.hal.grid.impl.GridImpl;
 import no.hal.sokoban.SokobanGrid.CellKind;
@@ -46,6 +47,8 @@ public class SokobanSettingsController implements ContentProvider<Parent> {
     var styleBox = new ComboBox<CellStyle.Style>();
     styleBox.getItems().setAll(cellStyle.getStyles());
     styleBox.valueProperty().bindBidirectional(cellStyle.styleProperty());
+    // taps on the items of the list of the dropdown, which is a popup, need the touch slop too
+    TouchSlop.install(styleBox);
     var preview = createPreview();
     var content = new VBox(10, title, new Label("Draw the cells with"), styleBox, new Label("Preview"), preview);
     content.setPadding(new Insets(12));

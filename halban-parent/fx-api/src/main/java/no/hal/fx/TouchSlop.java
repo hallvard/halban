@@ -2,7 +2,9 @@ package no.hal.fx;
 
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.IndexedCell;
+import javafx.scene.control.ListCell;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Screen;
 
@@ -48,6 +50,11 @@ public final class TouchSlop {
   private TouchSlop() {
   }
 
+  /** The slop in units of the scene for the primary screen, for code that tells a tap from a drag itself. */
+  public static double slop() {
+    return slopFor(Screen.getPrimary().getDpi());
+  }
+
   /** The slop in units of the scene, for a screen with this density in dots per inch. Never less than the units of a dp on the most common screens. */
   static double slopFor(double dpi) {
     return SLOP_DP * Math.max(dpi, 160) / 160;
@@ -63,6 +70,29 @@ public final class TouchSlop {
       }
     });
     scene.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> tap.release());
+  }
+
+  /**
+   * The same for the list of a dropdown, which is in a window of its own (a popup) with a scene of its own, so the filter of the scene of the app
+   * doesn't see it, and a tap on an item doesn't always select it. The scene is known when the first cell of the list is shown, so the
+   * filter is installed then, once for each scene. The cells show the items as text, as the default of a dropdown does.
+   */
+  public static <T> void install(ComboBox<T> comboBox) {
+    comboBox.setCellFactory(list -> {
+      var cell = new ListCell<T>() {
+        @Override
+        protected void updateItem(T item, boolean empty) {
+          super.updateItem(item, empty);
+          setText(empty || item == null ? null : item.toString());
+        }
+      };
+      cell.sceneProperty().addListener((obs, oldScene, scene) -> {
+        if (scene != null && scene.getProperties().putIfAbsent(TouchSlop.class, true) == null) {
+          install(scene);
+        }
+      });
+      return cell;
+    });
   }
 
   private static boolean cellOf(Object target) {

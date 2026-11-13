@@ -27,6 +27,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import no.hal.config.ext.ExtConfiguration;
+import no.hal.fx.TouchSlop;
 import no.hal.grid.Direction;
 import no.hal.grid.Grid.Location;
 import no.hal.grid.fx.CompositeGridCellFactory;
@@ -387,6 +388,8 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		private SokobanGrid.Location pressedLocation;
 		private ContentKind pressedContent = null;
 		private Point2D lastPoint;
+		/** Where the press was, to tell a tap from a drag when the finger is lifted. */
+		private Point2D pressedPoint;
 		private SokobanGrid.Location lastLocation;
 
 		private final Function<MouseEvent, Location> locationProvider;
@@ -409,7 +412,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		}
 
 		private void mousePressed(MouseEvent mouseEvent) {
-			this.lastPoint = new Point2D(mouseEvent.getX(), mouseEvent.getY());
+			this.lastPoint = this.pressedPoint = new Point2D(mouseEvent.getX(), mouseEvent.getY());
 			this.lastLocation = this.pressedLocation = locationProvider.apply(mouseEvent);
 			if (this.pressedLocation != null) {
 				mouseEvent.consume();
@@ -463,7 +466,9 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		}
 
 		protected void mouseReleased(MouseEvent mouseEvent) {
-			if (this.pressedContent == ContentKind.EMPTY && getDirection(getMousePoint(mouseEvent)) == null) {
+			// a tap that moves a little (a finger always does) is still a tap, as with the touch slop of lists and trees
+			boolean tap = pressedPoint != null && pressedPoint.distance(mouseEvent.getX(), mouseEvent.getY()) <= TouchSlop.slop();
+			if (this.pressedContent == ContentKind.EMPTY && tap) {
 				movesSlowdownController.withSlowMoves(() -> MovesComputer.computeMovesTo(sokobanGame, this.pressedLocation.x(), this.pressedLocation.y()));
 			}
 			movementNodeController.updateMovementNodeTranslation(null);

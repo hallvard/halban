@@ -292,13 +292,10 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 
 	private void updateStatus() {
 		MovesCounter counter = counters.getCounter();
-		SokobanGrid sokobanGrid = sokobanGame.getSokobanGrid();
-		int[] targetCounters = sokobanGrid.countTargets();
-		String status = (targetCounters[1] == 0 ? "You made it" : targetCounters[1] + " of " + (targetCounters[0] + targetCounters[1]) + " targets left") +
-			", in " +
-			formatPlural("%s move%s", counter.moves(), false) +
-			" and " +
-			formatPlural("%s push%s", counter.pushes(), true);
+		// SokobanGrid sokobanGrid = sokobanGame.getSokobanGrid();
+		// int[] targetCounters = sokobanGrid.countTargets();
+		String status = formatPlural("%s move%s", counter.moves(), false) +
+			" and " +	formatPlural("%s push%s", counter.pushes(), true);
 		updateStatus(status);
 	}
 

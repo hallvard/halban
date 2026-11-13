@@ -10,6 +10,9 @@ name: Android
 # replaced each time, so https://github.com/<owner>/<repo>/releases/download/latest/halban.apk is always the newest.
 # Secrets: ANDROID_KEYSTORE_BASE64 (the keystore file, base64), ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD.
 # Without them, the app is signed with a debug key, which is different for each build.
+# When the secret NTFY_TOPIC is set, the end of the build is sent as a notification through ntfy.sh (the ntfy app on the phone, subscribed to
+# the topic): tapping it opens the apk to download when the build worked, and the run when it failed. The topic is the only secret
+# of a topic on ntfy.sh, so it should be a long name that can't be guessed.
 
 on:
   workflow_dispatch:
@@ -121,3 +124,25 @@ jobs:
             ~/.gluon
             ~/.gradle
           key: android-${{ hashFiles('**/pom.xml') }}
+
+      - name: Notify the phone
+        if: always()
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          STATUS: ${{ job.status }}
+        run: |
+          [ -n "$NTFY_TOPIC" ] || exit 0
+          repo_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          if [ "$STATUS" = "success" ]; then
+            title="halban build ${{ github.run_number }} is ready"
+            link="$repo_url/releases/download/latest/halban.apk"
+            text="Download: $link"
+            tags="white_check_mark"
+          else
+            title="halban build ${{ github.run_number }}: $STATUS"
+            link="$repo_url/actions/runs/${{ github.run_id }}"
+            text="The run: $link"
+            tags="x"
+          fi
+          message=$(printf '%s\n%s %s' "$text" "${GITHUB_SHA::7}" "$(git log -1 --format=%s 2>/dev/null)")
+          curl -sS -H "Title: $title" -H "Click: $link" -H "Tags: $tags" -d "$message" "https://ntfy.sh/$NTFY_TOPIC" || true

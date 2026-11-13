@@ -343,8 +343,10 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 	}
 
 	private MouseMovementsController mouseMovementsController = new MouseMovementsController(mouseEvent -> {
-		var pick = mouseEvent.getPickResult().getIntersectedNode();
-		return sokobanGridView.getGridView().getGridLocation(pick);
+		// from the position, not the node that was hit, which may be a larger shape of a cell next to the one that was meant
+		var gridView = sokobanGridView.getGridView();
+		var point = gridView.sceneToLocal(mouseEvent.getSceneX(), mouseEvent.getSceneY());
+		return point != null ? gridView.getGridLocation(point.getX(), point.getY()) : null;
 	});
 
 	private class MovementNodeController {

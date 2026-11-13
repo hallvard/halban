@@ -203,8 +203,10 @@ public class GridView<T> extends Region {
 		this.alignment = alignment;
 	}
 
-	@Override
-	protected void layoutChildren() {
+	/** Where the cells are: the size of a cell, and the position of the upper left corner of the first one. */
+	private record CellLayout(double cellSize, double left, double top) {}
+
+	private CellLayout cellLayout() {
         final double contentWidth = getWidth() - getInsets().getLeft() - getInsets().getRight();
         final double contentHeight = getHeight() - getInsets().getTop() - getInsets().getBottom();
 		final double cellSize = Math.min(contentWidth / columnCount, contentHeight / rowCount);
@@ -220,6 +222,35 @@ public class GridView<T> extends Region {
 			case CENTER -> paddingHeight / 2;
 			case BOTTOM, BASELINE -> paddingHeight;
 		};
+		return new CellLayout(cellSize, left, top);
+	}
+
+	/**
+	 * The location of the cell at the position (in the coordinates of this view), or null if there is none. It is worked out from the layout, not
+	 * from the node that is under the position (see {@link #getGridLocation(Node)}), since a cell may have a node that is larger than the cell
+	 * (as the circle that shows how often a location has been visited) which hides the cells next to it.
+	 */
+	public Grid.Location getGridLocation(double x, double y) {
+		if (columnCount == 0 || rowCount == 0) {
+			return null;
+		}
+		var layout = cellLayout();
+		int column = (int) Math.floor((x - layout.left()) / layout.cellSize());
+		int row = (int) Math.floor((y - layout.top()) / layout.cellSize());
+		if (! isValidXY(column, row)) {
+			return null;
+		}
+		var location = new Grid.Location(column, row);
+		if (grid instanceof XYTransformedGrid xyTransformedGrid) {
+			location = xyTransformedGrid.getXYTransformer().untransformed(location);
+		}
+		return location;
+	}
+
+	@Override
+	protected void layoutChildren() {
+		final var layout = cellLayout();
+		final double cellSize = layout.cellSize(), left = layout.left(), top = layout.top();
 
 		if (cells != null) {
 			int row = 0, column = 0;

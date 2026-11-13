@@ -14,7 +14,7 @@ import no.hal.config.ext.ExtConfiguration;
 import no.hal.fx.ContentProvider;
 import no.hal.fx.LabelAdapter;
 import no.hal.sokoban.fx.ShortcutHandler;
-import no.hal.sokoban.fx.views.CellCharacters;
+import no.hal.sokoban.fx.views.CellStyle;
 import no.hal.sokoban.fx.views.SokobanCollectionsBrowser;
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.snapshot.SnapshotManager;
@@ -45,7 +45,7 @@ public class SokobanAppController implements ContentProvider.Container {
     config.registerInstance(LabelAdapter.forInstance(solvedSupplier, s -> solvedLabel + " (" + snapshotManager.getSolvedCount() + ")"), LabelAdapter.class, solvedSupplier);
 
     // read by the boards, and changed by the settings
-    config.registerInstance(CellCharacters.inHomeDirectory(), CellCharacters.class);
+    config.registerInstance(CellStyle.inHomeDirectory(), CellStyle.class);
 
     config.registerInstance(new ShortcutHandler(() -> config.getInstance(Scene.class)), ShortcutHandler.class);
   }

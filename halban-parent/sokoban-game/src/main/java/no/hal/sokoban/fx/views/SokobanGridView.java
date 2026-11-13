@@ -25,9 +25,9 @@ public class SokobanGridView {
 
 	public SokobanGridView(Configuration config) {
 		this.gridView = new GridView<>();
-		// the characters of the settings, if there are any, may be used instead of the images
-		var characters = config instanceof InstanceRegistry registry ? registry.getInstance(CellCharacters.class) : null;
-		setCellFactory(new SokobanCellFactory(config, characters));
+		// the style of the settings may be another than the images
+		var cellStyle = config instanceof InstanceRegistry registry ? registry.getInstance(CellStyle.class) : null;
+		setCellFactory(new SokobanCellFactory(config, cellStyle));
 		xyTransformerProperty.addListener((prop, oldValue, newValue) -> {
 			var grid = new XYTransformedGrid<CellKind, SokobanGrid>(getSokobanGrid());
 			grid.setXYTransform(getXYTransform());

@@ -15,6 +15,7 @@
         <module>grid-api</module>
         <module>grid-fx</module>
         <module>sokoban-api</module>
+        <module>sokoban-solver</module>
         <module>sokoban-game-api</module>
         <module>sokoban-game</module>
         <module>sokoban-recorder</module>

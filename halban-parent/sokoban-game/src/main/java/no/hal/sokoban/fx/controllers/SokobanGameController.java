@@ -51,6 +51,7 @@ import no.hal.sokoban.fx.views.SokobanGridView;
 import no.hal.sokoban.impl.AbstractSokobanGameProvider;
 import no.hal.sokoban.impl.MovesComputer;
 import no.hal.sokoban.impl.SokobanGameImpl;
+import no.hal.sokoban.solver.SokobanSolver;
 import no.hal.sokoban.level.SokobanLevel;
 import org.kordamp.ikonli.javafx.FontIcon;
 
@@ -86,6 +87,8 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 	}
 
 	public SokobanGame startSokobanGame() {
+		// a search for a hint of the game that is replaced is of no use
+		hintCancelled = true;
 		if (this.sokobanGame != null) {
 			this.sokobanGame.removeGameListener(sokobanGameListener);
 			if (onGameEnded != null) {
@@ -148,6 +151,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 	private UndoRedoController undoableController;
 
 	private Text messageText;
+	private Button hintButton;
 
 	private Dimension2D cellSize = new Dimension2D(16, 16);
 
@@ -200,6 +204,9 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 
 		this.undoableController = new UndoRedoController(shortcutHandler);
 		var undoPane = undoableController.getContent();
+		hintButton = new Button("?");
+		hintButton.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
+		hintButton.setOnAction(ev -> showHint());
 
 		sokobanPane.setPadding(new Insets(10));
 		movementPane.setPadding(new Insets(10));
@@ -230,7 +237,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 			sokobanPane,
 			messageText,
 			createAligningHbox(HPos.CENTER, movementPane),
-			createAligningHbox(HPos.CENTER, undoPane),
+			createAligningHbox(HPos.CENTER, undoPane, hintButton),
 			createAligningHbox(HPos.CENTER, extensionsPane),
 			mainPaneFiller
 		);
@@ -280,6 +287,75 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		var sokobanGrid = sokobanGame != null ? sokobanGame.getSokobanGrid() : sokobanLevel.getSokobanGrid();
 		sokobanGridView.setSokobanGrid(sokobanGrid);
 		ensureKeyboardFocus();
+	}
+
+	// hint
+
+	/** The limits of the search for a hint, which is made on a thread of its own: the time, and the number of states (which is memory, as the phone has little of it). */
+	private static final long HINT_TIMEOUT_MILLIS = 15_000;
+	private static final int HINT_MAX_STATES = 500_000;
+
+	private volatile boolean hintCancelled = false;
+	private boolean hintSearching = false;
+
+	/**
+	 * Makes the next push of a solution of the level, from where the game is now. It is found by the solver, which is searched on another thread
+	 * while the button is disabled, and then done in two steps, the walk to the box and then the push, so each can be undone on its own. The moves are made
+	 * as slowly as the other moves (see {@link MovesSlowdownController}). If the game has been changed while the solver was working, the answer is not used.
+	 */
+	private void showHint() {
+		if (hintSearching || sokobanGame == null || movesSlowdownController.isActive()) {
+			return;
+		}
+		var game = sokobanGame;
+		int undoCount = game.undoCount();
+		// the solver reads the level when it is made, which is done here, so the game is not changed while it does
+		var solver = new SokobanSolver(game.getSokobanGrid());
+		hintSearching = true;
+		hintCancelled = false;
+		hintButton.setDisable(true);
+		messageText.setText("Looking for a hint...");
+		var thread = new Thread(() -> {
+			var result = solver.solve(HINT_MAX_STATES, HINT_TIMEOUT_MILLIS, () -> hintCancelled);
+			Platform.runLater(() -> {
+				hintSearching = false;
+				hintButton.setDisable(false);
+				if (game != sokobanGame || game.undoCount() != undoCount) {
+					// the game was restarted, or the player moved in the meantime
+					updateStatus();
+					return;
+				}
+				switch (result.status()) {
+					case UNSOLVABLE -> messageText.setText("This position can't be solved, undo some moves.");
+					case GAVE_UP -> messageText.setText("No hint found, the search gave up.");
+					case SOLVED -> {
+						var walk = new ArrayList<Move>();
+						Move push = null;
+						for (var move : result.moves()) {
+							if (move.moveKind() == Move.Kind.PUSH) {
+								push = move;
+								break;
+							}
+							walk.add(move);
+						}
+						if (push == null) {
+							messageText.setText("The level is solved.");
+						} else {
+							updateStatus();
+							var steps = new ArrayList<Moves>();
+							if (! walk.isEmpty()) {
+								steps.add(Moves.of(walk));
+							}
+							steps.add(push);
+							// the push is done and then undone, so it waits on the redo stack: the walk is the hint, the push is one redo away
+							movesSlowdownController.withSlowMovesInSteps(steps, true);
+						}
+					}
+				}
+			});
+		}, "hint");
+		thread.setDaemon(true);
+		thread.start();
 	}
 
 	protected void ensureKeyboardFocus() {

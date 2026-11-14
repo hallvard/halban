@@ -146,12 +146,33 @@ abstract class AbstractSokobanLevelCollectionsTreeView<T> extends AbstractItemSe
 
   private <T> void asyncAddTreeItems(TreeItem<Object> parentItem, Supplier<List<T>> childrenSupplier,
       Function<T, TreeItem<Object>> treeItemCreator) {
-    parentItem.getChildren().add(new TreeItem<Object>("Loading..."));
+    // when the children are shown already (a reload), they stay until the new ones are there, so the rows don't shift and the selection isn't disturbed
+    if (parentItem.getChildren().isEmpty()) {
+      parentItem.getChildren().add(new TreeItem<Object>("Loading..."));
+    }
     new Thread(() -> {
       var children = childrenSupplier.get();
       var treeItems = children.stream().map(treeItemCreator).toList();
-      Platform.runLater(() -> parentItem.getChildren().setAll(treeItems));
+      Platform.runLater(() -> {
+        // replacing the children removes the rows of the old ones, which clears or moves the selection: if the selected item is outside of them, it is selected again
+        var selectionModel = treeView.getSelectionModel();
+        var selected = selectionModel.getSelectedItem();
+        boolean keepSelected = selected != null && ! isDescendantOf(selected, parentItem);
+        parentItem.getChildren().setAll(treeItems);
+        if (keepSelected && selectionModel.getSelectedItem() != selected) {
+          selectionModel.select(selected);
+        }
+      });
     }).start();
+  }
+
+  private static boolean isDescendantOf(TreeItem<Object> item, TreeItem<Object> ancestor) {
+    for (var parent = item.getParent(); parent != null; parent = parent.getParent()) {
+      if (parent == ancestor) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean showSokobanLevels = true;

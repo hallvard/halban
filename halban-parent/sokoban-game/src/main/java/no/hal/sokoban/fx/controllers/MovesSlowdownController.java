@@ -1,5 +1,6 @@
 package no.hal.sokoban.fx.controllers;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import no.hal.sokoban.Move;
@@ -35,19 +36,43 @@ class MovesSlowdownController {
     }
   };
 
-  public void withSlowMoves(Supplier<Moves> moves) {
-    withSlowMoves(sokobanGameProvider.getSokobanGame(), slowdown, moves);
+  public boolean isActive() {
+    return active;
   }
 
-  private void withSlowMoves(SokobanGame game, int slowdown, Supplier<Moves> movements) {
+  public void withSlowMoves(Supplier<Moves> moves) {
+    withSlowMoves(sokobanGameProvider.getSokobanGame(), slowdown, () -> {
+      var result = moves.get();
+      return result != null ? List.of(result) : List.of();
+    });
+  }
+
+  /**
+   * Makes the moves one after the other, each as its own step that can be undone (a walk, and then a push, for instance), with the same slowdown.
+   * If undoLast is true, the last step is undone again, so it is left on the redo stack.
+   * It is not done if moves are being made already.
+   */
+  public void withSlowMovesInSteps(List<Moves> steps, boolean undoLast) {
+    withSlowMoves(sokobanGameProvider.getSokobanGame(), slowdown, () -> steps, undoLast);
+  }
+
+  private void withSlowMoves(SokobanGame game, int slowdown, Supplier<List<Moves>> movements) {
+    withSlowMoves(game, slowdown, movements, false);
+  }
+
+  private void withSlowMoves(SokobanGame game, int slowdown, Supplier<List<Moves>> movements, boolean undoLast) {
     if (!active) {
       game.addGameListener(sokobanGameListener);
       active = true;
       new Thread(() -> {
         try {
-          Moves moves = movements.get();
-          if (moves != null) {
+          for (Moves moves : movements.get()) {
             game.movePlayer(moves);
+          }
+          if (undoLast) {
+            // not slowed down, the listener only sleeps when a move is done
+            game.removeGameListener(sokobanGameListener);
+            game.undo();
           }
         } finally {
           game.removeGameListener(sokobanGameListener);

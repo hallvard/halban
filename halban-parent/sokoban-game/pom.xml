@@ -40,6 +40,11 @@
         </dependency>
         <dependency>
             <groupId>no.hal.halban</groupId>
+            <artifactId>sokoban-solver</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>no.hal.halban</groupId>
             <artifactId>sokoban-game-api</artifactId>
             <version>1.0-SNAPSHOT</version>        
         </dependency>

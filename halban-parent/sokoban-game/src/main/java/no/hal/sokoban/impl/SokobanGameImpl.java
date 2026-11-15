@@ -134,16 +134,22 @@ public class SokobanGameImpl extends AbstractSokobanGameProvider implements Soko
 	@Override
 	public Moves movePlayer(Moves moves) {
 		List<Move> actualMoves = new ArrayList<>();
+		// the step is on the undo stack at once, with the moves that are made so far, and each move is announced when it is made, not after all of them
+		var step = (Moves) () -> List.copyOf(actualMoves);
+		while (this.moves.size() > undoPos) {
+			this.moves.remove(this.moves.size() - 1);
+		}
+		this.moves.add(step);
+		undoPos++;
 		for (var move : moves) {
 			var moveKind = doMove(move.direction(), move.moveKind());
 			if (moveKind == null) {
 				break;
 			}
 			actualMoves.add(move);
+			fireMoveDone(move);
 		}
-		var result = Moves.of(actualMoves);
-		pushMoves(result);
-		return result;
+		return Moves.of(actualMoves);
 	}
 
 	@Override

@@ -168,6 +168,14 @@ public class SokobanGameImpl extends AbstractSokobanGameProvider implements Soko
 	}
 
 	@Override
+	public void setRedoMoves(List<Moves> redoMoves) {
+		while (this.moves.size() > undoPos) {
+			this.moves.remove(this.moves.size() - 1);
+		}
+		this.moves.addAll(redoMoves);
+	}
+
+	@Override
 	public int redoCount() {
 		return moves.size() - undoPos;
 	}

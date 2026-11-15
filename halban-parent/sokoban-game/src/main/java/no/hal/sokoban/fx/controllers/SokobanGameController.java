@@ -62,11 +62,13 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 	private final Consumer<SokobanGame> closer;
 
 	private ShortcutHandler shortcutHandler;
+	private final StepDelay stepDelay;
 
 	public SokobanGameController(ExtConfiguration config, SokobanLevel sokobanLevel, Consumer<SokobanGame> closer) {
     this.config = config;
 		this.sokobanLevel = sokobanLevel;
 		this.shortcutHandler = config.getInstance(ShortcutHandler.class);
+		this.stepDelay = config.getInstance(StepDelay.class);
 		this.closer = closer;
 	}
 
@@ -203,6 +205,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		this.messageText = new Text();
 
 		this.undoableController = new UndoRedoController(shortcutHandler);
+		undoableController.setRunner(movesSlowdownController::run);
 		var undoPane = undoableController.getContent();
 		hintButton = new Button("?");
 		hintButton.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
@@ -329,26 +332,23 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 					case UNSOLVABLE -> messageText.setText("This position can't be solved, undo some moves.");
 					case GAVE_UP -> messageText.setText("No hint found, the search gave up.");
 					case SOLVED -> {
-						var walk = new ArrayList<Move>();
-						Move push = null;
+						// the moves are grouped, each group a walk and the push that follows it, which is a step of undo and redo
+						var groups = new ArrayList<Moves>();
+						var group = new ArrayList<Move>();
 						for (var move : result.moves()) {
+							group.add(move);
 							if (move.moveKind() == Move.Kind.PUSH) {
-								push = move;
-								break;
+								groups.add(Moves.of(group));
+								group = new ArrayList<>();
 							}
-							walk.add(move);
 						}
-						if (push == null) {
+						if (groups.isEmpty()) {
 							messageText.setText("The level is solved.");
 						} else {
+							// all the groups are put on the redo stack, and the first is redone like the redo button does, so the rest are one redo each away
+							game.setRedoMoves(groups);
 							updateStatus();
-							var steps = new ArrayList<Moves>();
-							if (! walk.isEmpty()) {
-								steps.add(Moves.of(walk));
-							}
-							steps.add(push);
-							// the push is done and then undone, so it waits on the redo stack: the walk is the hint, the push is one redo away
-							movesSlowdownController.withSlowMovesInSteps(steps, true);
+							undoableController.redo(1);
 						}
 					}
 				}
@@ -381,7 +381,11 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 	
 	//
 
-	private MovesSlowdownController movesSlowdownController = new MovesSlowdownController(this, 10);
+	private final MovesSlowdownController movesSlowdownController = new MovesSlowdownController(this, () -> getStepDelayMillis());
+
+	private int getStepDelayMillis() {
+		return stepDelay.getMillis();
+	}
 
   // @Override
   public void performMoves(Moves moves) {

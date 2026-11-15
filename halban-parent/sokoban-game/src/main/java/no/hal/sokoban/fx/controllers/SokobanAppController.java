@@ -44,8 +44,9 @@ public class SokobanAppController implements ContentProvider.Container {
     config.registerInstance(solvedSupplier, SokobanLevel.CollectionProvider.class);
     config.registerInstance(LabelAdapter.forInstance(solvedSupplier, s -> solvedLabel + " (" + snapshotManager.getSolvedCount() + ")"), LabelAdapter.class, solvedSupplier);
 
-    // read by the boards, and changed by the settings
+    // read by the boards and the games, and changed by the settings
     config.registerInstance(CellStyle.inHomeDirectory(), CellStyle.class);
+    config.registerInstance(StepDelay.inHomeDirectory(), StepDelay.class);
 
     config.registerInstance(new ShortcutHandler(() -> config.getInstance(Scene.class)), ShortcutHandler.class);
   }

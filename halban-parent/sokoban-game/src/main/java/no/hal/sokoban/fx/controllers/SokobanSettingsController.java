@@ -6,6 +6,8 @@ import javafx.scene.Parent;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -34,10 +36,12 @@ public class SokobanSettingsController implements ContentProvider<Parent> {
 
   private final ExtConfiguration config;
   private final CellStyle cellStyle;
+  private final StepDelay stepDelay;
 
   public SokobanSettingsController(ExtConfiguration config) {
     this.config = config;
     this.cellStyle = config.getInstance(CellStyle.class);
+    this.stepDelay = config.getInstance(StepDelay.class);
   }
 
   @Override
@@ -50,7 +54,8 @@ public class SokobanSettingsController implements ContentProvider<Parent> {
     // taps on the items of the list of the dropdown, which is a popup, need the touch slop too
     TouchSlop.install(styleBox);
     var preview = createPreview();
-    var content = new VBox(10, title, new Label("Draw the cells with"), styleBox, new Label("Preview"), preview);
+    var content = new VBox(10, title, new Label("Draw the cells with"), styleBox, new Label("Preview"), preview,
+        new Label("Delay after each move when moves are done, undone or redone (milliseconds, 0 is none)"), createStepDelaySpinner());
     content.setPadding(new Insets(12));
 
     var scroll = new ScrollPane(content);
@@ -61,6 +66,28 @@ public class SokobanSettingsController implements ContentProvider<Parent> {
       preview.setCellSize(new Dimension2D(cell, cell));
     });
     return scroll;
+  }
+
+  private Spinner<Integer> createStepDelaySpinner() {
+    var spinner = new Spinner<Integer>(0, StepDelay.MAX_MILLIS, stepDelay.getMillis(), 10);
+    spinner.setEditable(true);
+    spinner.setMaxWidth(140);
+    spinner.getValueFactory().valueProperty().addListener((obs, oldValue, value) -> {
+      if (value != null) {
+        stepDelay.millisProperty().set(value);
+      }
+    });
+    // a number that is typed is used when the field is left, as a spinner does not do that itself
+    spinner.focusedProperty().addListener((obs, wasFocused, focused) -> {
+      if (! focused) {
+        try {
+          spinner.getValueFactory().setValue(Math.max(0, Math.min(StepDelay.MAX_MILLIS, Integer.parseInt(spinner.getEditor().getText().trim()))));
+        } catch (NumberFormatException e) {
+          spinner.getEditor().setText(String.valueOf(spinner.getValue()));
+        }
+      }
+    });
+    return spinner;
   }
 
   private GridView<CellKind> createPreview() {

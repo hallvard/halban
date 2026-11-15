@@ -1,6 +1,6 @@
 package no.hal.sokoban.fx.controllers;
 
-import java.util.List;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 import no.hal.sokoban.Move;
@@ -8,77 +8,75 @@ import no.hal.sokoban.Moves;
 import no.hal.sokoban.SokobanGame;
 import no.hal.sokoban.SokobanGameState;
 
+/**
+ * Makes moves with a delay after each of them (see {@link StepDelay}), whether they are done, undone or redone. The delay is read each time.
+ * With a delay the moves are made on a thread of its own, since the delay would otherwise block the user interface, and requests that
+ * come while that is going on are ignored. Without a delay they are made at once by the caller.
+ */
 class MovesSlowdownController {
 
   private final SokobanGame.Provider sokobanGameProvider;
-  private int slowdown;
+  private final IntSupplier delay;
 
-  public MovesSlowdownController(SokobanGame.Provider sokobanGameProvider, int defaultMoveSlowdown) {
+  public MovesSlowdownController(SokobanGame.Provider sokobanGameProvider, IntSupplier delay) {
     this.sokobanGameProvider = sokobanGameProvider;
-    this.slowdown = defaultMoveSlowdown;
+    this.delay = delay;
   }
 
-  public void setSlowdown(int slowdown) {
-    this.slowdown = slowdown;
-  }
-
-  private boolean active = false;
+  private volatile boolean active = false;
+  private int currentDelay;
 
   private SokobanGameState.Listener sokobanGameListener = new SokobanGameState.Listener.Impl() {
     @Override
     protected void moveDone(SokobanGameState game, Move move, boolean isUndo) {
-      if (active) {
+      if (active && currentDelay > 0) {
         try {
-          Thread.sleep(slowdown);
+          Thread.sleep(currentDelay);
         } catch (InterruptedException e) {
         }
       }
     }
   };
 
+  /** Tells if moves are being made with a delay, on a thread of their own. */
   public boolean isActive() {
     return active;
   }
 
+  /** Does the moves, as one step that can be undone. Nothing is done if the supplier gives null. */
   public void withSlowMoves(Supplier<Moves> moves) {
-    withSlowMoves(sokobanGameProvider.getSokobanGame(), slowdown, () -> {
+    run(() -> {
       var result = moves.get();
-      return result != null ? List.of(result) : List.of();
+      var game = sokobanGameProvider.getSokobanGame();
+      if (result != null && game != null) {
+        game.movePlayer(result);
+      }
     });
   }
 
   /**
-   * Makes the moves one after the other, each as its own step that can be undone (a walk, and then a push, for instance), with the same slowdown.
-   * If undoLast is true, the last step is undone again, so it is left on the redo stack.
-   * It is not done if moves are being made already.
+   * Runs the action, which makes moves (does, undoes or redoes them) in the current game, with the delay after each move.
+   * Nothing is done if moves are being made with a delay already.
    */
-  public void withSlowMovesInSteps(List<Moves> steps, boolean undoLast) {
-    withSlowMoves(sokobanGameProvider.getSokobanGame(), slowdown, () -> steps, undoLast);
-  }
-
-  private void withSlowMoves(SokobanGame game, int slowdown, Supplier<List<Moves>> movements) {
-    withSlowMoves(game, slowdown, movements, false);
-  }
-
-  private void withSlowMoves(SokobanGame game, int slowdown, Supplier<List<Moves>> movements, boolean undoLast) {
-    if (!active) {
-      game.addGameListener(sokobanGameListener);
-      active = true;
-      new Thread(() -> {
-        try {
-          for (Moves moves : movements.get()) {
-            game.movePlayer(moves);
-          }
-          if (undoLast) {
-            // not slowed down, the listener only sleeps when a move is done
-            game.removeGameListener(sokobanGameListener);
-            game.undo();
-          }
-        } finally {
-          game.removeGameListener(sokobanGameListener);
-          active = false;
-        }
-      }).start();
+  public void run(Runnable action) {
+    var game = sokobanGameProvider.getSokobanGame();
+    if (game == null || active) {
+      return;
     }
+    currentDelay = delay.getAsInt();
+    if (currentDelay <= 0) {
+      action.run();
+      return;
+    }
+    game.addGameListener(sokobanGameListener);
+    active = true;
+    new Thread(() -> {
+      try {
+        action.run();
+      } finally {
+        game.removeGameListener(sokobanGameListener);
+        active = false;
+      }
+    }, "moves").start();
   }
 }

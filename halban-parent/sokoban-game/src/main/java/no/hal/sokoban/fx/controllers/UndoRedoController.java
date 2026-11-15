@@ -2,6 +2,7 @@ package no.hal.sokoban.fx.controllers;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
@@ -29,6 +30,13 @@ public class UndoRedoController implements SokobanGameSubController {
 
 	public void setUndoActions(UndoActions undoActions) {
 		this.undoActions = undoActions;
+	}
+
+	private Consumer<Runnable> runner = Runnable::run;
+
+	/** Sets what runs the undo and redo, which is the caller itself by default, e.g. to do it with a delay after each move. */
+	public void setRunner(Consumer<Runnable> runner) {
+		this.runner = runner;
 	}
 
 	private List<Button> undoButtons = null;
@@ -64,7 +72,9 @@ public class UndoRedoController implements SokobanGameSubController {
 	public boolean undo(int count) {
 		if (undoActions != null && undoActions.undoCount() > 0 && count != 0) {
       int undoCount = count < 0 ? undoActions.undoCount() : Math.min(count, undoActions.undoCount());
-      return undoActions.undo(undoCount) == undoCount;
+      var actions = undoActions;
+      runner.accept(() -> actions.undo(undoCount));
+      return true;
 		}
 		return false;
 	}
@@ -72,7 +82,9 @@ public class UndoRedoController implements SokobanGameSubController {
 	public boolean redo(int count) {
 		if (undoActions != null && undoActions.redoCount() > 0 && count != 0) {
       int redoCount = count < 0 ? undoActions.redoCount() : Math.min(count, undoActions.redoCount());
-      return undoActions.redo(redoCount) == redoCount;
+      var actions = undoActions;
+      runner.accept(() -> actions.redo(redoCount));
+      return true;
 		}
 		return false;
 	}

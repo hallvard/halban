@@ -15,6 +15,7 @@ import no.hal.fx.ContentProvider;
 import no.hal.fx.LabelAdapter;
 import no.hal.sokoban.fx.ShortcutHandler;
 import no.hal.sokoban.fx.views.CellStyle;
+import no.hal.sokoban.fx.views.CollectionLevels;
 import no.hal.sokoban.fx.views.SokobanCollectionsBrowser;
 import no.hal.sokoban.level.SokobanLevel;
 import no.hal.sokoban.snapshot.SnapshotManager;
@@ -32,6 +33,8 @@ public class SokobanAppController implements ContentProvider.Container {
     this.snapshotsLabel = config.getString("snapshots.label", "Ongoing");
 
     config.registerInstance(snapshotManager, SnapshotManager.class);
+    // the levels of the collections that are loaded, which show how many of them are solved
+    config.registerInstance(new CollectionLevels(snapshotManager), CollectionLevels.class);
     // the instances are registered by class, and the adapters are all of the same class, so each is given a qualifier or the last one replaces the others
     config.registerInstance(LabelAdapter.forInstance(snapshotManager, s -> snapshotsLabel + " (" + snapshotManager.getOngoingCount() + ")"), LabelAdapter.class, snapshotManager);
     

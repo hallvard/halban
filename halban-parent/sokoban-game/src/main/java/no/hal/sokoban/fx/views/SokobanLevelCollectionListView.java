@@ -23,9 +23,11 @@ class SokobanLevelCollectionListView extends AbstractItemSelector<SokobanLevel> 
   
     private final Callback<ListView<SokobanLevel>, ListCell<SokobanLevel>> listCellFactory;
     private final SnapshotManager snapshotManager;
+    private final CollectionLevels collectionLevels;
 
     public SokobanLevelCollectionListView(ExtConfiguration config, LabelAdapter labelAdapter) {
         this.snapshotManager = config.getInstance(SnapshotManager.class);
+        this.collectionLevels = config.getInstance(CollectionLevels.class);
         this.listCellFactory = lv_ -> new LabelAdapterListCell<SokobanLevel>(new SokobanLevelCellHelper<SokobanLevel>(config, labelAdapter));
     }
 
@@ -80,6 +82,7 @@ class SokobanLevelCollectionListView extends AbstractItemSelector<SokobanLevel> 
             if (sokobanLevelCollectionProvider != null) {
                 new Thread(() -> {
                     var sokobanLevels = sokobanLevelCollectionProvider.getSokobanLevelCollection().getSokobanLevels();
+                    collectionLevels.loaded(sokobanLevelCollectionProvider, sokobanLevels);
                     Platform.runLater(() -> listView.getItems().setAll(sokobanLevels));
                 }).start();
             }

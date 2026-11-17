@@ -25,6 +25,7 @@ abstract class AbstractSokobanLevelCollectionsTreeView<T> extends AbstractItemSe
 
   private final Callback<TreeView<Object>, TreeCell<Object>> treeCellFactory;
   private final SnapshotManager snapshotManager;
+  private final CollectionLevels collectionLevels;
 
   private Collection<SokobanLevel.CollectionProvider> sokobanLevelCollectionProviders;
   private Collection<SokobanLevel.CollectionsProvider> sokobanLevelCollectionsProviders;
@@ -35,6 +36,7 @@ abstract class AbstractSokobanLevelCollectionsTreeView<T> extends AbstractItemSe
     this.sokobanLevelCollectionProviders = config.getAllInstances(SokobanLevel.CollectionProvider.class);
     this.sokobanLevelCollectionsProviders = config.getAllInstances(SokobanLevel.CollectionsProvider.class);
     this.snapshotManager = config.getInstance(SnapshotManager.class);
+    this.collectionLevels = config.getInstance(CollectionLevels.class);
     this.treeCellFactory = tv -> new LabelAdapterTreeCell<Object>(
         new SokobanLevelCellHelper<Object>(config, labelAdapter));
   }
@@ -72,6 +74,8 @@ abstract class AbstractSokobanLevelCollectionsTreeView<T> extends AbstractItemSe
     var selectedTreeItemProperty = treeView.getSelectionModel().selectedItemProperty();
     selectedItemProperty = createSelectedItemProperty(selectedTreeItemProperty);
     updateTreeRoot();
+    // a collection that is loaded, in the tree or elsewhere, gets its s/n
+    collectionLevels.addListener(() -> treeView.refresh());
     // the colors of the levels show how far the player has come, so the cells are redrawn when that changes
     snapshotManager.addListener(new SnapshotManager.Listener() {
       @Override
@@ -153,6 +157,8 @@ abstract class AbstractSokobanLevelCollectionsTreeView<T> extends AbstractItemSe
     new Thread(() -> {
       var children = childrenSupplier.get();
       var treeItems = children.stream().map(treeItemCreator).toList();
+      // the levels of a collection that is expanded are loaded, so it can show its s/n
+      collectionLevels.loaded(parentItem.getValue(), children);
       Platform.runLater(() -> {
         // replacing the children removes the rows of the old ones, which clears or moves the selection: if the selected item is outside of them, it is selected again
         var selectionModel = treeView.getSelectionModel();

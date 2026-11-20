@@ -24,7 +24,7 @@ class MovesSlowdownController {
   }
 
   private volatile boolean active = false;
-  private int currentDelay;
+  private volatile int currentDelay;
 
   private SokobanGameState.Listener sokobanGameListener = new SokobanGameState.Listener.Impl() {
     @Override
@@ -55,18 +55,23 @@ class MovesSlowdownController {
   }
 
   /**
-   * Runs the action, which makes moves (does, undoes or redoes them) in the current game, with the delay after each move.
-   * Nothing is done if moves are being made with a delay already.
+   * Runs the action, which makes moves (does, undoes or redoes them) in the current game, with the delay of the setting after each move.
+   * Nothing is done if moves are being made with a delay already, which is what is returned.
    */
-  public void run(Runnable action) {
+  public boolean run(Runnable action) {
+    return run(action, delay.getAsInt());
+  }
+
+  /** Runs the action as above, but with the delay that is given, which is zero for none. Returns true if it is done or going on, and false if it isn't. */
+  public boolean run(Runnable action, int delayMillis) {
     var game = sokobanGameProvider.getSokobanGame();
     if (game == null || active) {
-      return;
+      return false;
     }
-    currentDelay = delay.getAsInt();
+    currentDelay = delayMillis;
     if (currentDelay <= 0) {
       action.run();
-      return;
+      return true;
     }
     game.addGameListener(sokobanGameListener);
     active = true;
@@ -78,5 +83,6 @@ class MovesSlowdownController {
         active = false;
       }
     }, "moves").start();
+    return true;
   }
 }

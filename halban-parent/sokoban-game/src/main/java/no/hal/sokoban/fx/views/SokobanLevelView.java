@@ -77,8 +77,12 @@ public class SokobanLevelView {
                 default -> null;
             };
         }
-        var border = (paint != null ? new Border(new BorderStroke(paint, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(5))) : new Border((BorderStroke[]) null));
-        sokobanGridView.getGridView().setBorder(border);
+        sokobanGridView.getGridView().setBorder(stateBorder(paint));
+    }
+
+    /** The border that shows the state of a level, which is the same in the lists and in the game: none, orange (started) or green (solved). */
+    public static Border stateBorder(Paint paint) {
+        return paint != null ? new Border(new BorderStroke(paint, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(5))) : new Border((BorderStroke[]) null);
     }
 
     private void addMetaDataText(List<Node> children, String property, MetaData metaData, String altProperty) {

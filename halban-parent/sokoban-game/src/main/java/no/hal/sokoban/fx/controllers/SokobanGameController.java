@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.geometry.Dimension2D;
@@ -25,7 +26,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 import no.hal.config.ext.ExtConfiguration;
 import no.hal.fx.TouchSlop;
 import no.hal.grid.Direction;
@@ -48,6 +51,7 @@ import no.hal.sokoban.fx.ShortcutHandler;
 import no.hal.sokoban.fx.SokobanGameSubController;
 import no.hal.sokoban.fx.util.XYTransformStrategy;
 import no.hal.sokoban.fx.views.SokobanGridView;
+import no.hal.sokoban.fx.views.SokobanLevelView;
 import no.hal.sokoban.impl.AbstractSokobanGameProvider;
 import no.hal.sokoban.impl.MovesComputer;
 import no.hal.sokoban.impl.SokobanGameImpl;
@@ -119,6 +123,8 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 			movementController.setSokobanGameState(sokobanGame);
 			movementController.setSokobanMoveActions(sokobanGame);
 			undoableController.setUndoActions(sokobanGame);
+			// a level that is opened solved is not solved by the player now, so it gets no fanfare
+			wasSolved = isSolved(game);
 			fireGameStarted();
 			updateView();
 		}
@@ -126,6 +132,11 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		@Override
 		public void moveDone(SokobanGameState game, Move move) {
 			counters.plus(game.getPlayerLocation(), move);
+			boolean solved = isSolved(game);
+			if (solved && ! wasSolved && ! quiet) {
+				Platform.runLater(() -> fanfare(game));
+			}
+			wasSolved = solved;
 			fireMoveDone(move);
 			updateView();
 		}
@@ -133,6 +144,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		@Override
 		public void moveUndone(SokobanGameState game, Move move) {
 			counters.minus(game.getPlayerLocation(), move);
+			wasSolved = isSolved(game);
 			fireMoveUndone(move);
 			updateView();
 		}
@@ -205,7 +217,15 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		this.messageText = new Text();
 
 		this.undoableController = new UndoRedoController(shortcutHandler);
-		undoableController.setRunner(movesSlowdownController::run);
+		// undo and redo are not a solution that is found, so they give no fanfare when the level becomes solved by them
+		undoableController.setRunner(action -> movesSlowdownController.run(() -> {
+			quiet = true;
+			try {
+				action.run();
+			} finally {
+				quiet = false;
+			}
+		}));
 		var undoPane = undoableController.getContent();
 		hintButton = new Button("?");
 		hintButton.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
@@ -370,9 +390,73 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		MovesCounter counter = counters.getCounter();
 		// SokobanGrid sokobanGrid = sokobanGame.getSokobanGrid();
 		// int[] targetCounters = sokobanGrid.countTargets();
+		boolean solved = isSolved(sokobanGame);
 		String status = formatPlural("%s move%s", counter.moves(), false) +
-			" and " +	formatPlural("%s push%s", counter.pushes(), true);
+			" and " +	formatPlural("%s push%s", counter.pushes(), true) + (solved ? " - solved!" : "");
 		updateStatus(status);
+		// the state of the level is derived from the game itself: no border before the first push, orange when pushes are done, green when all the boxes are on targets
+		// (so it follows undo and redo too)
+		var paint = solved ? Color.GREEN : counter.pushes() > 0 ? Color.ORANGE : null;
+		sokobanGridView.getGridView().setBorder(SokobanLevelView.stateBorder(paint));
+	}
+
+	private static boolean isSolved(SokobanGameState game) {
+		return game != null && game.getSokobanGrid().countTargets()[1] == 0;
+	}
+
+	//
+	// fanfare
+
+	/** The time of the fanfare, which replays the solution, is at most this, so the speed depends on the number of moves (but is not slower than the max delay). */
+	private static final int FANFARE_MILLIS = 6000;
+	private static final int FANFARE_MAX_DELAY_MILLIS = 150;
+
+	private volatile boolean wasSolved = false;
+	/** True while moves are made that are not new ones, so that becoming solved by them gives no fanfare. */
+	private volatile boolean quiet = false;
+
+	/**
+	 * Shows the solution: the game is taken back to the start, which is quick, and the moves are made again with a delay that is adjusted so that the whole takes
+	 * no more than {@link #FANFARE_MILLIS}. The border follows the replay, as the state is derived from the game: none, orange and then green.
+	 */
+	private void fanfare(SokobanGameState solvedGame) {
+		var game = sokobanGame;
+		if (game != solvedGame || ! isSolved(game) || game.undoCount() == 0) {
+			return;
+		}
+		if (movesSlowdownController.isActive()) {
+			// the move that solved the level is made by a walk that is still finishing, so try again soon
+			var pause = new PauseTransition(Duration.millis(50));
+			pause.setOnFinished(ev -> fanfare(solvedGame));
+			pause.play();
+			return;
+		}
+		int steps = game.undoCount();
+		int moveCount = Math.max(1, game.getMoves().size());
+		int delay = Math.max(1, Math.min(FANFARE_MAX_DELAY_MILLIS, FANFARE_MILLIS / moveCount));
+		// what follows the game (the snapshots, which are written at each move) is left out while the solution is shown, as the game ends up as it was
+		if (onGameEnded != null) {
+			onGameEnded.accept(game);
+		}
+		quiet = true;
+		game.undo(steps);
+		boolean started = movesSlowdownController.run(() -> {
+			try {
+				game.redo(steps);
+			} finally {
+				quiet = false;
+				if (onGameStarted != null) {
+					onGameStarted.accept(game);
+				}
+			}
+		}, delay);
+		if (! started) {
+			game.redo(steps);
+			quiet = false;
+			if (onGameStarted != null) {
+				onGameStarted.accept(game);
+			}
+		}
 	}
 
 	private void updateStatus(String text) {
@@ -405,6 +489,11 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 	//
 
 	protected void keyPressed(KeyEvent keyEvent) {
+		if (movesSlowdownController.isActive()) {
+			// moves are being replayed, which user moves would cut into
+			keyEvent.consume();
+			return;
+		}
 		if (keyEvent.getCode() == KeyCode.ESCAPE) {
 			startSokobanGame();
 			keyEvent.consume();
@@ -491,6 +580,11 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		}
 
 		private void mousePressed(MouseEvent mouseEvent) {
+			if (movesSlowdownController.isActive()) {
+				mouseEvent.consume();
+				pressedLocation = null;
+				return;
+			}
 			this.lastPoint = this.pressedPoint = new Point2D(mouseEvent.getX(), mouseEvent.getY());
 			this.lastLocation = this.pressedLocation = locationProvider.apply(mouseEvent);
 			if (this.pressedLocation != null) {

@@ -407,17 +407,13 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 	//
 	// fanfare
 
-	/** The time of the fanfare, which replays the solution, is at most this, so the speed depends on the number of moves (but is not slower than the max delay). */
-	private static final int FANFARE_MILLIS = 6000;
-	private static final int FANFARE_MAX_DELAY_MILLIS = 150;
-
 	private volatile boolean wasSolved = false;
 	/** True while moves are made that are not new ones, so that becoming solved by them gives no fanfare. */
 	private volatile boolean quiet = false;
 
 	/**
-	 * Shows the solution: the game is taken back to the start, which is quick, and the moves are made again with a delay that is adjusted so that the whole takes
-	 * no more than {@link #FANFARE_MILLIS}. The border follows the replay, as the state is derived from the game: none, orange and then green.
+	 * Shows the solution: the game is taken back to the start, which is quick, and the moves are made again with the step delay of the settings, like any other redo.
+	 * The border follows the replay, as the state is derived from the game: none, orange and then green.
 	 */
 	private void fanfare(SokobanGameState solvedGame) {
 		var game = sokobanGame;
@@ -432,8 +428,6 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 			return;
 		}
 		int steps = game.undoCount();
-		int moveCount = Math.max(1, game.getMoves().size());
-		int delay = Math.max(1, Math.min(FANFARE_MAX_DELAY_MILLIS, FANFARE_MILLIS / moveCount));
 		// what follows the game (the snapshots, which are written at each move) is left out while the solution is shown, as the game ends up as it was
 		if (onGameEnded != null) {
 			onGameEnded.accept(game);
@@ -449,7 +443,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 					onGameStarted.accept(game);
 				}
 			}
-		}, delay);
+		}, getStepDelayMillis());
 		if (! started) {
 			game.redo(steps);
 			quiet = false;

@@ -5,6 +5,9 @@ import javafx.geometry.Dimension2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.layout.Region;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Callback;
 import no.hal.grid.Grid;
 import no.hal.grid.util.XYTransformedGrid;
@@ -51,6 +54,36 @@ public class GridView<T> extends Region {
 		for (var pos = 0; pos < cells.length; pos++) {
 			cells[pos] = cellFactory.call(this);
 			getChildren().add(cells[pos].getNode());
+		}
+		// after the cells, since the position of a cell among the children is its index
+		getChildren().add(frame);
+	}
+
+	// frame
+
+	/** The frame around the cells: it is outside them, so it hugs the board, wherever the board is placed in the view. */
+	private final Rectangle frame = new Rectangle();
+	private double frameWidth = 0;
+
+	{
+		frame.setManaged(false);
+		frame.setMouseTransparent(true);
+		frame.setFill(null);
+		frame.setVisible(false);
+	}
+
+	/**
+	 * Sets the frame around the cells, which has the width and the paint. The room for it is reserved around the cells when the width is more than zero,
+	 * also if the paint is transparent, so the layout doesn't change when only the paint does. No frame is a width of zero.
+	 */
+	public void setFrame(Paint paint, double width) {
+		boolean relayout = width != frameWidth;
+		frameWidth = Math.max(0, width);
+		frame.setStroke(paint != null ? paint : Color.TRANSPARENT);
+		frame.setStrokeWidth(frameWidth);
+		frame.setVisible(frameWidth > 0);
+		if (relayout) {
+			requestLayout();
 		}
 	}
 		
@@ -160,7 +193,7 @@ public class GridView<T> extends Region {
     }
 
 	private double computeWidth(double cellWidth, double prefWidth, double height) {
-		var width = getInsets().getLeft() + columnCount * cellWidth + getInsets().getRight();
+		var width = getInsets().getLeft() + 2 * frameWidth + columnCount * cellWidth + getInsets().getRight();
 		return prefWidth > 0 ? Math.min(width, prefWidth) : width;
 	}
 	@Override
@@ -177,7 +210,7 @@ public class GridView<T> extends Region {
 	}
 
 	private double computeHeight(double cellHeight, double prefHeight, double width) {
-		var height = getInsets().getTop() + rowCount * cellHeight + getInsets().getBottom();
+		var height = getInsets().getTop() + 2 * frameWidth + rowCount * cellHeight + getInsets().getBottom();
 		return prefHeight > 0 ? Math.min(height, prefHeight) : height;
 	}
 	@Override
@@ -207,17 +240,17 @@ public class GridView<T> extends Region {
 	private record CellLayout(double cellSize, double left, double top) {}
 
 	private CellLayout cellLayout() {
-        final double contentWidth = getWidth() - getInsets().getLeft() - getInsets().getRight();
-        final double contentHeight = getHeight() - getInsets().getTop() - getInsets().getBottom();
+        final double contentWidth = getWidth() - getInsets().getLeft() - getInsets().getRight() - 2 * frameWidth;
+        final double contentHeight = getHeight() - getInsets().getTop() - getInsets().getBottom() - 2 * frameWidth;
 		final double cellSize = Math.min(contentWidth / columnCount, contentHeight / rowCount);
 		final double paddingWidth = contentWidth - cellSize * columnCount;
 		final double paddingHeight = contentHeight - cellSize * rowCount;
-		final double left = getInsets().getLeft() + switch (alignment.getHpos()) {
+		final double left = getInsets().getLeft() + frameWidth + switch (alignment.getHpos()) {
 			case LEFT -> 0;
 			case CENTER -> paddingWidth / 2;
 			case RIGHT -> paddingWidth;
 		};
-		final double top = getInsets().getTop() + switch (alignment.getVpos()) {
+		final double top = getInsets().getTop() + frameWidth + switch (alignment.getVpos()) {
 			case TOP -> 0;
 			case CENTER -> paddingHeight / 2;
 			case BOTTOM, BASELINE -> paddingHeight;
@@ -264,6 +297,11 @@ public class GridView<T> extends Region {
 				}
 			}
 		}
+		// the stroke is centered on the edge of the rectangle, so the rectangle is half the width outside the cells
+		frame.setX(left - frameWidth / 2);
+		frame.setY(top - frameWidth / 2);
+		frame.setWidth(cellSize * columnCount + frameWidth);
+		frame.setHeight(cellSize * rowCount + frameWidth);
 	}
 
 

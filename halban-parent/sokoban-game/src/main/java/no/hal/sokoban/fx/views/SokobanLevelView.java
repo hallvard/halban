@@ -6,15 +6,8 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Dimension2D;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import no.hal.config.Configuration;
 import no.hal.grid.fx.GridView;
@@ -69,20 +62,7 @@ public class SokobanLevelView {
         addMetaDataText(metaDataChildren, "Author", sokobanLevel.getMetaData(), null);
         addMetaDataText(metaDataChildren, "hash", sokobanLevel.getMetaData(), "#");
 
-        Paint paint = null;
-        if (snapshotState != null) {
-            paint = switch (snapshotState) {
-                case SOLVED -> Color.GREEN;
-                case STARTED -> Color.ORANGE;
-                default -> null;
-            };
-        }
-        sokobanGridView.getGridView().setBorder(stateBorder(paint));
-    }
-
-    /** The border that shows the state of a level, which is the same in the lists and in the game: none, orange (started) or green (solved). */
-    public static Border stateBorder(Paint paint) {
-        return paint != null ? new Border(new BorderStroke(paint, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(5))) : new Border((BorderStroke[]) null);
+        sokobanGridView.setState(snapshotState);
     }
 
     private void addMetaDataText(List<Node> children, String property, MetaData metaData, String altProperty) {

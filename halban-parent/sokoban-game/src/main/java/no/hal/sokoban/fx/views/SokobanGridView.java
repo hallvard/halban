@@ -2,6 +2,8 @@ package no.hal.sokoban.fx.views;
 
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import no.hal.config.Configuration;
 import no.hal.config.ext.InstanceRegistry;
 import no.hal.grid.fx.GridCellFactory;
@@ -12,6 +14,7 @@ import no.hal.grid.util.XYTransformer;
 import no.hal.sokoban.SokobanGrid;
 import no.hal.sokoban.SokobanGrid.CellKind;
 import no.hal.sokoban.fx.util.XYTransformStrategy;
+import no.hal.sokoban.snapshot.SnapshotManager.SnapshotState;
 
 public class SokobanGridView {
 
@@ -25,6 +28,7 @@ public class SokobanGridView {
 
 	public SokobanGridView(Configuration config) {
 		this.gridView = new GridView<>();
+		stateProperty.addListener((prop, oldValue, state) -> updateStateFrame(state));
 		// the style of the settings may be another than the images
 		var cellStyle = config instanceof InstanceRegistry registry ? registry.getInstance(CellStyle.class) : null;
 		setCellFactory(new SokobanCellFactory(config, cellStyle));
@@ -40,6 +44,32 @@ public class SokobanGridView {
 				setXYTransform(xyTransformerProperty().getValue().getXYTransform());
 			}
 		});
+	}
+
+	// state
+
+	/** The width of the frame that shows the state, which is reserved when there is a state, so the layout doesn't change from one state to another. */
+	private static final double STATE_FRAME_WIDTH = 5;
+
+	private final SimpleObjectProperty<SnapshotState> stateProperty = new SimpleObjectProperty<>();
+
+	private void updateStateFrame(SnapshotState state) {
+		Paint paint = state == null ? null : switch (state) {
+			case SOLVED -> Color.GREEN;
+			case STARTED -> Color.ORANGE;
+			case NONE -> Color.TRANSPARENT;
+		};
+		// null is no frame, and none is a frame that isn't seen
+		gridView.setFrame(paint, state != null ? STATE_FRAME_WIDTH : 0);
+	}
+
+	/** The state of the level, which is shown as a frame around the board: orange when started, green when solved, none is not seen and null is no frame at all (and no room for it). */
+	public Property<SnapshotState> stateProperty() {
+		return stateProperty;
+	}
+
+	public void setState(SnapshotState state) {
+		stateProperty.set(state);
 	}
 
 	// gridView

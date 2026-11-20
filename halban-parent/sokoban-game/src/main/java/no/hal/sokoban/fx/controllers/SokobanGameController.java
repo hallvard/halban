@@ -26,7 +26,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import no.hal.config.ext.ExtConfiguration;
@@ -51,9 +50,9 @@ import no.hal.sokoban.fx.ShortcutHandler;
 import no.hal.sokoban.fx.SokobanGameSubController;
 import no.hal.sokoban.fx.util.XYTransformStrategy;
 import no.hal.sokoban.fx.views.SokobanGridView;
-import no.hal.sokoban.fx.views.SokobanLevelView;
 import no.hal.sokoban.impl.AbstractSokobanGameProvider;
 import no.hal.sokoban.impl.MovesComputer;
+import no.hal.sokoban.snapshot.SnapshotManager.SnapshotState;
 import no.hal.sokoban.impl.SokobanGameImpl;
 import no.hal.sokoban.solver.SokobanSolver;
 import no.hal.sokoban.level.SokobanLevel;
@@ -181,6 +180,8 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		this.sokobanGridView.setXYTransformStrategy(XYTransformStrategy.PREFER_WIDTH);
 		this.defaultCellFactory = sokobanGridView.getCellFactory();
 
+		// the frame of the state has its room from the start, so the board doesn't move when the first push is made
+		sokobanGridView.setState(SnapshotState.NONE);
 		var gridView = sokobanGridView.getGridView();
 		var sokobanPane = gridView;
 		sokobanPane.setAlignment(Pos.CENTER);
@@ -396,8 +397,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		updateStatus(status);
 		// the state of the level is derived from the game itself: no border before the first push, orange when pushes are done, green when all the boxes are on targets
 		// (so it follows undo and redo too)
-		var paint = solved ? Color.GREEN : counter.pushes() > 0 ? Color.ORANGE : null;
-		sokobanGridView.getGridView().setBorder(SokobanLevelView.stateBorder(paint));
+		sokobanGridView.setState(solved ? SnapshotState.SOLVED : counter.pushes() > 0 ? SnapshotState.STARTED : SnapshotState.NONE);
 	}
 
 	private static boolean isSolved(SokobanGameState game) {

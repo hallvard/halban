@@ -3,9 +3,7 @@ package no.hal.sokoban.solver;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.function.BooleanSupplier;
 
@@ -32,7 +30,7 @@ import no.hal.sokoban.SokobanGrid.FloorKind;
  * This is the pruning that matters most.</li>
  * </ul>
  * The search is only done on states that are possible, so if it ends without a solution, there is none. It also gives up, with a limit on the number of states (which is memory, as a state is
- * about 100 bytes), on the time, or when it is cancelled. It uses no JavaFX, so it can run on any thread.
+ * about 50 bytes), on the time, or when it is cancelled. It uses no JavaFX, so it can run on any thread.
  */
 public final class SokobanSolver {
 
@@ -49,7 +47,23 @@ public final class SokobanSolver {
    * The outcome. The moves are only there if solved: walking as lower case, pushes as upper case (as {@link Move} has them), and none if the level was solved already.
    * Pushes is the number of pushes (the fewest there are), and expanded the number of states that were looked into.
    */
-  public record Result(Status status, Moves moves, int pushes, long expanded) {
+  public record Result(Status status, Moves moves, int pushes, long expanded, Statistics statistics) {
+
+    /** A result that has no statistics, as the search was not started. */
+    public Result(Status status, Moves moves, int pushes, long expanded) {
+      this(status, moves, pushes, expanded, Statistics.NONE);
+    }
+  }
+
+  /**
+   * What the search got to, which tells how far it was when it stopped (and how long it would need): the estimate of the pushes at the start, the frontier, which is the
+   * highest value of pushes so far plus the estimate of the pushes left that the search has looked into (A* looks at the states in order of it, so the solution has
+   * a value of at least that, and the frontier gets from the start estimate towards the pushes of the solution), the number of states that are kept (which is the memory),
+   * and the number that are waiting to be looked into.
+   */
+  public record Statistics(int startEstimate, int frontier, int generated, int open) {
+
+    public static final Statistics NONE = new Statistics(0, 0, 0, 0);
   }
 
   public static final int DEFAULT_MAX_STATES = 1_000_000;
@@ -162,38 +176,183 @@ public final class SokobanSolver {
 
   // search
 
-  private static final class Node implements Comparable<Node> {
-    final int[] boxes;
-    /** The player, at where the last push left them. */
-    final int player;
-    final long boxHash, hash;
-    final Node parent;
-    /** The push that led here: the cell the box was pushed from, and the direction. */
-    final int from, direction;
-    final int g, h;
+  /**
+   * The states that are found, kept in arrays and not as objects, to use little memory (about 45 bytes for a state that is waiting or has been
+   * looked into, and 15 bytes for a deadlock, which is only a mark in the table). A state is the number it was found as. It has its boxes (all of them, as the cell
+   * numbers), where the player was left by the push that led to it, the state it came from, that push, and the pushes made so far. The estimate of the pushes
+   * left is not kept, as it is the key of the queue minus the pushes made. The states are found by the hash in a table of open addressing, where a deadlock has a mark
+   * in place of a state, and the states that are waiting to be looked into are in a heap of numbers that pack the estimate of the total, the pushes
+   * (so the deeper is first among the same estimates, which gets to a solution sooner), and the state.
+   */
+  private static final class Search {
 
-    Node(int[] boxes, int player, long boxHash, long hash, Node parent, int from, int direction, int g, int h) {
-      this.boxes = boxes;
-      this.player = player;
-      this.boxHash = boxHash;
-      this.hash = hash;
-      this.parent = parent;
-      this.from = from;
-      this.direction = direction;
-      this.g = g;
-      this.h = h;
+    private static final int ID_BITS = 27, G_BITS = 18;
+    static final int MAX_STATES = (1 << ID_BITS) - 1;
+    private static final int MAX_G = (1 << G_BITS) - 1;
+    private static final int DEADLOCK = -1;
+
+    final int n;
+    // the table: a value is 0 for a free place, DEADLOCK, or a state number plus one
+    private long[] keys = new long[1 << 12];
+    private int[] values = new int[1 << 12];
+    private int mask = keys.length - 1;
+    private int used;
+
+    char[] boxes;
+    int[] parent, g;
+    char[] player, from;
+    byte[] direction;
+    int count;
+
+    private long[] heap = new long[1 << 10];
+    int heapSize;
+
+    Search(int n) {
+      this.n = n;
+      int capacity = 1 << 10;
+      boxes = new char[capacity * n];
+      parent = new int[capacity];
+      g = new int[capacity];
+      player = new char[capacity];
+      from = new char[capacity];
+      direction = new byte[capacity];
     }
 
-    @Override
-    public int compareTo(Node other) {
-      int c = Integer.compare(g + h, other.g + other.h);
-      // the deeper first among the same estimates, which gets to a solution sooner
-      return c != 0 ? c : Integer.compare(other.g, g);
+    /** The number of places in the table that are used, which is the states and the deadlocks. */
+    int stored() {
+      return used;
+    }
+
+    // the table
+
+    private int place(long hash) {
+      int i = (int) ((hash * 0x9E3779B97F4A7C15L) >>> 40) & mask;
+      while (values[i] != 0 && keys[i] != hash) {
+        i = (i + 1) & mask;
+      }
+      return i;
+    }
+
+    /** 0 if the hash is not known, DEADLOCK, or the state number plus one. */
+    int lookup(long hash) {
+      return values[place(hash)];
+    }
+
+    void store(long hash, int value) {
+      int i = place(hash);
+      if (values[i] == 0) {
+        if (++used * 10L > keys.length * 6L) {
+          grow();
+          i = place(hash);
+        }
+      }
+      keys[i] = hash;
+      values[i] = value;
+    }
+
+    private void grow() {
+      var oldKeys = keys;
+      var oldValues = values;
+      keys = new long[oldKeys.length * 2];
+      values = new int[oldKeys.length * 2];
+      mask = keys.length - 1;
+      for (int j = 0; j < oldKeys.length; j++) {
+        if (oldValues[j] != 0) {
+          int i = place(oldKeys[j]);
+          keys[i] = oldKeys[j];
+          values[i] = oldValues[j];
+        }
+      }
+    }
+
+    // the states
+
+    /** Adds a state and gives its number. */
+    int add(int[] boxCells, int playerCell, int parentId, int fromCell, int directionIndex, int pushes) {
+      if (count == parent.length) {
+        int capacity = count + (count >> 1) + 16;
+        boxes = Arrays.copyOf(boxes, capacity * n);
+        parent = Arrays.copyOf(parent, capacity);
+        g = Arrays.copyOf(g, capacity);
+        player = Arrays.copyOf(player, capacity);
+        from = Arrays.copyOf(from, capacity);
+        direction = Arrays.copyOf(direction, capacity);
+      }
+      int id = count++;
+      for (int i = 0; i < n; i++) {
+        boxes[id * n + i] = (char) boxCells[i];
+      }
+      parent[id] = parentId;
+      g[id] = pushes;
+      player[id] = (char) playerCell;
+      from[id] = (char) fromCell;
+      direction[id] = (byte) directionIndex;
+      return id;
+    }
+
+    /** The boxes of the state. */
+    void boxesOf(int id, int[] into) {
+      for (int i = 0; i < n; i++) {
+        into[i] = boxes[id * n + i];
+      }
+    }
+
+    // the queue
+
+    void push(int estimate, int pushes, int id) {
+      long key = ((long) estimate << (ID_BITS + G_BITS)) | ((long) (MAX_G - Math.min(pushes, MAX_G)) << ID_BITS) | id;
+      if (heapSize == heap.length) {
+        heap = Arrays.copyOf(heap, heap.length * 2);
+      }
+      int i = heapSize++;
+      while (i > 0) {
+        int up = (i - 1) >> 1;
+        if (heap[up] <= key) {
+          break;
+        }
+        heap[i] = heap[up];
+        i = up;
+      }
+      heap[i] = key;
+    }
+
+    /** Removes the first entry of the queue, which is the one with the smallest estimate, and gives it. */
+    long poll() {
+      long first = heap[0];
+      long last = heap[--heapSize];
+      int i = 0;
+      while (true) {
+        int child = 2 * i + 1;
+        if (child >= heapSize) {
+          break;
+        }
+        if (child + 1 < heapSize && heap[child + 1] < heap[child]) {
+          child++;
+        }
+        if (heap[child] >= last) {
+          break;
+        }
+        heap[i] = heap[child];
+        i = child;
+      }
+      if (heapSize > 0) {
+        heap[i] = last;
+      }
+      return first;
+    }
+
+    static int idOf(long key) {
+      return (int) (key & MAX_STATES);
+    }
+
+    static int estimateOf(long key) {
+      return (int) (key >>> (ID_BITS + G_BITS));
+    }
+
+    static int pushesOf(long key) {
+      return MAX_G - (int) ((key >>> ID_BITS) & MAX_G);
     }
   }
-
-  /** A state that is known to be a deadlock, so it is not looked at again. */
-  private static final Node DEADLOCK = new Node(new int[0], 0, 0, 0, null, 0, 0, -1, 0);
 
   public Result solve() {
     return solve(DEFAULT_MAX_STATES, Long.MAX_VALUE, () -> false);
@@ -207,6 +366,11 @@ public final class SokobanSolver {
     if (! boxesAndTargetsMatch) {
       return new Result(Status.UNSOLVABLE, null, 0, 0);
     }
+    if (size > Character.MAX_VALUE) {
+      // the cells would not fit in the states
+      return new Result(Status.GAVE_UP, null, 0, 0);
+    }
+    maxStates = Math.min(maxStates, Search.MAX_STATES);
     long deadline = timeoutMillis == Long.MAX_VALUE ? Long.MAX_VALUE : System.nanoTime() + timeoutMillis * 1_000_000;
     long boxHash = 0;
     for (int box : startBoxes) {
@@ -219,38 +383,47 @@ public final class SokobanSolver {
     if (h >= INFINITE) {
       return new Result(Status.UNSOLVABLE, null, 0, 0);
     }
-    var root = new Node(startBoxes, startPlayer, boxHash, boxHash ^ playerZobrist[canonical], null, -1, -1, 0, h);
     if (h == 0) {
       return new Result(Status.SOLVED, Moves.of(List.of()), 0, 0);
     }
-    var closed = new HashMap<Long, Node>();
-    closed.put(root.hash, root);
-    var open = new PriorityQueue<Node>();
-    open.add(root);
+    var search = new Search(startBoxes.length);
+    int root = search.add(startBoxes, startPlayer, -1, -1, -1, 0);
+    search.store(boxHash ^ playerZobrist[canonical], root + 1);
+    search.push(h, 0, root);
     long expanded = 0;
-    while (! open.isEmpty()) {
-      var node = open.poll();
-      if (closed.get(node.hash) != node) {
+    int frontier = h;
+    var current = new int[startBoxes.length];
+    while (search.heapSize > 0) {
+      long key = search.poll();
+      int id = Search.idOf(key), g = Search.pushesOf(key);
+      if (search.g[id] != g) {
         // a shorter way to the same state was found since
         continue;
       }
-      if (node.h == 0) {
-        return new Result(Status.SOLVED, movesTo(node), node.g, expanded);
+      int estimate = Search.estimateOf(key);
+      frontier = Math.max(frontier, estimate);
+      if (estimate == g) {
+        return new Result(Status.SOLVED, movesTo(search, id), g, expanded, new Statistics(h, frontier, search.stored(), search.heapSize));
       }
-      if (closed.size() > maxStates || ((expanded & 255) == 0 && (System.nanoTime() > deadline || cancelled.getAsBoolean()))) {
-        return new Result(Status.GAVE_UP, null, 0, expanded);
+      if (search.stored() > maxStates || ((expanded & 255) == 0 && (System.nanoTime() > deadline || cancelled.getAsBoolean()))) {
+        return new Result(Status.GAVE_UP, null, 0, expanded, new Statistics(h, frontier, search.stored(), search.heapSize));
       }
       expanded++;
-      expand(node, closed, open);
+      expand(search, id, current);
     }
-    return new Result(Status.UNSOLVABLE, null, 0, expanded);
+    return new Result(Status.UNSOLVABLE, null, 0, expanded, new Statistics(h, frontier, search.stored(), 0));
   }
 
-  private void expand(Node node, HashMap<Long, Node> closed, PriorityQueue<Node> open) {
-    var boxes = node.boxes;
+  private void expand(Search search, int id, int[] boxes) {
+    search.boxesOf(id, boxes);
+    int g = search.g[id];
+    long nodeHash = 0;
+    for (int box : boxes) {
+      nodeHash ^= boxZobrist[box];
+    }
     setBoxes(boxes, true);
     reachableStamp++;
-    flood(node.player, reachable, reachableStamp);
+    flood(search.player[id], reachable, reachableStamp);
     for (int i = 0; i < boxes.length; i++) {
       int box = boxes[i];
       for (int d = 0; d < 4; d++) {
@@ -262,24 +435,32 @@ public final class SokobanSolver {
         boxAt[box] = false;
         boxAt[to] = true;
         int canonical = canonicalPlayer(box);
-        long boxHash = node.boxHash ^ boxZobrist[box] ^ boxZobrist[to];
+        long boxHash = nodeHash ^ boxZobrist[box] ^ boxZobrist[to];
         long hash = boxHash ^ playerZobrist[canonical];
-        var known = closed.get(hash);
-        if (known == null || known.g > node.g + 1 && known != DEADLOCK) {
-          int[] childBoxes = boxes.clone();
-          childBoxes[i] = to;
-          if (known == null && freezeDeadlock(to)) {
-            closed.put(hash, DEADLOCK);
+        int known = search.lookup(hash);
+        if (known == 0 || known > 0 && search.g[known - 1] > g + 1) {
+          boxes[i] = to;
+          if (known == 0 && freezeDeadlock(to)) {
+            search.store(hash, Search.DEADLOCK);
           } else {
-            int h = estimate(childBoxes);
+            int h = estimate(boxes);
             if (h >= INFINITE) {
-              closed.put(hash, DEADLOCK);
+              search.store(hash, Search.DEADLOCK);
+            } else if (known == 0) {
+              int child = search.add(boxes, box, id, box, d, g + 1);
+              search.store(hash, child + 1);
+              search.push(g + 1 + h, g + 1, child);
             } else {
-              var child = new Node(childBoxes, box, boxHash, hash, node, box, d, node.g + 1, h);
-              closed.put(hash, child);
-              open.add(child);
+              // the same state, reached with fewer pushes: the boxes are the same, but not their order
+              int child = known - 1;
+              search.parent[child] = id;
+              search.g[child] = g + 1;
+              search.from[child] = (char) box;
+              search.direction[child] = (byte) d;
+              search.push(g + 1 + h, g + 1, child);
             }
           }
+          boxes[i] = box;
         }
         boxAt[to] = false;
         boxAt[box] = true;
@@ -384,29 +565,30 @@ public final class SokobanSolver {
 
   // the moves
 
-  /** The moves of the pushes that led to the node: the walking to where each push is made from, and the push. */
-  private Moves movesTo(Node node) {
-    var pushes = new ArrayList<Node>();
-    for (var n = node; n.parent != null; n = n.parent) {
+  /** The moves of the pushes that led to the state: the walking to where each push is made from, and the push. */
+  private Moves movesTo(Search search, int id) {
+    var pushes = new ArrayList<Integer>();
+    for (int n = id; search.parent[n] >= 0; n = search.parent[n]) {
       pushes.add(n);
     }
     java.util.Collections.reverse(pushes);
     var moves = new ArrayList<Move>();
     var boxes = startBoxes.clone();
     int player = startPlayer;
-    for (var push : pushes) {
-      int step = delta[push.direction];
+    for (int push : pushes) {
+      int from = search.from[push], direction = search.direction[push];
+      int step = delta[direction];
       setBoxes(boxes, true);
-      walk(player, push.from - step, moves);
+      walk(player, from - step, moves);
       setBoxes(boxes, false);
-      moves.add(new Move(DIRECTIONS[push.direction], Move.Kind.PUSH));
+      moves.add(new Move(DIRECTIONS[direction], Move.Kind.PUSH));
       for (int i = 0; i < boxes.length; i++) {
-        if (boxes[i] == push.from) {
-          boxes[i] = push.from + step;
+        if (boxes[i] == from) {
+          boxes[i] = from + step;
           break;
         }
       }
-      player = push.from;
+      player = from;
     }
     return Moves.of(moves);
   }

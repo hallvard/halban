@@ -66,12 +66,14 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 
 	private ShortcutHandler shortcutHandler;
 	private final StepDelay stepDelay;
+	private final HintTimeout hintTimeout;
 
 	public SokobanGameController(ExtConfiguration config, SokobanLevel sokobanLevel, Consumer<SokobanGame> closer) {
     this.config = config;
 		this.sokobanLevel = sokobanLevel;
 		this.shortcutHandler = config.getInstance(ShortcutHandler.class);
 		this.stepDelay = config.getInstance(StepDelay.class);
+		this.hintTimeout = config.getInstance(HintTimeout.class);
 		this.closer = closer;
 	}
 
@@ -315,10 +317,7 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 
 	// hint
 
-	/** The limits of the search for a hint, which is made on a thread of its own: the time, and the number of states (which is memory, as the phone has little of it). */
-	private static final long HINT_TIMEOUT_MILLIS = 15_000;
-	private static final int HINT_MAX_STATES = 500_000;
-
+	// the limits of the search for a hint, which is made on a thread of its own, are the time of the setting, and the number of states that goes with it (which is memory)
 	private volatile boolean hintCancelled = false;
 	private boolean hintSearching = false;
 
@@ -335,12 +334,15 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		int undoCount = game.undoCount();
 		// the solver reads the level when it is made, which is done here, so the game is not changed while it does
 		var solver = new SokobanSolver(game.getSokobanGrid());
+		// read here, as the setting may be changed while the thread searches
+		int maxStates = hintTimeout.maxStates();
+		long timeoutMillis = hintTimeout.timeoutMillis();
 		hintSearching = true;
 		hintCancelled = false;
 		hintButton.setDisable(true);
 		messageText.setText("Looking for a hint...");
 		var thread = new Thread(() -> {
-			var result = solver.solve(HINT_MAX_STATES, HINT_TIMEOUT_MILLIS, () -> hintCancelled);
+			var result = solver.solve(maxStates, timeoutMillis, () -> hintCancelled);
 			Platform.runLater(() -> {
 				hintSearching = false;
 				hintButton.setDisable(false);

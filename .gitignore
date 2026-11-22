@@ -2,3 +2,6 @@
 
 # editor lock files
 .LCK*
+
+# levels that the jbang script downloads
+downloaded-levels/

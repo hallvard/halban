@@ -50,6 +50,7 @@ public class SokobanAppController implements ContentProvider.Container {
     // read by the boards and the games, and changed by the settings
     config.registerInstance(CellStyle.inHomeDirectory(), CellStyle.class);
     config.registerInstance(StepDelay.inHomeDirectory(), StepDelay.class);
+    config.registerInstance(HintTimeout.inHomeDirectory(), HintTimeout.class);
 
     config.registerInstance(new ShortcutHandler(() -> config.getInstance(Scene.class)), ShortcutHandler.class);
   }

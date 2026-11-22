@@ -6,6 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.VBox;
@@ -37,11 +38,13 @@ public class SokobanSettingsController implements ContentProvider<Parent> {
   private final ExtConfiguration config;
   private final CellStyle cellStyle;
   private final StepDelay stepDelay;
+  private final HintTimeout hintTimeout;
 
   public SokobanSettingsController(ExtConfiguration config) {
     this.config = config;
     this.cellStyle = config.getInstance(CellStyle.class);
     this.stepDelay = config.getInstance(StepDelay.class);
+    this.hintTimeout = config.getInstance(HintTimeout.class);
   }
 
   @Override
@@ -55,7 +58,8 @@ public class SokobanSettingsController implements ContentProvider<Parent> {
     TouchSlop.install(styleBox);
     var preview = createPreview();
     var content = new VBox(10, title, new Label("Draw the cells with"), styleBox, new Label("Preview"), preview,
-        new Label("Delay after each move when moves are done, undone or redone (milliseconds, 0 is none)"), createStepDelaySpinner());
+        new Label("Delay after each move when moves are done, undone or redone (milliseconds, 0 is none)"), createStepDelaySpinner(),
+        createHintTimeoutLabel(), createHintTimeoutSlider());
     content.setPadding(new Insets(12));
 
     var scroll = new ScrollPane(content);
@@ -88,6 +92,25 @@ public class SokobanSettingsController implements ContentProvider<Parent> {
       }
     });
     return spinner;
+  }
+
+  private Label createHintTimeoutLabel() {
+    var label = new Label();
+    label.setWrapText(true);
+    label.textProperty().bind(hintTimeout.secondsProperty().asString("Time allowed for finding a hint: %d seconds (a longer time finds a hint for more levels)"));
+    return label;
+  }
+
+  private Slider createHintTimeoutSlider() {
+    var slider = new Slider(HintTimeout.MIN_SECONDS, HintTimeout.MAX_SECONDS, hintTimeout.getSeconds());
+    slider.setMajorTickUnit(5);
+    slider.setMinorTickCount(0);
+    slider.setSnapToTicks(true);
+    slider.setShowTickMarks(true);
+    slider.setShowTickLabels(true);
+    slider.setMaxWidth(360);
+    slider.valueProperty().addListener((obs, oldValue, value) -> hintTimeout.secondsProperty().set((int) Math.round(value.doubleValue())));
+    return slider;
   }
 
   private GridView<CellKind> createPreview() {

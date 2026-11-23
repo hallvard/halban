@@ -430,6 +430,8 @@ public final class SokobanSolver {
     setBoxes(boxes, true);
     reachableStamp++;
     int smallest = flood(search.player[id], reachable, reachableStamp);
+    // the assignment of the boxes of this state, which the states after a push of one box start from
+    estimate(boxes);
     for (int i = 0; i < boxes.length; i++) {
       int box = boxes[i];
       for (int d = 0; d < 4; d++) {
@@ -451,7 +453,7 @@ public final class SokobanSolver {
           if (known == 0 && freezeDeadlock(to)) {
             search.store(hash, Search.DEADLOCK);
           } else {
-            int h = estimate(boxes);
+            int h = estimateAfterPush(i, box, to);
             if (h >= INFINITE) {
               search.store(hash, Search.DEADLOCK);
             } else if (known == 0) {
@@ -599,6 +601,28 @@ public final class SokobanSolver {
     return total >= INFINITE ? INFINITE : total;
   }
 
+  /**
+   * The estimate of the state after the push of box number {@code i} from {@code from} to {@code to}, when the assignment of the boxes before the push is
+   * the last one that {@link #estimate(int[])} found: the other boxes keep their costs, so the new assignment is found by assigning the one box again.
+   */
+  private int estimateAfterPush(int i, int from, int to) {
+    int n = targets.length;
+    boolean any = false;
+    for (int t = 0; t < n; t++) {
+      int cost = pushesTo[t][to];
+      hungarian.cost[i][t] = cost;
+      any |= cost < INFINITE;
+    }
+    int total = INFINITE;
+    if (any) {
+      total = hungarian.reassign(i);
+    }
+    for (int t = 0; t < n; t++) {
+      hungarian.cost[i][t] = pushesTo[t][from];
+    }
+    return total >= INFINITE ? INFINITE : total;
+  }
+
   // freeze deadlocks
 
   /**
@@ -708,7 +732,7 @@ public final class SokobanSolver {
 
     final int[][] cost;
     private final int n;
-    private final int[] u, v, p, way, minv;
+    private final int[] u, v, p, way, minv, baseU, baseV, baseP;
     private final boolean[] used;
 
     Hungarian(int n) {
@@ -719,51 +743,93 @@ public final class SokobanSolver {
       this.p = new int[n + 1];
       this.way = new int[n + 1];
       this.minv = new int[n + 1];
+      this.baseU = new int[n + 1];
+      this.baseV = new int[n + 1];
+      this.baseP = new int[n + 1];
       this.used = new boolean[n + 1];
     }
 
+    /** The cheapest assignment, which is kept as the one that {@link #reassign(int)} starts from. */
     int solve() {
       Arrays.fill(u, 0);
       Arrays.fill(v, 0);
       Arrays.fill(p, 0);
       for (int i = 1; i <= n; i++) {
-        p[0] = i;
-        int j0 = 0;
-        Arrays.fill(minv, Integer.MAX_VALUE);
-        Arrays.fill(used, false);
-        do {
-          used[j0] = true;
-          int i0 = p[j0], delta = Integer.MAX_VALUE, j1 = 0;
-          for (int j = 1; j <= n; j++) {
-            if (! used[j]) {
-              int current = cost[i0 - 1][j - 1] - u[i0] - v[j];
-              if (current < minv[j]) {
-                minv[j] = current;
-                way[j] = j0;
-              }
-              if (minv[j] < delta) {
-                delta = minv[j];
-                j1 = j;
-              }
-            }
-          }
-          for (int j = 0; j <= n; j++) {
-            if (used[j]) {
-              u[p[j]] += delta;
-              v[j] -= delta;
-            } else if (minv[j] != Integer.MAX_VALUE) {
-              minv[j] -= delta;
-            }
-          }
-          j0 = j1;
-        } while (p[j0] != 0);
-        do {
-          int j1 = way[j0];
-          p[j0] = p[j1];
-          j0 = j1;
-        } while (j0 != 0);
+        augment(i);
       }
-      return -v[0];
+      System.arraycopy(u, 0, baseU, 0, n + 1);
+      System.arraycopy(v, 0, baseV, 0, n + 1);
+      System.arraycopy(p, 0, baseP, 0, n + 1);
+      return total();
+    }
+
+    /**
+     * The cheapest assignment after the costs of row {@code row} (counted from 0) have changed from those of the last {@link #solve()}. The potentials
+     * of the other rows are still valid, as their costs are the same, so only the row is assigned again, which takes time n squared.
+     * The assignment of {@link #solve()} is kept, so it can be done again for another row.
+     */
+    int reassign(int row) {
+      System.arraycopy(baseU, 0, u, 0, n + 1);
+      System.arraycopy(baseV, 0, v, 0, n + 1);
+      System.arraycopy(baseP, 0, p, 0, n + 1);
+      int r = row + 1;
+      int smallest = Integer.MAX_VALUE;
+      for (int j = 1; j <= n; j++) {
+        if (p[j] == r) {
+          p[j] = 0;
+        }
+        smallest = Math.min(smallest, cost[row][j - 1] - v[j]);
+      }
+      u[r] = smallest;
+      augment(r);
+      return total();
+    }
+
+    private int total() {
+      int total = 0;
+      for (int j = 1; j <= n; j++) {
+        total += cost[p[j] - 1][j - 1];
+      }
+      return total;
+    }
+
+    /** Assigns the row (counted from 1) to a column, moving the rows that are assigned already as needed. */
+    private void augment(int i) {
+      p[0] = i;
+      int j0 = 0;
+      Arrays.fill(minv, Integer.MAX_VALUE);
+      Arrays.fill(used, false);
+      do {
+        used[j0] = true;
+        int i0 = p[j0], delta = Integer.MAX_VALUE, j1 = 0;
+        for (int j = 1; j <= n; j++) {
+          if (! used[j]) {
+            int current = cost[i0 - 1][j - 1] - u[i0] - v[j];
+            if (current < minv[j]) {
+              minv[j] = current;
+              way[j] = j0;
+            }
+            if (minv[j] < delta) {
+              delta = minv[j];
+              j1 = j;
+            }
+          }
+        }
+        for (int j = 0; j <= n; j++) {
+          if (used[j]) {
+            u[p[j]] += delta;
+            v[j] -= delta;
+          } else if (minv[j] != Integer.MAX_VALUE) {
+            minv[j] -= delta;
+          }
+        }
+        j0 = j1;
+      } while (p[j0] != 0);
+      do {
+        int j1 = way[j0];
+        p[j0] = p[j1];
+        j0 = j1;
+      } while (j0 != 0);
     }
   }
 }

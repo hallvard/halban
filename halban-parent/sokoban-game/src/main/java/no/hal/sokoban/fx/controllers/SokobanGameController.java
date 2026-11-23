@@ -355,20 +355,11 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 					case UNSOLVABLE -> messageText.setText("This position can't be solved, undo some moves.");
 					case GAVE_UP -> messageText.setText("No hint found, the search gave up.");
 					case SOLVED -> {
-						// the moves are grouped, each group a walk and the push that follows it, which is a step of undo and redo
-						var groups = new ArrayList<Moves>();
-						var group = new ArrayList<Move>();
-						for (var move : result.moves()) {
-							group.add(move);
-							if (move.moveKind() == Move.Kind.PUSH) {
-								groups.add(Moves.of(group));
-								group = new ArrayList<>();
-							}
-						}
+						var groups = stepsOf(result.moves());
 						if (groups.isEmpty()) {
 							messageText.setText("The level is solved.");
 						} else {
-							// all the groups are put on the redo stack, and the first is redone like the redo button does, so the rest are one redo each away
+							// all the steps are put on the redo stack, and only the first (a walk or a push) is redone, like the redo button does, so the rest are one redo each away
 							game.setRedoMoves(groups);
 							updateStatus();
 							undoableController.redo(1);
@@ -379,6 +370,24 @@ public class SokobanGameController extends AbstractSokobanGameProvider implement
 		}, "hint");
 		thread.setDaemon(true);
 		thread.start();
+	}
+
+	/** The moves as steps of undo and redo: a walk (the moves before a push) is a step, and each push is a step of its own. */
+	static List<Moves> stepsOf(Moves moves) {
+		var steps = new ArrayList<Moves>();
+		var walk = new ArrayList<Move>();
+		for (var move : moves) {
+			if (move.moveKind() == Move.Kind.PUSH) {
+				if (! walk.isEmpty()) {
+					steps.add(Moves.of(walk));
+					walk = new ArrayList<>();
+				}
+				steps.add(Moves.of(List.of(move)));
+			} else {
+				walk.add(move);
+			}
+		}
+		return steps;
 	}
 
 	protected void ensureKeyboardFocus() {

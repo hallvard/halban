@@ -74,6 +74,8 @@ public final class SokobanSolver {
   // the grid with a wall around it, so a neighbor of a cell is always inside
   private final int width, height, size;
   private final int[] delta;
+  /** The 8 cells around a cell, clockwise from above: the sides are the even ones. */
+  private final int[] ring;
   private final boolean[] wall, target;
   private final boolean[] dead;
   private final int[] targets;
@@ -99,6 +101,7 @@ public final class SokobanSolver {
     this.height = grid.getHeight() + 2;
     this.size = width * height;
     this.delta = new int[] {-1, 1, -width, width};
+    this.ring = new int[] {-width, -width + 1, 1, width + 1, width, width - 1, -1, -width - 1};
     this.wall = new boolean[size];
     this.target = new boolean[size];
     Arrays.fill(wall, true);
@@ -426,7 +429,7 @@ public final class SokobanSolver {
     }
     setBoxes(boxes, true);
     reachableStamp++;
-    flood(search.player[id], reachable, reachableStamp);
+    int smallest = flood(search.player[id], reachable, reachableStamp);
     for (int i = 0; i < boxes.length; i++) {
       int box = boxes[i];
       for (int d = 0; d < 4; d++) {
@@ -439,7 +442,7 @@ public final class SokobanSolver {
         boxAt[to] = true;
         blocked[box] = false;
         blocked[to] = true;
-        int canonical = canonicalPlayer(box);
+        int canonical = canonicalAfterPush(box, to, smallest);
         long boxHash = nodeHash ^ boxZobrist[box] ^ boxZobrist[to];
         long hash = boxHash ^ playerZobrist[canonical];
         int known = search.lookup(hash);
@@ -516,6 +519,61 @@ public final class SokobanSolver {
       }
     }
     return smallest;
+  }
+
+  /**
+   * The canonical player cell after the push of the box from {@code box} to {@code to}, where {@code smallest} is that of the cells the player could reach before it
+   * (in {@code reachable}). The player is now at {@code box}, and the cells he can reach are those he could reach, less {@code to} and plus {@code box}, as long as
+   * no free cell next to {@code box} was out of reach before (it is now opened up) and {@code to} did not split the area (checked in the cells around it). Then it is
+   * found without walking the area again, and if not, by the flood.
+   */
+  private int canonicalAfterPush(int box, int to, int smallest) {
+    for (int step : delta) {
+      int next = box + step;
+      if (! blocked[next] && reachable[next] != reachableStamp) {
+        return canonicalPlayer(box);
+      }
+    }
+    if (reachable[to] == reachableStamp) {
+      if (to == smallest) {
+        return canonicalPlayer(box);
+      }
+      int free = 0;
+      for (int i = 0; i < 8; i++) {
+        if (! blocked[to + ring[i]]) {
+          free |= 1 << i;
+        }
+      }
+      if (! CONNECTED[free]) {
+        return canonicalPlayer(box);
+      }
+    }
+    return Math.min(smallest, box);
+  }
+
+  /** For each set of the 8 cells around a cell that are free (bit i is the cell {@code ring[i]}, clockwise from above), whether the free cells next to it (not diagonal) are connected around it. */
+  private static final boolean[] CONNECTED = new boolean[256];
+  static {
+    for (int free = 0; free < 256; free++) {
+      int runsWithSide = 0;
+      for (int i = 0; i < 8; i++) {
+        boolean cell = (free >> i & 1) != 0, before = (free >> (i + 7) % 8 & 1) != 0;
+        if (cell && (! before || free == 255)) {
+          // the start of a run of free cells: does it have a cell next to the middle in it?
+          boolean side = false;
+          for (int j = i; (free >> j % 8 & 1) != 0 && j < i + 8; j++) {
+            side |= j % 2 == 0;
+          }
+          if (side) {
+            runsWithSide++;
+          }
+          if (free == 255) {
+            break;
+          }
+        }
+      }
+      CONNECTED[free] = runsWithSide <= 1;
+    }
   }
 
   private int canonicalPlayer(int from) {

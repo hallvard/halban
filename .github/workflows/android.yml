@@ -1,6 +1,6 @@
-name: Android
+name: "Android, changed 2026-11-23T22:03"
 
-# Builds the native Android app (an apk) with Gluon, which can only be done on Linux. It is started by a push to main, or by hand
+# Builds the native Android app (an apk) with Gluon, which can only be done on Linux. It takes a while, so it is only started when this file is changed (the timestamp in the name is for that) and pushed to main, or by hand
 # (Actions, Android, Run workflow, which also works from a phone), and the apk is a file of the run.
 # Gluon's GraalVM needs Java 23 here, and the JavaFX version of the poms (24) has an Android version. The same setup is used for riskfx.
 # The Gluon plugin is documented for Maven 3.8.8 or older, so that is what is used here, not Maven 4.
@@ -17,7 +17,10 @@ name: Android
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches:
+      - main
+    paths:
+      - '.github/workflows/android.yml'
 
 jobs:
   apk:

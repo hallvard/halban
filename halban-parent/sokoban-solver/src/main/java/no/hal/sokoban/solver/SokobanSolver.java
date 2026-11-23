@@ -86,6 +86,8 @@ public final class SokobanSolver {
 
   // working storage, which is why a solver can only be used by one thread at a time
   private final boolean[] boxAt;
+  /** Walls and boxes, which is what the player can't walk through: kept in step with {@code boxAt}. */
+  private final boolean[] blocked;
   private final int[] reachable, seen;
   private int reachableStamp, seenStamp;
   private final int[] queue;
@@ -134,6 +136,7 @@ public final class SokobanSolver {
       playerZobrist[i] = random.nextLong();
     }
     this.boxAt = new boolean[size];
+    this.blocked = wall.clone();
     this.reachable = new int[size];
     this.seen = new int[size];
     this.queue = new int[size];
@@ -434,6 +437,8 @@ public final class SokobanSolver {
         }
         boxAt[box] = false;
         boxAt[to] = true;
+        blocked[box] = false;
+        blocked[to] = true;
         int canonical = canonicalPlayer(box);
         long boxHash = nodeHash ^ boxZobrist[box] ^ boxZobrist[to];
         long hash = boxHash ^ playerZobrist[canonical];
@@ -464,6 +469,8 @@ public final class SokobanSolver {
         }
         boxAt[to] = false;
         boxAt[box] = true;
+        blocked[to] = false;
+        blocked[box] = true;
       }
     }
     setBoxes(boxes, false);
@@ -472,6 +479,7 @@ public final class SokobanSolver {
   private void setBoxes(int[] boxes, boolean present) {
     for (int box : boxes) {
       boxAt[box] = present;
+      blocked[box] = present;
     }
   }
 
@@ -480,15 +488,31 @@ public final class SokobanSolver {
     int head = 0, tail = 0, smallest = from;
     queue[tail++] = from;
     marks[from] = stamp;
+    int left = delta[0], right = delta[1], up = delta[2], down = delta[3];
     while (head < tail) {
       int cell = queue[head++];
-      smallest = Math.min(smallest, cell);
-      for (int step : delta) {
-        int next = cell + step;
-        if (marks[next] != stamp && ! wall[next] && ! boxAt[next]) {
-          marks[next] = stamp;
-          queue[tail++] = next;
-        }
+      if (cell < smallest) {
+        smallest = cell;
+      }
+      int next = cell + left;
+      if (marks[next] != stamp && ! blocked[next]) {
+        marks[next] = stamp;
+        queue[tail++] = next;
+      }
+      next = cell + right;
+      if (marks[next] != stamp && ! blocked[next]) {
+        marks[next] = stamp;
+        queue[tail++] = next;
+      }
+      next = cell + up;
+      if (marks[next] != stamp && ! blocked[next]) {
+        marks[next] = stamp;
+        queue[tail++] = next;
+      }
+      next = cell + down;
+      if (marks[next] != stamp && ! blocked[next]) {
+        marks[next] = stamp;
+        queue[tail++] = next;
       }
     }
     return smallest;
